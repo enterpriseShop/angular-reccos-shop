@@ -1,0 +1,52 @@
+<!-- Dynamic Page Header based on Current URL -->
+<app-page-header
+  [title]="pageDetails().title"
+  [subtitle]="pageDetails().subtitle"
+  [breadcrumbs]="pageDetails().breadcrumbs"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="outline" size="sm" iconStart="download" (btnClick)="onAction('Exportar')">
+      Exportar Relatório
+    </app-button>
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="onAction('Novo Cadastro')">
+      {{ pageDetails().buttonText }}
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 max-w-md">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar registros..."
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="onAction('Atualizar')">
+      Atualizar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Data Table & Integrated Pagination -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="paginatedData()"
+    [roundedBottom]="false"
+    (editRow)="onAction('Editar')"
+    (deleteRow)="onAction('Excluir')"
+  />
+
+  <app-pagination
+    [currentPage]="currentPage()"
+    [pageSize]="pageSize()"
+    [totalItems]="filteredData().length"
+    [pageSizeOptions]="[5, 10, 25]"
+    (pageChange)="currentPage.set($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>

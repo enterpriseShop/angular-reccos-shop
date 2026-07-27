@@ -1,0 +1,149 @@
+<!-- Page Header -->
+<app-page-header
+  title="Dashboard Executivo"
+  subtitle="Painel de controle central de catálogo, compatibilidade e autopeças Reccos Shop."
+  [breadcrumbs]="[{ label: 'Dashboard' }]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="outline" size="sm" iconStart="refresh-cw" (btnClick)="refreshStats()">
+      Atualizar Dados
+    </app-button>
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="navTo('/catalog/products')">
+      Novo Produto
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Welcome Card -->
+<div class="p-6 bg-gradient-to-r from-[#4F8A6B] to-[#38624C] text-white rounded-[16px] shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div>
+    <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/20 rounded-md backdrop-blur-xs">
+      Bem-vindo ao Reccos Shop
+    </span>
+    <h2 class="text-xl sm:text-2xl font-bold mt-2 leading-tight">
+      Plataforma de Autopeças e Gestão de Catálogo
+    </h2>
+    <p class="text-xs sm:text-sm text-white/80 mt-1 max-w-2xl leading-relaxed">
+      Centralize códigos OEM, compatibilidade veicular, gestão de fabricantes e estoque integrado em uma única interface padronizada.
+    </p>
+  </div>
+
+  <div class="flex items-center gap-2 shrink-0">
+    <app-button variant="secondary" size="sm" iconEnd="chevron-right" (btnClick)="navTo('/catalog/products')">
+      Explorar Catálogo
+    </app-button>
+  </div>
+</div>
+
+<!-- Executive Quick Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Total de Produtos</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">12.480</h3>
+      <span class="text-[10px] text-[#5BAE6A] font-semibold flex items-center gap-0.5 mt-0.5">
+        +142 cadastrados este mês
+      </span>
+    </div>
+    <div class="p-3 bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] rounded-xl">
+      <app-icon name="box" size="w-6 h-6" />
+    </div>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Aplicações Veiculares</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">48.920</h3>
+      <span class="text-[10px] text-gray-400 font-medium mt-0.5">Cruzamento por modelo/ano</span>
+    </div>
+    <div class="p-3 bg-blue-50 dark:bg-blue-950/50 text-[#5A8DEE] rounded-xl">
+      <app-icon name="car" size="w-6 h-6" />
+    </div>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Mapeamentos OEM</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">32.110</h3>
+      <span class="text-[10px] text-[#5BAE6A] font-semibold mt-0.5">99.2% de precisão</span>
+    </div>
+    <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-[#5BAE6A] rounded-xl">
+      <app-icon name="layers" size="w-6 h-6" />
+    </div>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Alertas de Estoque</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">42</h3>
+      <span class="text-[10px] text-[#D66A6A] font-semibold mt-0.5">Depósito Central SP</span>
+    </div>
+    <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-[#D66A6A] rounded-xl">
+      <app-icon name="shopping-bag" size="w-6 h-6" />
+    </div>
+  </div>
+</div>
+
+<!-- Operational Modules Cards -->
+<h3 class="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-3">
+  Módulos Operacionais Principais
+</h3>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <button
+    type="button"
+    (click)="navTo('/catalog/products')"
+    class="text-left p-5 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs hover:border-[#4F8A6B] transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/30"
+  >
+    <div class="flex items-center justify-between mb-3">
+      <div class="p-2.5 bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] rounded-xl">
+        <app-icon name="box" size="w-6 h-6" />
+      </div>
+      <app-badge variant="primary">Catálogo</app-badge>
+    </div>
+    <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors">
+      Catálogo de Peças
+    </h4>
+    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
+      Categorias, fabricantes, tags de busca e cadastro mestre de produtos.
+    </p>
+  </button>
+
+  <button
+    type="button"
+    (click)="navTo('/compatibility/oem-codes')"
+    class="text-left p-5 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs hover:border-[#4F8A6B] transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/30"
+  >
+    <div class="flex items-center justify-between mb-3">
+      <div class="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-[#5A8DEE] rounded-xl">
+        <app-icon name="layers" size="w-6 h-6" />
+      </div>
+      <app-badge variant="info">Compatibilidade</app-badge>
+    </div>
+    <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors">
+      OEM & Equivalência
+    </h4>
+    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
+      Tabela cruzada de códigos equivalentes, montadoras e conversão de autopeças.
+    </p>
+  </button>
+
+  <button
+    type="button"
+    (click)="navTo('/commercial/inventory')"
+    class="text-left p-5 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs hover:border-[#4F8A6B] transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/30"
+  >
+    <div class="flex items-center justify-between mb-3">
+      <div class="p-2.5 bg-amber-50 dark:bg-amber-950/50 text-[#E9B949] rounded-xl">
+        <app-icon name="shopping-bag" size="w-6 h-6" />
+      </div>
+      <app-badge variant="warning">Comercial</app-badge>
+    </div>
+    <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors">
+      Estoque & Preços
+    </h4>
+    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
+      Ajuste de saldo, depósitos distribuídos, tabelas de preço e fornecedores.
+    </p>
+  </button>
+</div>

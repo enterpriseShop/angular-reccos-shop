@@ -1,0 +1,101 @@
+<div [class]="containerClasses()">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs">
+      <!-- Table Header -->
+      <thead class="bg-gray-50/80 dark:bg-slate-800/80 text-gray-500 dark:text-slate-400 font-semibold border-b border-gray-100 dark:border-slate-700/80 uppercase tracking-wider">
+        <tr>
+          @for (col of columns(); track col.key) {
+            <th
+              [style.width]="col.width || 'auto'"
+              [class.text-center]="col.align === 'center'"
+              [class.text-right]="col.align === 'right'"
+              class="px-4 py-3.5 select-none"
+            >
+              <div class="inline-flex items-center gap-1">
+                <span>{{ col.header }}</span>
+              </div>
+            </th>
+          }
+          @if (hasActions()) {
+            <th class="px-4 py-3.5 text-right">Ações</th>
+          }
+        </tr>
+      </thead>
+
+      <!-- Table Body -->
+      <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-700 dark:text-slate-200">
+        @if (loading()) {
+          @for (i of [1, 2, 3, 4, 5]; track i) {
+            <tr>
+              @for (col of columns(); track col.key) {
+                <td class="px-4 py-3.5">
+                  <app-skeleton height="h-4" />
+                </td>
+              }
+              @if (hasActions()) {
+                <td class="px-4 py-3.5">
+                  <app-skeleton height="h-4" width="w-16" />
+                </td>
+              }
+            </tr>
+          }
+        } @else if (data().length === 0) {
+          <tr>
+            <td [attr.colspan]="columns().length + (hasActions() ? 1 : 0)" class="py-6">
+              <app-empty-state
+                [title]="emptyTitle()"
+                [description]="emptyDescription()"
+              />
+            </td>
+          </tr>
+        } @else {
+          @for (row of data(); track row) {
+            <tr
+              (click)="onRowClick(row)"
+              (keydown.enter)="onRowClick(row)"
+              tabindex="0"
+              class="hover:bg-gray-50/80 dark:hover:bg-slate-700/40 transition-colors cursor-pointer group focus:outline-none focus:bg-gray-100 dark:focus:bg-slate-700"
+            >
+              @for (col of columns(); track col.key) {
+                <td
+                  [class.text-center]="col.align === 'center'"
+                  [class.text-right]="col.align === 'right'"
+                  class="px-4 py-3.5 font-normal"
+                >
+                  @if (col.cell) {
+                    {{ col.cell(row) }}
+                  } @else {
+                    {{ row[col.key] }}
+                  }
+                </td>
+              }
+
+              @if (hasActions()) {
+                <td class="px-4 py-3.5 text-right" (click)="$event.stopPropagation()">
+                  <div class="inline-flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      (click)="onEdit(row)"
+                      class="p-1 rounded text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                      title="Editar"
+                    >
+                      <app-icon name="edit" size="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      (click)="onDelete(row)"
+                      class="p-1 rounded text-gray-400 hover:text-[#D66A6A] hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                      title="Excluir"
+                    >
+                      <app-icon name="trash-2" size="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

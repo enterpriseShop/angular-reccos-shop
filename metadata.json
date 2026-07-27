@@ -1,0 +1,6 @@
+{
+  "name": "Reccos Shop",
+  "description": "Plataforma de Gestão de Catálogo e Autopeças Reccos Shop - Application Shell & Design System",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

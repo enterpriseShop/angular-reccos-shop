@@ -1,0 +1,9 @@
+<main
+  [class.lg:pl-[280px]]="shellState.sidebarExpanded()"
+  [class.lg:pl-[72px]]="!shellState.sidebarExpanded()"
+  class="pt-[64px] pb-[36px] min-h-screen transition-all duration-200 ease-in-out bg-[#F7F8FA] dark:bg-[#0F172A]"
+>
+  <div class="w-full p-4 sm:p-5 lg:p-6 min-h-[calc(100vh-100px)]">
+    <router-outlet />
+  </div>
+</main>

@@ -1,0 +1,918 @@
+    <!-- Page Header & Actions -->
+    <app-page-header
+      [title]="headerTitle()"
+      subtitle="Cadastre e gerencie todas as informações comerciais e técnicas do produto."
+      [breadcrumbs]="breadcrumbs()"
+    >
+      <div actions class="flex items-center gap-2">
+        @if (mode() === 'view') {
+          <app-button variant="outline" size="sm" iconStart="arrow-left" (btnClick)="navigateBack()">
+            Voltar
+          </app-button>
+          <app-button variant="primary" size="sm" iconStart="edit" (btnClick)="switchToEdit()">
+            Editar
+          </app-button>
+        } @else {
+          <app-button variant="outline" size="sm" (btnClick)="onCancel()">
+            Cancelar
+          </app-button>
+          @if (mode() === 'edit') {
+            <app-button variant="outline" size="sm" iconStart="copy" (btnClick)="switchToDuplicate()">
+              Duplicar
+            </app-button>
+          }
+        }
+      </div>
+    </app-page-header>
+
+    <!-- Tab Navigation Header -->
+    <div class="sticky top-[64px] z-10 mb-6 border-b border-gray-200 dark:border-slate-700/80 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-t-xl px-4 pt-3 shadow-2xs">
+      <nav class="flex space-x-6 overflow-x-auto scrollbar-none" aria-label="Abas de Cadastro">
+        <button
+          type="button"
+          (click)="setActiveTab('geral')"
+          [class]="tabClasses('geral')"
+        >
+          <app-icon name="box" size="w-4 h-4" />
+          <span>Geral</span>
+          @if (hasTabError('geral')) {
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          }
+        </button>
+
+        <button
+          type="button"
+          (click)="setActiveTab('comercial')"
+          [class]="tabClasses('comercial')"
+        >
+          <app-icon name="shopping-bag" size="w-4 h-4" />
+          <span>Comercial</span>
+          @if (hasTabError('comercial')) {
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          }
+        </button>
+
+        <button
+          type="button"
+          (click)="setActiveTab('compatibilidade')"
+          [class]="tabClasses('compatibilidade')"
+        >
+          <app-icon name="layers" size="w-4 h-4" />
+          <span>Compatibilidade</span>
+          <span class="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+            {{ oemCodes().length + vehicleApplications().length }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setActiveTab('midia')"
+          [class]="tabClasses('midia')"
+        >
+          <app-icon name="image" size="w-4 h-4" />
+          <span>Mídia</span>
+          <span class="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+            {{ mediaImages().length }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setActiveTab('administracao')"
+          [class]="tabClasses('administracao')"
+        >
+          <app-icon name="building" size="w-4 h-4" />
+          <span>Administração</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Main Content Body (Tabs) -->
+    <div class="mb-28">
+      <!-- ABA GERAL -->
+      @if (activeTab() === 'geral') {
+        <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Nome do Produto -->
+            <app-input
+              label="Nome do Produto"
+              [required]="true"
+              placeholder="Digite o nome do produto"
+              [value]="formName()"
+              [disabled]="isReadOnly()"
+              [error]="errors()['name']"
+              (valueChange)="updateField('name', $event)"
+            />
+
+            <!-- Código Interno -->
+            <app-input
+              label="Código Interno"
+              [required]="true"
+              placeholder="Ex.: ABC-12345"
+              [value]="formInternalCode()"
+              [disabled]="isReadOnly()"
+              [error]="errors()['internal_code']"
+              helperText="Identificador único no catálogo Reccos Shop"
+              (valueChange)="updateField('internal_code', $event)"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Categoria -->
+            <app-select
+              label="Categoria"
+              [required]="true"
+              placeholder="Selecione a categoria"
+              [value]="formCategoryId()"
+              [options]="categoryOptions"
+              [disabled]="isReadOnly()"
+              [error]="errors()['category_id']"
+              (valueChange)="updateField('category_id', $event)"
+            />
+
+            <!-- Fabricante -->
+            <app-select
+              label="Fabricante"
+              [required]="true"
+              placeholder="Selecione o fabricante"
+              [value]="formManufacturerId()"
+              [options]="manufacturerOptions"
+              [disabled]="isReadOnly()"
+              [error]="errors()['manufacturer_id']"
+              (valueChange)="updateField('manufacturer_id', $event)"
+            />
+
+            <!-- Origem da Peça -->
+            <app-select
+              label="Origem da Peça"
+              placeholder="Selecione a origem"
+              [value]="formPartOriginId()"
+              [options]="partOriginOptions"
+              [disabled]="isReadOnly()"
+              (valueChange)="updateField('part_origin_id', $event)"
+            />
+
+            <!-- Unidade de Medida -->
+            <app-select
+              label="Unidade de Medida"
+              [required]="true"
+              placeholder="Selecione a unidade"
+              [value]="formUnitId()"
+              [options]="unitOptions"
+              [disabled]="isReadOnly()"
+              [error]="errors()['unit_id']"
+              (valueChange)="updateField('unit_id', $event)"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Status -->
+            <app-select
+              label="Status"
+              [required]="true"
+              placeholder="Selecione o status"
+              [value]="formStatusId()"
+              [options]="statusOptions"
+              [disabled]="isReadOnly()"
+              [error]="errors()['status_id']"
+              (valueChange)="updateField('status_id', $event)"
+            />
+          </div>
+
+          <!-- Descrição Detalhada -->
+          <div>
+            <label for="description-textarea" class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
+              Descrição
+            </label>
+            <textarea
+              id="description-textarea"
+              rows="6"
+              [value]="formDescription()"
+              [disabled]="isReadOnly()"
+              (input)="onTextareaInput($event)"
+              placeholder="Informações técnicas detalhadas sobre aplicação, especificações e composição..."
+              class="w-full px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-[8px] text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#4F8A6B] focus:ring-2 focus:ring-[#4F8A6B]/20 disabled:bg-gray-100 dark:disabled:bg-slate-900 min-h-[180px] transition-colors resize-y"
+            ></textarea>
+          </div>
+
+          <!-- Dimensões e Peso -->
+          <div class="pt-4 border-t border-gray-100 dark:border-slate-700/60">
+            <h4 class="text-xs font-bold text-gray-900 dark:text-slate-200 uppercase tracking-wider mb-3">
+              Dimensões e Peso
+            </h4>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <app-input
+                label="Peso (kg)"
+                type="number"
+                placeholder="0.00"
+                [value]="formWeight().toString()"
+                [disabled]="isReadOnly()"
+                (valueChange)="updateNumberField('weight', $event)"
+              />
+
+              <app-input
+                label="Altura (cm)"
+                type="number"
+                placeholder="0.00"
+                [value]="formHeight().toString()"
+                [disabled]="isReadOnly()"
+                (valueChange)="updateNumberField('height', $event)"
+              />
+
+              <app-input
+                label="Largura (cm)"
+                type="number"
+                placeholder="0.00"
+                [value]="formWidth().toString()"
+                [disabled]="isReadOnly()"
+                (valueChange)="updateNumberField('width', $event)"
+              />
+
+              <app-input
+                label="Comprimento (cm)"
+                type="number"
+                placeholder="0.00"
+                [value]="formLength().toString()"
+                [disabled]="isReadOnly()"
+                (valueChange)="updateNumberField('length', $event)"
+              />
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ABA COMERCIAL -->
+      @if (activeTab() === 'comercial') {
+        <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Preço Base -->
+            <app-input
+              label="Preço Base (R$)"
+              [required]="true"
+              placeholder="0,00"
+              [value]="formPrice().toString()"
+              [disabled]="isReadOnly()"
+              [error]="errors()['price']"
+              iconPrefix="dollar-sign"
+              (valueChange)="updateNumberField('price', $event)"
+            />
+
+            <!-- Preço Promocional -->
+            <app-input
+              label="Preço Promocional (R$)"
+              placeholder="0,00"
+              [value]="formPromotionalPrice() !== null ? formPromotionalPrice()!.toString() : ''"
+              [disabled]="isReadOnly()"
+              iconPrefix="dollar-sign"
+              (valueChange)="updateNullableNumberField('promotional_price', $event)"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Início da Promoção -->
+            <app-input
+              label="Início da Promoção"
+              type="date"
+              [value]="formPromotionStartDate() || ''"
+              [disabled]="isReadOnly()"
+              (valueChange)="updateField('promotion_start_date', $event)"
+            />
+
+            <!-- Fim da Promoção -->
+            <app-input
+              label="Fim da Promoção"
+              type="date"
+              [value]="formPromotionEndDate() || ''"
+              [disabled]="isReadOnly()"
+              (valueChange)="updateField('promotion_end_date', $event)"
+            />
+          </div>
+
+          <div class="pt-4 border-t border-gray-100 dark:border-slate-700/60 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Depósito -->
+            <app-select
+              label="Depósito"
+              placeholder="Selecione o depósito"
+              [value]="formWarehouseId()"
+              [options]="warehouseOptions"
+              [disabled]="isReadOnly()"
+              (valueChange)="updateField('warehouse_id', $event)"
+            />
+
+            <!-- Quantidade em Estoque -->
+            <app-input
+              label="Quantidade"
+              type="number"
+              placeholder="0"
+              [value]="formQuantity().toString()"
+              [disabled]="isReadOnly()"
+              (valueChange)="updateNumberField('quantity', $event)"
+            />
+
+            <!-- Quantidade Mínima -->
+            <app-input
+              label="Quantidade Mínima"
+              type="number"
+              placeholder="0"
+              [value]="formMinQuantity().toString()"
+              [disabled]="isReadOnly()"
+              (valueChange)="updateNumberField('min_quantity', $event)"
+            />
+          </div>
+
+          <!-- Permitir Backorder -->
+          <div class="pt-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-gray-900 dark:text-slate-200">Permitir Backorder (Venda sem Estoque)</p>
+              <p class="text-xs text-gray-500 dark:text-slate-400">Permite que o produto continue recebendo pedidos mesmo sem saldo físico em estoque</p>
+            </div>
+
+            <button
+              type="button"
+              [disabled]="isReadOnly()"
+              (click)="toggleBackorder()"
+              [class]="formAllowBackorder() ? 'bg-[#4F8A6B]' : 'bg-gray-200 dark:bg-slate-700'"
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span
+                [class]="formAllowBackorder() ? 'translate-x-5' : 'translate-x-0'"
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+              ></span>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ABA COMPATIBILIDADE -->
+      @if (activeTab() === 'compatibilidade') {
+        <div class="space-y-6">
+          <!-- Card OEM Codes -->
+          <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                  <app-icon name="box" size="w-5 h-5 text-[#4F8A6B]" />
+                  Códigos OEM
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Códigos originais de montadoras cadastrados para esta peça</p>
+              </div>
+
+              @if (!isReadOnly()) {
+                <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openAddOemModal()">
+                  Adicionar Código OEM
+                </app-button>
+              }
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80">
+                  <tr>
+                    <th class="px-4 py-2.5">Fabricante / Montadora</th>
+                    <th class="px-4 py-2.5">Código OEM</th>
+                    <th class="px-4 py-2.5 text-center">Principal</th>
+                    <th class="px-4 py-2.5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200">
+                  @for (oem of oemCodes(); track oem.id) {
+                    <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+                      <td class="px-4 py-3 font-medium">{{ oem.manufacturer }}</td>
+                      <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">{{ oem.oemCode }}</td>
+                      <td class="px-4 py-3 text-center">
+                        @if (oem.isPrimary) {
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A]">
+                            <app-icon name="star" size="w-3 h-3" /> Principal
+                          </span>
+                        } @else if (!isReadOnly()) {
+                          <button type="button" (click)="setPrimaryOem(oem.id)" class="text-gray-400 hover:text-[#4F8A6B] text-[11px] underline">
+                            Marcar Principal
+                          </button>
+                        } @else {
+                          <span class="text-gray-400">-</span>
+                        }
+                      </td>
+                      <td class="px-4 py-3 text-right space-x-2">
+                        @if (!isReadOnly()) {
+                          <button type="button" (click)="removeOemCode(oem.id)" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40">
+                            <app-icon name="trash-2" size="w-4 h-4" />
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="4" class="px-4 py-6 text-center text-gray-400">Nenhum código OEM cadastrado.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Card Product Codes -->
+          <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                  <app-icon name="tag" size="w-5 h-5 text-[#5A8DEE]" />
+                  Códigos de Barras & Referência
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-slate-400">EAN-13, DUN-14 e códigos de fabricante comercial</p>
+              </div>
+
+              @if (!isReadOnly()) {
+                <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openAddProductCodeModal()">
+                  Adicionar Código
+                </app-button>
+              }
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80">
+                  <tr>
+                    <th class="px-4 py-2.5">Tipo</th>
+                    <th class="px-4 py-2.5">Código</th>
+                    <th class="px-4 py-2.5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200">
+                  @for (codeItem of productCodes(); track codeItem.id) {
+                    <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+                      <td class="px-4 py-3 font-medium">{{ codeItem.type }}</td>
+                      <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">{{ codeItem.code }}</td>
+                      <td class="px-4 py-3 text-right">
+                        @if (!isReadOnly()) {
+                          <button type="button" (click)="removeProductCode(codeItem.id)" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40">
+                            <app-icon name="trash-2" size="w-4 h-4" />
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="3" class="px-4 py-6 text-center text-gray-400">Nenhum código cadastrado.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Card Produtos Equivalentes -->
+          <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                  <app-icon name="copy" size="w-5 h-5 text-purple-500" />
+                  Produtos Equivalentes
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Peças similares de concorrentes ou marcas cruzadas</p>
+              </div>
+
+              @if (!isReadOnly()) {
+                <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openAddEquivalentModal()">
+                  Adicionar Equivalente
+                </app-button>
+              }
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80">
+                  <tr>
+                    <th class="px-4 py-2.5">Produto Equivalente</th>
+                    <th class="px-4 py-2.5">Observação</th>
+                    <th class="px-4 py-2.5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200">
+                  @for (eq of equivalentProducts(); track eq.id) {
+                    <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+                      <td class="px-4 py-3 font-semibold text-gray-900 dark:text-slate-100">{{ eq.productName }}</td>
+                      <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ eq.notes }}</td>
+                      <td class="px-4 py-3 text-right">
+                        @if (!isReadOnly()) {
+                          <button type="button" (click)="removeEquivalent(eq.id)" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40">
+                            <app-icon name="trash-2" size="w-4 h-4" />
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="3" class="px-4 py-6 text-center text-gray-400">Nenhum produto equivalente vinculado.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Card Aplicações Veiculares -->
+          <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                  <app-icon name="car" size="w-5 h-5 text-amber-500" />
+                  Aplicações Veiculares
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Compatibilidade com marca, modelo, versão, motorização e anos do veículo</p>
+              </div>
+
+              @if (!isReadOnly()) {
+                <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openAddVehicleModal()">
+                  Adicionar Aplicação
+                </app-button>
+              }
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80">
+                  <tr>
+                    <th class="px-4 py-2.5">Marca</th>
+                    <th class="px-4 py-2.5">Modelo</th>
+                    <th class="px-4 py-2.5">Versão</th>
+                    <th class="px-4 py-2.5">Motor</th>
+                    <th class="px-4 py-2.5 text-center">Ano Inicial</th>
+                    <th class="px-4 py-2.5 text-center">Ano Final</th>
+                    <th class="px-4 py-2.5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200">
+                  @for (veh of vehicleApplications(); track veh.id) {
+                    <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+                      <td class="px-4 py-3 font-semibold">{{ veh.brand }}</td>
+                      <td class="px-4 py-3 font-medium">{{ veh.model }}</td>
+                      <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ veh.version }}</td>
+                      <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">{{ veh.engine }}</td>
+                      <td class="px-4 py-3 text-center">{{ veh.startYear }}</td>
+                      <td class="px-4 py-3 text-center">{{ veh.endYear || 'Atual' }}</td>
+                      <td class="px-4 py-3 text-right">
+                        @if (!isReadOnly()) {
+                          <button type="button" (click)="removeVehicleApplication(veh.id)" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40">
+                            <app-icon name="trash-2" size="w-4 h-4" />
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="px-4 py-6 text-center text-gray-400">Nenhuma aplicação veicular vinculada.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ABA MÍDIA -->
+      @if (activeTab() === 'midia') {
+        <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs space-y-6">
+          <!-- Drag and Drop Upload Area -->
+          @if (!isReadOnly()) {
+            <div
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onFileDrop($event)"
+              [class]="isDragging() ? 'border-[#4F8A6B] bg-[#EAF4EE]/40 dark:bg-[#4F8A6B]/10' : 'border-gray-300 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/40'"
+              class="border-2 border-dashed rounded-[12px] p-8 text-center cursor-pointer transition-colors"
+            >
+              <input
+                type="file"
+                #fileInput
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                class="hidden"
+                (change)="onFileSelected($event)"
+              />
+
+              <button type="button" class="w-full flex flex-col items-center justify-center space-y-2 focus:outline-none" (click)="fileInput.click()">
+                <div class="p-3 bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] rounded-full">
+                  <app-icon name="upload-cloud" size="w-8 h-8" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    Clique para selecionar ou arraste imagens até aqui
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                    Formatos aceitos: JPG, JPEG, PNG, WEBP (Tamanho máximo: 2 MB por arquivo)
+                  </p>
+                </div>
+              </button>
+            </div>
+          }
+
+          <!-- Galeria de Imagens -->
+          <div>
+            <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 mb-3 flex items-center justify-between">
+              <span>Galeria de Fotos ({{ mediaImages().length }})</span>
+              <span class="text-xs font-normal text-gray-500">Uploads processados assincronamente</span>
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              @for (img of mediaImages(); track img.id) {
+                <div class="relative group bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700/80 p-3 shadow-2xs flex flex-col justify-between">
+                  <div class="relative aspect-4/3 w-full bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden mb-3">
+                    <img
+                      [src]="img.url"
+                      [alt]="img.name"
+                      class="w-full h-full object-cover"
+                      referrerpolicy="no-referrer"
+                    />
+
+                    @if (img.isPrimary) {
+                      <div class="absolute top-2 left-2 bg-[#4F8A6B] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                        <app-icon name="star" size="w-3 h-3" /> Principal
+                      </div>
+                    }
+
+                    @if (img.status === 'uploading') {
+                      <div class="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-white">
+                        <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden mb-2">
+                          <div class="bg-[#5BAE6A] h-full transition-all duration-300" [style.width.%]="img.progress"></div>
+                        </div>
+                        <span class="text-[11px] font-semibold">Enviando... {{ img.progress }}%</span>
+                      </div>
+                    } @else if (img.status === 'error') {
+                      <div class="absolute inset-0 bg-rose-950/80 text-rose-200 flex flex-col items-center justify-center p-2 text-center">
+                        <app-icon name="alert-circle" size="w-6 h-6 mb-1 text-rose-400" />
+                        <span class="text-[11px] font-semibold">Erro no Upload</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div>
+                    <p class="text-xs font-semibold text-gray-900 dark:text-slate-100 truncate" [title]="img.name">
+                      {{ img.name }}
+                    </p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">{{ img.size }}</p>
+                  </div>
+
+                  @if (!isReadOnly()) {
+                    <div class="mt-3 pt-2 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                      @if (!img.isPrimary) {
+                        <button type="button" (click)="setPrimaryImage(img.id)" class="text-[#4F8A6B] hover:underline text-[11px] font-medium">
+                          Tornar Principal
+                        </button>
+                      } @else {
+                        <span class="text-[11px] text-gray-400">Imagem Principal</span>
+                      }
+
+                      <button type="button" (click)="confirmDeleteImage(img)" class="text-rose-500 hover:text-rose-700 p-1 rounded-md">
+                        <app-icon name="trash-2" size="w-4 h-4" />
+                      </button>
+                    </div>
+                  }
+                </div>
+              } @empty {
+                <div class="col-span-full py-10 text-center text-gray-400 border border-gray-100 dark:border-slate-800 rounded-xl">
+                  <app-icon name="image" size="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-slate-600" />
+                  <p class="text-xs">Nenhuma imagem enviada para este produto.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ABA ADMINISTRAÇÃO -->
+      @if (activeTab() === 'administracao') {
+        <div class="space-y-6">
+          <!-- Fornecedores -->
+          <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                  <app-icon name="building" size="w-5 h-5 text-[#4F8A6B]" />
+                  Fornecedores Homologados
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Origens de fornecimento, prazos de entrega e preços de compra</p>
+              </div>
+
+              @if (!isReadOnly()) {
+                <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openAddSupplierModal()">
+                  Adicionar Fornecedor
+                </app-button>
+              }
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80">
+                  <tr>
+                    <th class="px-4 py-2.5">Fornecedor</th>
+                    <th class="px-4 py-2.5">Código no Fornecedor</th>
+                    <th class="px-4 py-2.5 text-right">Preço Compra (R$)</th>
+                    <th class="px-4 py-2.5 text-center">Lead Time (Dias)</th>
+                    <th class="px-4 py-2.5 text-center">Preferencial</th>
+                    <th class="px-4 py-2.5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200">
+                  @for (sup of suppliers(); track sup.id) {
+                    <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+                      <td class="px-4 py-3 font-semibold">{{ sup.supplierName }}</td>
+                      <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">{{ sup.supplierCode }}</td>
+                      <td class="px-4 py-3 text-right font-medium">R$ {{ sup.purchasePrice.toFixed(2) }}</td>
+                      <td class="px-4 py-3 text-center">{{ sup.leadTimeDays }} dias</td>
+                      <td class="px-4 py-3 text-center">
+                        @if (sup.isPreferential) {
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">Sim</span>
+                        } @else {
+                          <span class="text-gray-400">Não</span>
+                        }
+                      </td>
+                      <td class="px-4 py-3 text-right">
+                        @if (!isReadOnly()) {
+                          <button type="button" (click)="removeSupplier(sup.id)" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40">
+                            <app-icon name="trash-2" size="w-4 h-4" />
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="6" class="px-4 py-6 text-center text-gray-400">Nenhum fornecedor cadastrado.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tags Multi Select -->
+          <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs">
+            <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 mb-1 flex items-center gap-2">
+              <app-icon name="tag" size="w-5 h-5 text-indigo-500" />
+              Tags do Produto
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-slate-400 mb-3">Marque marcadores de pesquisa e agrupamento rápido</p>
+
+            <div class="flex flex-wrap gap-2">
+              @for (tag of availableTags; track tag.id) {
+                <button
+                  type="button"
+                  [disabled]="isReadOnly()"
+                  (click)="toggleTag(tag.id)"
+                  [class]="isTagSelected(tag.id) ? 'bg-[#4F8A6B] text-white border-[#4F8A6B]' : 'bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:bg-gray-100'"
+                  class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 disabled:opacity-60"
+                >
+                  <span>{{ tag.label }}</span>
+                  @if (isTagSelected(tag.id)) {
+                    <app-icon name="check" size="w-3.5 h-3.5" />
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Notas -->
+          <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                  <app-icon name="info" size="w-5 h-5 text-amber-500" />
+                  Notas e Observações Internas
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-slate-400">Anotações administrativas, técnicas ou comerciais registradas pela equipe</p>
+              </div>
+
+              @if (!isReadOnly()) {
+                <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openAddNoteModal()">
+                  Nova Nota
+                </app-button>
+              }
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80">
+                  <tr>
+                    <th class="px-4 py-2.5">Tipo</th>
+                    <th class="px-4 py-2.5">Descrição</th>
+                    <th class="px-4 py-2.5">Data</th>
+                    <th class="px-4 py-2.5">Autor</th>
+                    <th class="px-4 py-2.5 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200">
+                  @for (note of productNotes(); track note.id) {
+                    <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+                      <td class="px-4 py-3 font-semibold">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] bg-gray-100 dark:bg-slate-700 font-medium">
+                          {{ note.type }}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3">{{ note.description }}</td>
+                      <td class="px-4 py-3 text-gray-500 dark:text-slate-400">{{ note.date }}</td>
+                      <td class="px-4 py-3 text-gray-600 dark:text-slate-300 font-medium">{{ note.author }}</td>
+                      <td class="px-4 py-3 text-right">
+                        @if (!isReadOnly()) {
+                          <button type="button" (click)="removeNote(note.id)" class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40">
+                            <app-icon name="trash-2" size="w-4 h-4" />
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="5" class="px-4 py-6 text-center text-gray-400">Nenhuma nota cadastrada.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Fixed Footer Actions -->
+    <div
+      [class.lg:left-[280px]]="shellState.sidebarExpanded()"
+      [class.lg:left-[72px]]="!shellState.sidebarExpanded()"
+      class="fixed bottom-[36px] left-0 right-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-gray-200 dark:border-slate-800 px-6 py-3 transition-all duration-200"
+    >
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          @if (mode() === 'edit') {
+            <app-button variant="outline" size="sm" (btnClick)="confirmDeleteProduct()">
+              Excluir
+            </app-button>
+          }
+        </div>
+
+        <div class="flex items-center gap-3">
+          @if (mode() === 'view') {
+            <app-button variant="outline" size="sm" (btnClick)="navigateBack()">
+              Voltar
+            </app-button>
+            <app-button variant="primary" size="sm" (btnClick)="switchToEdit()">
+              Editar Produto
+            </app-button>
+          } @else {
+            <app-button variant="outline" size="sm" (btnClick)="onCancel()">
+              Cancelar
+            </app-button>
+            <app-button
+              variant="primary"
+              size="sm"
+              [loading]="isSaving()"
+              (btnClick)="saveProduct(false)"
+            >
+              Salvar
+            </app-button>
+            <app-button
+              variant="secondary"
+              size="sm"
+              [loading]="isSaving()"
+              (btnClick)="saveProduct(true)"
+            >
+              Salvar e Continuar
+            </app-button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Dialog: Excluir Produto -->
+    <app-confirm-dialog
+      [isOpen]="deleteProductDialogOpen()"
+      title="Excluir Produto"
+      message="Deseja realmente excluir este produto? Esta ação não poderá ser desfeita."
+      type="danger"
+      confirmText="Excluir"
+      cancelText="Cancelar"
+      (confirmAction)="executeDeleteProduct()"
+      (cancelAction)="deleteProductDialogOpen.set(false)"
+    />
+
+    <!-- Confirmation Dialog: Alterações não Salvas -->
+    <app-confirm-dialog
+      [isOpen]="unsavedChangesDialogOpen()"
+      title="Alterações não salvas"
+      message="Existem alterações que ainda não foram salvas. Deseja sair da página?"
+      type="warning"
+      confirmText="Sair sem Salvar"
+      cancelText="Continuar Editando"
+      (confirmAction)="executeExitWithoutSave()"
+      (cancelAction)="unsavedChangesDialogOpen.set(false)"
+    />
+
+    <!-- Confirmation Dialog: Excluir Imagem -->
+    <app-confirm-dialog
+      [isOpen]="deleteImageDialogOpen()"
+      title="Excluir Imagem"
+      message="Deseja remover esta imagem?"
+      type="danger"
+      confirmText="Excluir"
+      cancelText="Cancelar"
+      (confirmAction)="executeDeleteImage()"
+      (cancelAction)="deleteImageDialogOpen.set(false)"
+    />

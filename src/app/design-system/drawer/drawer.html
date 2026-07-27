@@ -1,0 +1,52 @@
+@if (isOpen()) {
+  <div class="fixed inset-0 z-50 overflow-hidden">
+    <!-- Backdrop -->
+    <div
+      class="absolute inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs transition-opacity duration-200"
+      (click)="onBackdropClick()"
+      (keydown.escape)="onBackdropClick()"
+      tabindex="0"
+      role="button"
+      aria-label="Fechar painel lateral"
+    ></div>
+
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <!-- Slide Panel -->
+      <div
+        [class]="widthClass()"
+        class="w-screen bg-white dark:bg-slate-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out border-l border-gray-200 dark:border-slate-700"
+      >
+        <!-- Drawer Header -->
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700/80 flex items-center justify-between shrink-0 bg-gray-50/50 dark:bg-slate-800/50">
+          <div class="flex items-center gap-2">
+            @if (icon()) {
+              <app-icon [name]="icon()!" size="w-5 h-5 text-[#4F8A6B]" />
+            }
+            <h2 class="text-base font-semibold text-gray-900 dark:text-slate-100">
+              {{ title() }}
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            (click)="close()"
+            class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            title="Fechar"
+          >
+            <app-icon name="x" size="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Drawer Content -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <ng-content />
+        </div>
+
+        <!-- Drawer Footer (Optional) -->
+        <div class="px-6 py-3 border-t border-gray-100 dark:border-slate-700/80 bg-gray-50/50 dark:bg-slate-800/50 shrink-0">
+          <ng-content select="[footer]" />
+        </div>
+      </div>
+    </div>
+  </div>
+}

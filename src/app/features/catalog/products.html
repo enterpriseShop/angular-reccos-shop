@@ -1,0 +1,141 @@
+<!-- Page Header -->
+<app-page-header
+  title="Catálogo de Produtos"
+  subtitle="Gerenciamento, cadastro e consulta de peças e componentes automotivos."
+  [breadcrumbs]="[
+    { label: 'Catálogo', route: '/catalog' },
+    { label: 'Produtos' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="outline" size="sm" iconStart="download" (btnClick)="exportProducts()">
+      Exportar Excel
+    </app-button>
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newProduct()">
+      Novo Produto
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- KPI Metric Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-2xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Total de Produtos</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">12.480</h3>
+      <span class="text-[10px] text-[#5BAE6A] font-semibold flex items-center gap-0.5 mt-0.5">
+        +142 este mês
+      </span>
+    </div>
+    <div class="p-3 bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] rounded-xl">
+      <app-icon name="box" size="w-6 h-6" />
+    </div>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-2xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Produtos Ativos</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">11.920</h3>
+      <span class="text-[10px] text-gray-400 font-medium mt-0.5">95.5% da base</span>
+    </div>
+    <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-[#5BAE6A] rounded-xl">
+      <app-icon name="check" size="w-6 h-6" />
+    </div>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-2xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Estoque Crítico</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">42</h3>
+      <span class="text-[10px] text-[#D66A6A] font-semibold mt-0.5">Requer reposição</span>
+    </div>
+    <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-[#D66A6A] rounded-xl">
+      <app-icon name="alert-circle" size="w-6 h-6" />
+    </div>
+  </div>
+
+  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-2xs flex items-center justify-between">
+    <div>
+      <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Fabricantes Homologados</p>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">184</h3>
+      <span class="text-[10px] text-[#5A8DEE] font-medium mt-0.5">Bosch, Continental, Marelli</span>
+    </div>
+    <div class="p-3 bg-blue-50 dark:bg-blue-950/50 text-[#5A8DEE] rounded-xl">
+      <app-icon name="building" size="w-6 h-6" />
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por código, nome ou OEM..."
+    />
+
+    <app-select
+      [value]="selectedCategory()"
+      (valueChange)="onCategoryChange($event)"
+      [options]="[
+        { label: 'Todas as Categorias', value: '' },
+        { label: 'Sistemas de Freios', value: 'Freios' },
+        { label: 'Motor & Transmissão', value: 'Motor' },
+        { label: 'Suspensão & Direção', value: 'Suspensao' },
+        { label: 'Sistema Elétrico', value: 'Eletrico' }
+      ]"
+      placeholder="Todas as Categorias"
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="[
+        { label: 'Todos os Status', value: '' },
+        { label: 'Ativo', value: 'Ativo' },
+        { label: 'Baixo Estoque', value: 'Baixo Estoque' },
+        { label: 'Inativo', value: 'Inativo' }
+      ]"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="paginatedProducts()"
+    [roundedBottom]="false"
+    (editRow)="editProduct($event)"
+    (deleteRow)="confirmDelete($event)"
+  />
+
+  <app-pagination
+    [currentPage]="currentPage()"
+    [pageSize]="pageSize()"
+    [totalItems]="filteredProducts().length"
+    [pageSizeOptions]="[5, 10, 25, 50]"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Produto do Catálogo"
+  [message]="'Tem certeza de que deseja remover o produto ' + (selectedProductForDelete()?.name || '') + '?'"
+  type="danger"
+  confirmText="Excluir Produto"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
