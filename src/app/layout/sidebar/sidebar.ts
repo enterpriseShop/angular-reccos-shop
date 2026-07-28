@@ -11,7 +11,7 @@ import { BadgeComponent } from '../../design-system/badge/badge';
   imports: [AppIconComponent, BadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css'
+  styleUrl: './sidebar.css',
 })
 export class SidebarComponent {
   readonly shellState = inject(ShellStateService);
@@ -58,7 +58,8 @@ export class SidebarComponent {
 
   getItemClasses(item: MenuItem): string {
     const active = this.isRouteActive(item.route);
-    const base = 'w-full flex items-center justify-between px-3 py-2 text-xs rounded-[10px] transition-all cursor-pointer select-none';
+    const base =
+      'w-full flex items-center justify-between px-3 py-2 text-xs rounded-[10px] transition-all cursor-pointer select-none';
     const activeStyle = active
       ? 'bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] font-bold shadow-xs'
       : 'text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700/60 hover:text-gray-900 dark:hover:text-slate-100';

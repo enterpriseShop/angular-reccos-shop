@@ -8,28 +8,43 @@
     <app-button variant="outline" size="sm" iconStart="refresh-cw" (btnClick)="refreshStats()">
       Atualizar Dados
     </app-button>
-    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="navTo('/catalog/products')">
+    <app-button
+      variant="primary"
+      size="sm"
+      iconStart="plus"
+      (btnClick)="navTo('/catalog/products')"
+    >
       Novo Produto
     </app-button>
   </div>
 </app-page-header>
 
 <!-- Welcome Card -->
-<div class="p-6 bg-gradient-to-r from-[#4F8A6B] to-[#38624C] text-white rounded-[16px] shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div
+  class="p-6 bg-gradient-to-r from-[#4F8A6B] to-[#38624C] text-white rounded-[16px] shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+>
   <div>
-    <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/20 rounded-md backdrop-blur-xs">
+    <span
+      class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/20 rounded-md backdrop-blur-xs"
+    >
       Bem-vindo ao Reccos Shop
     </span>
     <h2 class="text-xl sm:text-2xl font-bold mt-2 leading-tight">
       Plataforma de Autopeças e Gestão de Catálogo
     </h2>
     <p class="text-xs sm:text-sm text-white/80 mt-1 max-w-2xl leading-relaxed">
-      Centralize códigos OEM, compatibilidade veicular, gestão de fabricantes e estoque integrado em uma única interface padronizada.
+      Centralize códigos OEM, compatibilidade veicular, gestão de fabricantes e estoque integrado em
+      uma única interface padronizada.
     </p>
   </div>
 
   <div class="flex items-center gap-2 shrink-0">
-    <app-button variant="secondary" size="sm" iconEnd="chevron-right" (btnClick)="navTo('/catalog/products')">
+    <app-button
+      variant="secondary"
+      size="sm"
+      iconEnd="chevron-right"
+      (btnClick)="navTo('/catalog/products')"
+    >
       Explorar Catálogo
     </app-button>
   </div>
@@ -37,7 +52,9 @@
 
 <!-- Executive Quick Stats Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+  <div
+    class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between"
+  >
     <div>
       <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Total de Produtos</p>
       <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">12.480</h3>
@@ -45,12 +62,16 @@
         +142 cadastrados este mês
       </span>
     </div>
-    <div class="p-3 bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] rounded-xl">
+    <div
+      class="p-3 bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] rounded-xl"
+    >
       <app-icon name="box" size="w-6 h-6" />
     </div>
   </div>
 
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+  <div
+    class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between"
+  >
     <div>
       <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Aplicações Veiculares</p>
       <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">48.920</h3>
@@ -61,7 +82,9 @@
     </div>
   </div>
 
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+  <div
+    class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between"
+  >
     <div>
       <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Mapeamentos OEM</p>
       <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">32.110</h3>
@@ -72,7 +95,9 @@
     </div>
   </div>
 
-  <div class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between">
+  <div
+    class="p-4 bg-white dark:bg-slate-800 rounded-[12px] border border-gray-100 dark:border-slate-700/80 shadow-xs flex items-center justify-between"
+  >
     <div>
       <p class="text-xs font-medium text-gray-500 dark:text-slate-400">Alertas de Estoque</p>
       <h3 class="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">42</h3>
@@ -101,7 +126,9 @@
       </div>
       <app-badge variant="primary">Catálogo</app-badge>
     </div>
-    <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors">
+    <h4
+      class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors"
+    >
       Catálogo de Peças
     </h4>
     <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
@@ -120,7 +147,9 @@
       </div>
       <app-badge variant="info">Compatibilidade</app-badge>
     </div>
-    <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors">
+    <h4
+      class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors"
+    >
       OEM & Equivalência
     </h4>
     <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">
@@ -139,7 +168,9 @@
       </div>
       <app-badge variant="warning">Comercial</app-badge>
     </div>
-    <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors">
+    <h4
+      class="text-sm font-bold text-gray-900 dark:text-slate-100 group-hover:text-[#4F8A6B] transition-colors"
+    >
       Estoque & Preços
     </h4>
     <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 leading-relaxed">

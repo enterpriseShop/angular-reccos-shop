@@ -8,7 +8,7 @@ export interface MenuGroup {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ShellStateService {
   // Sidebar state
@@ -31,8 +31,9 @@ export class ShellStateService {
     name: 'Carlos Eduardo',
     role: 'Administrador de Catálogo',
     email: 'carlos.eduardo@reccos.com.br',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    unit: 'Matriz - São Paulo'
+    avatar:
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    unit: 'Matriz - São Paulo',
   });
 
   // Navigation Items according to Reccos Shop Specification
@@ -41,7 +42,7 @@ export class ShellStateService {
       id: 'dashboard',
       label: 'Dashboard',
       icon: 'layout-dashboard',
-      route: '/dashboard'
+      route: '/dashboard',
     },
     {
       id: 'catalog',
@@ -53,8 +54,8 @@ export class ShellStateService {
         { id: 'products', label: 'Produtos', route: '/catalog/products', badge: '12.4k' },
         { id: 'tags', label: 'Tags', route: '/catalog/tags' },
         { id: 'origins', label: 'Origem da Peça', route: '/catalog/origins' },
-        { id: 'units', label: 'Unidades', route: '/catalog/units' }
-      ]
+        { id: 'units', label: 'Unidades', route: '/catalog/units' },
+      ],
     },
     {
       id: 'compatibility',
@@ -63,9 +64,13 @@ export class ShellStateService {
       children: [
         { id: 'oem', label: 'OEM Codes', route: '/compatibility/oem-codes' },
         { id: 'product-codes', label: 'Product Codes', route: '/compatibility/product-codes' },
-        { id: 'equivalents', label: 'Produtos Equivalentes', route: '/compatibility/equivalent-products' },
-        { id: 'applications', label: 'Aplicações', route: '/compatibility/applications' }
-      ]
+        {
+          id: 'equivalents',
+          label: 'Produtos Equivalentes',
+          route: '/compatibility/equivalent-products',
+        },
+        { id: 'applications', label: 'Aplicações', route: '/compatibility/applications' },
+      ],
     },
     {
       id: 'vehicles',
@@ -75,8 +80,8 @@ export class ShellStateService {
         { id: 'brands', label: 'Montadoras', route: '/vehicles/brands' },
         { id: 'models', label: 'Modelos', route: '/vehicles/models' },
         { id: 'versions', label: 'Versões', route: '/vehicles/versions' },
-        { id: 'engines', label: 'Motores', route: '/vehicles/engines' }
-      ]
+        { id: 'engines', label: 'Motores', route: '/vehicles/engines' },
+      ],
     },
     {
       id: 'commercial',
@@ -86,41 +91,41 @@ export class ShellStateService {
         { id: 'inventory', label: 'Estoque', route: '/commercial/inventory', badge: 'Atenção' },
         { id: 'pricing', label: 'Preços', route: '/commercial/pricing' },
         { id: 'warehouses', label: 'Depósitos', route: '/commercial/warehouses' },
-        { id: 'suppliers', label: 'Fornecedores', route: '/commercial/suppliers' }
-      ]
+        { id: 'suppliers', label: 'Fornecedores', route: '/commercial/suppliers' },
+      ],
     },
     {
       id: 'imports',
       label: 'Importações',
       icon: 'upload-cloud',
       route: '/imports',
-      badge: 'Novo'
+      badge: 'Novo',
     },
     {
       id: 'reports',
       label: 'Relatórios',
       icon: 'bar-chart-3',
-      route: '/reports'
+      route: '/reports',
     },
     {
       id: 'notifications',
       label: 'Notificações',
       icon: 'bell',
       route: '/notifications',
-      badge: '3'
+      badge: '3',
     },
     {
       id: 'admin',
       label: 'Administração',
       icon: 'settings',
-      route: '/admin'
+      route: '/admin',
     },
     {
       id: 'help',
       label: 'Ajuda',
       icon: 'help-circle',
-      route: '/help'
-    }
+      route: '/help',
+    },
   ]);
 
   // Grouped Menu Items for Section Headers in Sidebar
@@ -128,18 +133,18 @@ export class ShellStateService {
     {
       id: 'main',
       title: 'Módulos Principais',
-      items: this.menuItems().slice(0, 5)
+      items: this.menuItems().slice(0, 5),
     },
     {
       id: 'operations',
       title: 'Ferramentas & Integração',
-      items: this.menuItems().slice(5, 8)
+      items: this.menuItems().slice(5, 8),
     },
     {
       id: 'system',
       title: 'Administrativo',
-      items: this.menuItems().slice(8)
-    }
+      items: this.menuItems().slice(8),
+    },
   ]);
 
   // Notifications mock data
@@ -151,7 +156,7 @@ export class ShellStateService {
       timestamp: 'Há 12 min',
       read: false,
       type: 'warning',
-      link: '/commercial/inventory'
+      link: '/commercial/inventory',
     },
     {
       id: '2',
@@ -160,7 +165,7 @@ export class ShellStateService {
       timestamp: 'Há 45 min',
       read: false,
       type: 'success',
-      link: '/imports'
+      link: '/imports',
     },
     {
       id: '3',
@@ -169,7 +174,7 @@ export class ShellStateService {
       timestamp: 'Há 2 horas',
       read: false,
       type: 'info',
-      link: '/catalog/categories'
+      link: '/catalog/categories',
     },
     {
       id: '4',
@@ -178,27 +183,57 @@ export class ShellStateService {
       timestamp: 'Ontem',
       read: true,
       type: 'error',
-      link: '/compatibility/oem-codes'
-    }
+      link: '/compatibility/oem-codes',
+    },
   ]);
 
   // Shortcuts mock
   readonly shortcuts = signal<ShortcutItem[]>([
-    { id: 'new-product', label: 'Novo Produto', icon: 'plus-circle', route: '/catalog/products/new', category: 'Catálogo' },
-    { id: 'new-category', label: 'Nova Categoria', icon: 'folder-plus', route: '/catalog/categories/new', category: 'Catálogo' },
-    { id: 'new-manufacturer', label: 'Novo Fabricante', icon: 'building', route: '/catalog/manufacturers/new', category: 'Catálogo' },
-    { id: 'inventory-adj', label: 'Ajuste de Estoque', icon: 'package-check', route: '/commercial/inventory/adjust', category: 'Comercial' },
-    { id: 'import-data', label: 'Nova Importação', icon: 'upload', route: '/imports/new', category: 'Importação' }
+    {
+      id: 'new-product',
+      label: 'Novo Produto',
+      icon: 'plus-circle',
+      route: '/catalog/products/new',
+      category: 'Catálogo',
+    },
+    {
+      id: 'new-category',
+      label: 'Nova Categoria',
+      icon: 'folder-plus',
+      route: '/catalog/categories/new',
+      category: 'Catálogo',
+    },
+    {
+      id: 'new-manufacturer',
+      label: 'Novo Fabricante',
+      icon: 'building',
+      route: '/catalog/manufacturers/new',
+      category: 'Catálogo',
+    },
+    {
+      id: 'inventory-adj',
+      label: 'Ajuste de Estoque',
+      icon: 'package-check',
+      route: '/commercial/inventory/adjust',
+      category: 'Comercial',
+    },
+    {
+      id: 'import-data',
+      label: 'Nova Importação',
+      icon: 'upload',
+      route: '/imports/new',
+      category: 'Importação',
+    },
   ]);
 
   // Computed unread notifications count
   readonly unreadNotificationsCount = computed(() => {
-    return this.notifications().filter(n => !n.read).length;
+    return this.notifications().filter((n) => !n.read).length;
   });
 
   // Toggles and setters
   toggleSidebar(): void {
-    this.sidebarExpanded.update(v => !v);
+    this.sidebarExpanded.update((v) => !v);
   }
 
   toggleDesktopSidebar(): void {
@@ -206,7 +241,7 @@ export class ShellStateService {
   }
 
   toggleMobileDrawer(): void {
-    this.mobileDrawerOpen.update(v => !v);
+    this.mobileDrawerOpen.update((v) => !v);
   }
 
   closeMobileDrawer(): void {
@@ -218,7 +253,7 @@ export class ShellStateService {
   }
 
   toggleNotificationsDrawer(): void {
-    this.notificationsDrawerOpen.update(v => !v);
+    this.notificationsDrawerOpen.update((v) => !v);
   }
 
   closeNotificationsDrawer(): void {
@@ -230,12 +265,12 @@ export class ShellStateService {
   }
 
   markAllNotificationsAsRead(): void {
-    this.notifications.update(items => items.map(i => ({ ...i, read: true })));
+    this.notifications.update((items) => items.map((i) => ({ ...i, read: true })));
   }
 
   markNotificationAsRead(id: string): void {
-    this.notifications.update(items =>
-      items.map(i => (i.id === id ? { ...i, read: true } : i))
+    this.notifications.update((items) =>
+      items.map((i) => (i.id === id ? { ...i, read: true } : i)),
     );
   }
 
@@ -250,8 +285,8 @@ export class ShellStateService {
   setActiveRoute(route: string): void {
     this.activeRoute.set(route);
     // Automatically expand parent group if route belongs to a child
-    const parent = this.menuItems().find(item =>
-      item.children?.some(child => child.route === route)
+    const parent = this.menuItems().find((item) =>
+      item.children?.some((child) => child.route === route),
     );
     if (parent) {
       this.openGroup.set(parent.id);

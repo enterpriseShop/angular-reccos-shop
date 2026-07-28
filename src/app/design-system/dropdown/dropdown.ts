@@ -1,4 +1,12 @@
-import { Component, ChangeDetectionStrategy, input, signal, ElementRef, inject, HostListener } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  signal,
+  ElementRef,
+  inject,
+  HostListener,
+} from '@angular/core';
 import { AppIconComponent } from '../icon/app-icon';
 
 export interface DropdownItem {
@@ -16,7 +24,7 @@ export interface DropdownItem {
   imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dropdown.html',
-  styleUrl: './dropdown.css'
+  styleUrl: './dropdown.css',
 })
 export class DropdownComponent {
   private elementRef = inject(ElementRef);
@@ -28,7 +36,7 @@ export class DropdownComponent {
 
   toggleOpen(event: Event): void {
     event.stopPropagation();
-    this.isOpen.update(o => !o);
+    this.isOpen.update((o) => !o);
   }
 
   close(): void {

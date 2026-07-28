@@ -5,7 +5,7 @@ import { Component, ChangeDetectionStrategy, input, computed } from '@angular/co
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-icon.html',
-  styleUrl: './app-icon.css'
+  styleUrl: './app-icon.css',
 })
 export class AppIconComponent {
   readonly name = input.required<string>();

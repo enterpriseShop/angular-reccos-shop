@@ -2,7 +2,7 @@ import { Directive, ElementRef, HostListener, input, inject, Renderer2 } from '@
 
 @Directive({
   selector: '[appTooltip]',
-  standalone: true
+  standalone: true,
 })
 export class TooltipDirective {
   private el = inject(ElementRef);
@@ -28,18 +28,27 @@ export class TooltipDirective {
     if (this.tooltipElement) return;
 
     this.tooltipElement = this.renderer.createElement('div');
-    this.renderer.appendChild(
-      this.tooltipElement,
-      this.renderer.createText(this.tooltipText())
-    );
+    this.renderer.appendChild(this.tooltipElement, this.renderer.createText(this.tooltipText()));
 
     // Apply styles
     const classes = [
-      'fixed', 'z-50', 'px-2.5', 'py-1', 'text-xs', 'font-medium', 'text-white',
-      'bg-gray-900', 'dark:bg-slate-700', 'rounded-md', 'shadow-md',
-      'pointer-events-none', 'whitespace-nowrap', 'transition-opacity', 'duration-150'
+      'fixed',
+      'z-50',
+      'px-2.5',
+      'py-1',
+      'text-xs',
+      'font-medium',
+      'text-white',
+      'bg-gray-900',
+      'dark:bg-slate-700',
+      'rounded-md',
+      'shadow-md',
+      'pointer-events-none',
+      'whitespace-nowrap',
+      'transition-opacity',
+      'duration-150',
     ];
-    classes.forEach(cls => this.renderer.addClass(this.tooltipElement, cls));
+    classes.forEach((cls) => this.renderer.addClass(this.tooltipElement, cls));
 
     this.renderer.appendChild(document.body, this.tooltipElement);
     this.positionTooltip();

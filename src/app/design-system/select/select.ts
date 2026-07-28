@@ -13,7 +13,7 @@ export interface SelectOption {
   imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './select.html',
-  styleUrl: './select.css'
+  styleUrl: './select.css',
 })
 export class SelectComponent {
   readonly label = input<string | undefined>(undefined);

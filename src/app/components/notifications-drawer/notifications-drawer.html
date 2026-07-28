@@ -1,0 +1,77 @@
+<app-drawer
+  [isOpen]="shellState.notificationsDrawerOpen()"
+  title="Notificações do Sistema"
+  icon="bell"
+  (closeDrawer)="shellState.closeNotificationsDrawer()"
+>
+  <div class="space-y-4">
+    <!-- Actions Header -->
+    <div
+      class="flex items-center justify-between border-b border-gray-100 dark:border-slate-700/80 pb-3"
+    >
+      <span class="text-xs text-gray-500 dark:text-slate-400">
+        Você possui
+        <strong class="text-gray-900 dark:text-slate-200">
+          {{ shellState.unreadNotificationsCount() }}
+        </strong>
+        não lidas
+      </span>
+
+      @if (shellState.unreadNotificationsCount() > 0) {
+      <button
+        type="button"
+        (click)="shellState.markAllNotificationsAsRead()"
+        class="text-xs font-semibold text-[#4F8A6B] hover:underline"
+      >
+        Marcar todas como lidas
+      </button>
+      }
+    </div>
+
+    <!-- Notification List -->
+    <div class="space-y-3">
+      @for (item of shellState.notifications(); track item.id) {
+      <button
+        type="button"
+        (click)="shellState.markNotificationAsRead(item.id)"
+        [class.bg-gray-50/80]="!item.read"
+        [class.dark:bg-slate-700/30]="!item.read"
+        class="w-full text-left p-3.5 rounded-[12px] border border-gray-100 dark:border-slate-700/80 transition-all cursor-pointer hover:border-[#4F8A6B]/50 relative focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/30"
+      >
+        @if (!item.read) {
+        <span class="absolute top-3 right-3 w-2 h-2 bg-[#4F8A6B] rounded-full"></span>
+        }
+
+        <div class="flex items-start gap-3">
+          <div [class]="getBadgeBg(item.type)" class="p-2 rounded-lg shrink-0 mt-0.5">
+            <app-icon [name]="getIcon(item.type)" size="w-4 h-4" />
+          </div>
+
+          <div class="flex-1 pr-3">
+            <div class="flex items-center gap-2 mb-1">
+              <h4 class="text-xs font-semibold text-gray-900 dark:text-slate-100">
+                {{ item.title }}
+              </h4>
+            </div>
+            <p class="text-xs text-gray-600 dark:text-slate-300 leading-normal mb-2">
+              {{ item.description }}
+            </p>
+            <span class="text-[10px] text-gray-400 dark:text-slate-500 font-mono">
+              {{ item.timestamp }}
+            </span>
+          </div>
+        </div>
+      </button>
+      }
+    </div>
+  </div>
+
+  <div footer class="flex items-center justify-between">
+    <app-button variant="ghost" size="sm" (btnClick)="shellState.closeNotificationsDrawer()">
+      Fechar
+    </app-button>
+    <app-button variant="secondary" size="sm" iconEnd="chevron-right">
+      Ver Todas as Notificações
+    </app-button>
+  </div>
+</app-drawer>

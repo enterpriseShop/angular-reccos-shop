@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { AppShellComponent } from './layout/app-shell';
+import { AppShellComponent } from './components/app-shell/app-shell';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

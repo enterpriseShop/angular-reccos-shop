@@ -1,13 +1,20 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  signal,
+  computed,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PageHeaderComponent } from '../../design-system/page-header/page-header';
-import { InputComponent } from '../../design-system/input/input';
-import { SelectComponent, SelectOption } from '../../design-system/select/select';
-import { ButtonComponent } from '../../design-system/button/button';
-import { ConfirmDialogComponent } from '../../design-system/dialog/confirm-dialog';
-import { AppIconComponent } from '../../design-system/icon/app-icon';
-import { ToastService } from '../../core/services/toast';
-import { ShellStateService } from '../../core/services/shell-state';
+import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
+import { InputComponent } from '../../../design-system/input/input';
+import { SelectComponent, SelectOption } from '../../../design-system/select/select';
+import { ButtonComponent } from '../../../design-system/button/button';
+import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
+import { AppIconComponent } from '../../../design-system/icon/app-icon';
+import { ToastService } from '../../../core/services/toast';
+import { ShellStateService } from '../../../core/services/shell-state';
 
 export type ProductFormMode = 'create' | 'edit' | 'view' | 'duplicate';
 export type FormTab = 'geral' | 'comercial' | 'compatibilidade' | 'midia' | 'administracao';
@@ -78,11 +85,11 @@ export interface ProductNoteItem {
     SelectComponent,
     ButtonComponent,
     ConfirmDialogComponent,
-    AppIconComponent
+    AppIconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: "./product-form.html",
-  styleUrl: "./product-form.css"
+  templateUrl: './product-form.html',
+  styleUrl: './product-form.css',
 })
 export class ProductFormComponent implements OnInit {
   readonly shellState = inject(ShellStateService);
@@ -145,7 +152,7 @@ export class ProductFormComponent implements OnInit {
     { label: 'Motor & Transmissão', value: 'cat-02' },
     { label: 'Suspensão & Direção', value: 'cat-03' },
     { label: 'Sistema Elétrico', value: 'cat-04' },
-    { label: 'Arrefecimento', value: 'cat-05' }
+    { label: 'Arrefecimento', value: 'cat-05' },
   ];
 
   readonly manufacturerOptions: SelectOption[] = [
@@ -155,14 +162,14 @@ export class ProductFormComponent implements OnInit {
     { label: 'NGK', value: 'm-04' },
     { label: 'Fremax', value: 'm-05' },
     { label: 'Magneti Marelli', value: 'm-06' },
-    { label: 'Sachs', value: 'm-07' }
+    { label: 'Sachs', value: 'm-07' },
   ];
 
   readonly partOriginOptions: SelectOption[] = [
     { label: 'Nacional', value: 'po-01' },
     { label: 'Importado Direto', value: 'po-02' },
     { label: 'Original OEM', value: 'po-03' },
-    { label: 'Aftermarket Premium', value: 'po-04' }
+    { label: 'Aftermarket Premium', value: 'po-04' },
   ];
 
   readonly unitOptions: SelectOption[] = [
@@ -170,19 +177,19 @@ export class ProductFormComponent implements OnInit {
     { label: 'JG - Jogo', value: 'u-02' },
     { label: 'PC - Peça', value: 'u-03' },
     { label: 'PAR - Par', value: 'u-04' },
-    { label: 'KG - Quilograma', value: 'u-05' }
+    { label: 'KG - Quilograma', value: 'u-05' },
   ];
 
   readonly statusOptions: SelectOption[] = [
     { label: 'Ativo', value: 'st-01' },
     { label: 'Inativo', value: 'st-02' },
-    { label: 'Em Homologação', value: 'st-03' }
+    { label: 'Em Homologação', value: 'st-03' },
   ];
 
   readonly warehouseOptions: SelectOption[] = [
     { label: 'Depósito Central SP', value: 'wh-01' },
     { label: 'Depósito Filial PR', value: 'wh-02' },
-    { label: 'Depósito Distribuição RJ', value: 'wh-03' }
+    { label: 'Depósito Distribuição RJ', value: 'wh-03' },
   ];
 
   readonly availableTags = [
@@ -191,17 +198,21 @@ export class ProductFormComponent implements OnInit {
     { id: 'tag-3', label: 'Alto Giro' },
     { id: 'tag-4', label: 'Primeira Linha' },
     { id: 'tag-5', label: 'Importado' },
-    { id: 'tag-6', label: 'Oferta Especial' }
+    { id: 'tag-6', label: 'Oferta Especial' },
   ];
 
   readonly isReadOnly = computed(() => this.mode() === 'view');
 
   readonly headerTitle = computed(() => {
     switch (this.mode()) {
-      case 'edit': return 'Editar Produto';
-      case 'view': return 'Visualizar Produto';
-      case 'duplicate': return 'Novo Produto';
-      default: return 'Novo Produto';
+      case 'edit':
+        return 'Editar Produto';
+      case 'view':
+        return 'Visualizar Produto';
+      case 'duplicate':
+        return 'Novo Produto';
+      default:
+        return 'Novo Produto';
     }
   });
 
@@ -210,7 +221,7 @@ export class ProductFormComponent implements OnInit {
     return [
       { label: 'Catálogo', route: '/catalog/products' },
       { label: 'Produtos', route: '/catalog/products' },
-      { label: actionLabel }
+      { label: actionLabel },
     ];
   });
 
@@ -246,15 +257,17 @@ export class ProductFormComponent implements OnInit {
     this.formPartOriginId.set('po-01');
     this.formUnitId.set('u-02');
     this.formStatusId.set('st-01');
-    this.formDescription.set('Jogo de pastilhas de freio dianteiras de alta performance, compostas por massa cerâmica de baixo ruído e menor liberação de poeira nas rodas. Homologado para veículos de passeio leves.');
+    this.formDescription.set(
+      'Jogo de pastilhas de freio dianteiras de alta performance, compostas por massa cerâmica de baixo ruído e menor liberação de poeira nas rodas. Homologado para veículos de passeio leves.',
+    );
 
     this.formWeight.set(1.45);
     this.formHeight.set(8.5);
     this.formWidth.set(12.0);
     this.formLength.set(18.0);
 
-    this.formPrice.set(189.90);
-    this.formPromotionalPrice.set(169.90);
+    this.formPrice.set(189.9);
+    this.formPromotionalPrice.set(169.9);
     this.formPromotionStartDate.set('2026-07-01');
     this.formPromotionEndDate.set('2026-08-31');
     this.formWarehouseId.set('wh-01');
@@ -264,37 +277,88 @@ export class ProductFormComponent implements OnInit {
 
     this.oemCodes.set([
       { id: 'oem-1', manufacturer: 'Volkswagen / Audi', oemCode: '5U0698151A', isPrimary: true },
-      { id: 'oem-2', manufacturer: 'Bosch Global', oemCode: '0986BB0781', isPrimary: false }
+      { id: 'oem-2', manufacturer: 'Bosch Global', oemCode: '0986BB0781', isPrimary: false },
     ]);
 
     this.productCodes.set([
       { id: 'pc-1', type: 'EAN-13', code: '7891234567890' },
-      { id: 'pc-2', type: 'Código Fábrica', code: 'BOSCH-PAD-409' }
+      { id: 'pc-2', type: 'Código Fábrica', code: 'BOSCH-PAD-409' },
     ]);
 
     this.equivalentProducts.set([
-      { id: 'eq-1', productName: 'Cobreq N-238 Pastilha Dianteira', notes: 'Equivalência direta 100%' },
-      { id: 'eq-2', productName: 'Fras-le PD/102', notes: 'Linha alternativa mercado' }
+      {
+        id: 'eq-1',
+        productName: 'Cobreq N-238 Pastilha Dianteira',
+        notes: 'Equivalência direta 100%',
+      },
+      { id: 'eq-2', productName: 'Fras-le PD/102', notes: 'Linha alternativa mercado' },
     ]);
 
     this.vehicleApplications.set([
-      { id: 'veh-1', brand: 'Volkswagen', model: 'Gol G5 / G6 / G7', version: '1.0 / 1.6 8V', engine: 'EA111 Flex', startYear: 2008, endYear: 2022 },
-      { id: 'veh-2', brand: 'Volkswagen', model: 'Voyage', version: '1.6 8V Trend', engine: 'EA111 Flex', startYear: 2009, endYear: 2021 }
+      {
+        id: 'veh-1',
+        brand: 'Volkswagen',
+        model: 'Gol G5 / G6 / G7',
+        version: '1.0 / 1.6 8V',
+        engine: 'EA111 Flex',
+        startYear: 2008,
+        endYear: 2022,
+      },
+      {
+        id: 'veh-2',
+        brand: 'Volkswagen',
+        model: 'Voyage',
+        version: '1.6 8V Trend',
+        engine: 'EA111 Flex',
+        startYear: 2009,
+        endYear: 2021,
+      },
     ]);
 
     this.mediaImages.set([
-      { id: 'img-1', url: 'https://picsum.photos/seed/brake_pads_1/400/300', name: 'pastilha_freio_frente.jpg', size: '1.2 MB', isPrimary: true, order: 1, status: 'completed', progress: 100 },
-      { id: 'img-2', url: 'https://picsum.photos/seed/brake_pads_2/400/300', name: 'pastilha_freio_verso.jpg', size: '980 KB', isPrimary: false, order: 2, status: 'completed', progress: 100 }
+      {
+        id: 'img-1',
+        url: 'https://picsum.photos/seed/brake_pads_1/400/300',
+        name: 'pastilha_freio_frente.jpg',
+        size: '1.2 MB',
+        isPrimary: true,
+        order: 1,
+        status: 'completed',
+        progress: 100,
+      },
+      {
+        id: 'img-2',
+        url: 'https://picsum.photos/seed/brake_pads_2/400/300',
+        name: 'pastilha_freio_verso.jpg',
+        size: '980 KB',
+        isPrimary: false,
+        order: 2,
+        status: 'completed',
+        progress: 100,
+      },
     ]);
 
     this.suppliers.set([
-      { id: 'sup-1', supplierName: 'Distribuidora Automotiva SP', supplierCode: 'SUP-BOSCH-882', purchasePrice: 112.50, leadTimeDays: 3, isPreferential: true }
+      {
+        id: 'sup-1',
+        supplierName: 'Distribuidora Automotiva SP',
+        supplierCode: 'SUP-BOSCH-882',
+        purchasePrice: 112.5,
+        leadTimeDays: 3,
+        isPreferential: true,
+      },
     ]);
 
     this.selectedTagIds.set(['tag-1', 'tag-2', 'tag-4']);
 
     this.productNotes.set([
-      { id: 'note-1', type: 'Técnica', description: 'Pastilhas com mola antirruído inclusa no kit.', date: '27/07/2026', author: 'Engenharia de Produto' }
+      {
+        id: 'note-1',
+        type: 'Técnica',
+        description: 'Pastilhas com mola antirruído inclusa no kit.',
+        date: '27/07/2026',
+        author: 'Engenharia de Produto',
+      },
     ]);
   }
 
@@ -303,7 +367,8 @@ export class ProductFormComponent implements OnInit {
   }
 
   tabClasses(tab: FormTab): string {
-    const base = 'pb-3 px-1 border-b-2 font-medium text-xs flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap';
+    const base =
+      'pb-3 px-1 border-b-2 font-medium text-xs flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap';
     if (this.activeTab() === tab) {
       return `${base} border-[#4F8A6B] text-[#4F8A6B] font-semibold dark:text-[#5BAE6A] dark:border-[#5BAE6A]`;
     }
@@ -313,7 +378,14 @@ export class ProductFormComponent implements OnInit {
   hasTabError(tab: FormTab): boolean {
     const errs = this.errors();
     if (tab === 'geral') {
-      return !!(errs['name'] || errs['internal_code'] || errs['category_id'] || errs['manufacturer_id'] || errs['unit_id'] || errs['status_id']);
+      return !!(
+        errs['name'] ||
+        errs['internal_code'] ||
+        errs['category_id'] ||
+        errs['manufacturer_id'] ||
+        errs['unit_id'] ||
+        errs['status_id']
+      );
     }
     if (tab === 'comercial') {
       return !!errs['price'];
@@ -324,20 +396,40 @@ export class ProductFormComponent implements OnInit {
   updateField(field: string, val: string): void {
     this.isFormDirty.set(true);
     switch (field) {
-      case 'name': this.formName.set(val); break;
-      case 'internal_code': this.formInternalCode.set(val); break;
-      case 'category_id': this.formCategoryId.set(val); break;
-      case 'manufacturer_id': this.formManufacturerId.set(val); break;
-      case 'part_origin_id': this.formPartOriginId.set(val); break;
-      case 'unit_id': this.formUnitId.set(val); break;
-      case 'status_id': this.formStatusId.set(val); break;
-      case 'promotion_start_date': this.formPromotionStartDate.set(val); break;
-      case 'promotion_end_date': this.formPromotionEndDate.set(val); break;
-      case 'warehouse_id': this.formWarehouseId.set(val); break;
+      case 'name':
+        this.formName.set(val);
+        break;
+      case 'internal_code':
+        this.formInternalCode.set(val);
+        break;
+      case 'category_id':
+        this.formCategoryId.set(val);
+        break;
+      case 'manufacturer_id':
+        this.formManufacturerId.set(val);
+        break;
+      case 'part_origin_id':
+        this.formPartOriginId.set(val);
+        break;
+      case 'unit_id':
+        this.formUnitId.set(val);
+        break;
+      case 'status_id':
+        this.formStatusId.set(val);
+        break;
+      case 'promotion_start_date':
+        this.formPromotionStartDate.set(val);
+        break;
+      case 'promotion_end_date':
+        this.formPromotionEndDate.set(val);
+        break;
+      case 'warehouse_id':
+        this.formWarehouseId.set(val);
+        break;
     }
 
     if (this.errors()[field]) {
-      this.errors.update(e => {
+      this.errors.update((e) => {
         const copy = { ...e };
         delete copy[field];
         return copy;
@@ -349,17 +441,31 @@ export class ProductFormComponent implements OnInit {
     this.isFormDirty.set(true);
     const num = parseFloat(valStr) || 0;
     switch (field) {
-      case 'weight': this.formWeight.set(num); break;
-      case 'height': this.formHeight.set(num); break;
-      case 'width': this.formWidth.set(num); break;
-      case 'length': this.formLength.set(num); break;
-      case 'price': this.formPrice.set(num); break;
-      case 'quantity': this.formQuantity.set(num); break;
-      case 'min_quantity': this.formMinQuantity.set(num); break;
+      case 'weight':
+        this.formWeight.set(num);
+        break;
+      case 'height':
+        this.formHeight.set(num);
+        break;
+      case 'width':
+        this.formWidth.set(num);
+        break;
+      case 'length':
+        this.formLength.set(num);
+        break;
+      case 'price':
+        this.formPrice.set(num);
+        break;
+      case 'quantity':
+        this.formQuantity.set(num);
+        break;
+      case 'min_quantity':
+        this.formMinQuantity.set(num);
+        break;
     }
 
     if (this.errors()[field]) {
-      this.errors.update(e => {
+      this.errors.update((e) => {
         const copy = { ...e };
         delete copy[field];
         return copy;
@@ -384,7 +490,7 @@ export class ProductFormComponent implements OnInit {
   toggleBackorder(): void {
     if (this.isReadOnly()) return;
     this.isFormDirty.set(true);
-    this.formAllowBackorder.update(v => !v);
+    this.formAllowBackorder.update((v) => !v);
   }
 
   // --- COMPATIBILIDADE COLLECTIONS ---
@@ -392,20 +498,25 @@ export class ProductFormComponent implements OnInit {
     const code = prompt('Digite o Código OEM:');
     if (!code) return;
     const manufacturer = prompt('Digite o Fabricante/Montadora:', 'Volkswagen') || 'Montadora';
-    this.oemCodes.update(list => [
+    this.oemCodes.update((list) => [
       ...list,
-      { id: 'oem-' + Date.now(), manufacturer, oemCode: code.toUpperCase(), isPrimary: list.length === 0 }
+      {
+        id: 'oem-' + Date.now(),
+        manufacturer,
+        oemCode: code.toUpperCase(),
+        isPrimary: list.length === 0,
+      },
     ]);
     this.isFormDirty.set(true);
   }
 
   setPrimaryOem(id: string): void {
-    this.oemCodes.update(list => list.map(o => ({ ...o, isPrimary: o.id === id })));
+    this.oemCodes.update((list) => list.map((o) => ({ ...o, isPrimary: o.id === id })));
     this.isFormDirty.set(true);
   }
 
   removeOemCode(id: string): void {
-    this.oemCodes.update(list => list.filter(o => o.id !== id));
+    this.oemCodes.update((list) => list.filter((o) => o.id !== id));
     this.isFormDirty.set(true);
   }
 
@@ -413,15 +524,12 @@ export class ProductFormComponent implements OnInit {
     const code = prompt('Digite o Código:');
     if (!code) return;
     const type = prompt('Digite o Tipo (Ex.: EAN-13, Código Fábrica):', 'EAN-13') || 'Geral';
-    this.productCodes.update(list => [
-      ...list,
-      { id: 'pc-' + Date.now(), type, code }
-    ]);
+    this.productCodes.update((list) => [...list, { id: 'pc-' + Date.now(), type, code }]);
     this.isFormDirty.set(true);
   }
 
   removeProductCode(id: string): void {
-    this.productCodes.update(list => list.filter(p => p.id !== id));
+    this.productCodes.update((list) => list.filter((p) => p.id !== id));
     this.isFormDirty.set(true);
   }
 
@@ -429,15 +537,15 @@ export class ProductFormComponent implements OnInit {
     const name = prompt('Digite o Nome do Produto Equivalente:');
     if (!name) return;
     const notes = prompt('Observação de equivalência:', 'Compatibilidade direta') || '';
-    this.equivalentProducts.update(list => [
+    this.equivalentProducts.update((list) => [
       ...list,
-      { id: 'eq-' + Date.now(), productName: name, notes }
+      { id: 'eq-' + Date.now(), productName: name, notes },
     ]);
     this.isFormDirty.set(true);
   }
 
   removeEquivalent(id: string): void {
-    this.equivalentProducts.update(list => list.filter(e => e.id !== id));
+    this.equivalentProducts.update((list) => list.filter((e) => e.id !== id));
     this.isFormDirty.set(true);
   }
 
@@ -445,15 +553,23 @@ export class ProductFormComponent implements OnInit {
     const brand = prompt('Marca do Veículo:', 'Volkswagen') || 'Volkswagen';
     const model = prompt('Modelo:', 'Gol') || 'Modelo';
     const engine = prompt('Motorização:', '1.6 8V') || '1.0';
-    this.vehicleApplications.update(list => [
+    this.vehicleApplications.update((list) => [
       ...list,
-      { id: 'veh-' + Date.now(), brand, model, version: 'Flex', engine, startYear: 2015, endYear: 2022 }
+      {
+        id: 'veh-' + Date.now(),
+        brand,
+        model,
+        version: 'Flex',
+        engine,
+        startYear: 2015,
+        endYear: 2022,
+      },
     ]);
     this.isFormDirty.set(true);
   }
 
   removeVehicleApplication(id: string): void {
-    this.vehicleApplications.update(list => list.filter(v => v.id !== id));
+    this.vehicleApplications.update((list) => list.filter((v) => v.id !== id));
     this.isFormDirty.set(true);
   }
 
@@ -484,9 +600,12 @@ export class ProductFormComponent implements OnInit {
   }
 
   handleFiles(files: File[]): void {
-    files.forEach(file => {
+    files.forEach((file) => {
       if (file.size > 2 * 1024 * 1024) {
-        this.toastService.error('Arquivo Excede Limite', `O arquivo ${file.name} possui mais de 2 MB.`);
+        this.toastService.error(
+          'Arquivo Excede Limite',
+          `O arquivo ${file.name} possui mais de 2 MB.`,
+        );
         return;
       }
 
@@ -498,10 +617,10 @@ export class ProductFormComponent implements OnInit {
         isPrimary: this.mediaImages().length === 0,
         order: this.mediaImages().length + 1,
         status: 'uploading',
-        progress: 0
+        progress: 0,
       };
 
-      this.mediaImages.update(list => [...list, newImg]);
+      this.mediaImages.update((list) => [...list, newImg]);
       this.simulateAsyncUpload(newImg.id);
     });
     this.isFormDirty.set(true);
@@ -511,21 +630,21 @@ export class ProductFormComponent implements OnInit {
     let prog = 0;
     const interval = setInterval(() => {
       prog += 25;
-      this.mediaImages.update(list =>
-        list.map(img => img.id === imgId ? { ...img, progress: prog } : img)
+      this.mediaImages.update((list) =>
+        list.map((img) => (img.id === imgId ? { ...img, progress: prog } : img)),
       );
 
       if (prog >= 100) {
         clearInterval(interval);
-        this.mediaImages.update(list =>
-          list.map(img => img.id === imgId ? { ...img, status: 'completed' } : img)
+        this.mediaImages.update((list) =>
+          list.map((img) => (img.id === imgId ? { ...img, status: 'completed' } : img)),
         );
       }
     }, 200);
   }
 
   setPrimaryImage(id: string): void {
-    this.mediaImages.update(list => list.map(img => ({ ...img, isPrimary: img.id === id })));
+    this.mediaImages.update((list) => list.map((img) => ({ ...img, isPrimary: img.id === id })));
     this.isFormDirty.set(true);
   }
 
@@ -537,8 +656,8 @@ export class ProductFormComponent implements OnInit {
   executeDeleteImage(): void {
     const img = this.selectedImageForDelete();
     if (img) {
-      this.mediaImages.update(list => {
-        const filtered = list.filter(i => i.id !== img.id);
+      this.mediaImages.update((list) => {
+        const filtered = list.filter((i) => i.id !== img.id);
         if (img.isPrimary && filtered.length > 0) {
           filtered[0].isPrimary = true;
         }
@@ -554,15 +673,22 @@ export class ProductFormComponent implements OnInit {
     const name = prompt('Nome do Fornecedor:');
     if (!name) return;
     const code = prompt('Código no Fornecedor:', 'SUP-01') || 'SUP-01';
-    this.suppliers.update(list => [
+    this.suppliers.update((list) => [
       ...list,
-      { id: 'sup-' + Date.now(), supplierName: name, supplierCode: code, purchasePrice: 100.0, leadTimeDays: 5, isPreferential: list.length === 0 }
+      {
+        id: 'sup-' + Date.now(),
+        supplierName: name,
+        supplierCode: code,
+        purchasePrice: 100.0,
+        leadTimeDays: 5,
+        isPreferential: list.length === 0,
+      },
     ]);
     this.isFormDirty.set(true);
   }
 
   removeSupplier(id: string): void {
-    this.suppliers.update(list => list.filter(s => s.id !== id));
+    this.suppliers.update((list) => list.filter((s) => s.id !== id));
     this.isFormDirty.set(true);
   }
 
@@ -574,24 +700,30 @@ export class ProductFormComponent implements OnInit {
     if (this.isReadOnly()) return;
     this.isFormDirty.set(true);
     if (this.isTagSelected(tagId)) {
-      this.selectedTagIds.update(ids => ids.filter(id => id !== tagId));
+      this.selectedTagIds.update((ids) => ids.filter((id) => id !== tagId));
     } else {
-      this.selectedTagIds.update(ids => [...ids, tagId]);
+      this.selectedTagIds.update((ids) => [...ids, tagId]);
     }
   }
 
   openAddNoteModal(): void {
     const desc = prompt('Descrição da Nota/Observação:');
     if (!desc) return;
-    this.productNotes.update(list => [
+    this.productNotes.update((list) => [
       ...list,
-      { id: 'note-' + Date.now(), type: 'Geral', description: desc, date: new Date().toLocaleDateString('pt-BR'), author: 'Usuário do Sistema' }
+      {
+        id: 'note-' + Date.now(),
+        type: 'Geral',
+        description: desc,
+        date: new Date().toLocaleDateString('pt-BR'),
+        author: 'Usuário do Sistema',
+      },
     ]);
     this.isFormDirty.set(true);
   }
 
   removeNote(id: string): void {
-    this.productNotes.update(list => list.filter(n => n.id !== id));
+    this.productNotes.update((list) => list.filter((n) => n.id !== id));
     this.isFormDirty.set(true);
   }
 
@@ -637,7 +769,10 @@ export class ProductFormComponent implements OnInit {
 
   saveProduct(continueEditing: boolean): void {
     if (!this.validateForm()) {
-      this.toastService.error('Não foi possível salvar o produto.', 'Verifique os campos obrigatórios destacados.');
+      this.toastService.error(
+        'Não foi possível salvar o produto.',
+        'Verifique os campos obrigatórios destacados.',
+      );
       return;
     }
 
@@ -665,7 +800,7 @@ export class ProductFormComponent implements OnInit {
       quantity: this.formQuantity(),
       min_quantity: this.formMinQuantity(),
       allow_backorder: this.formAllowBackorder(),
-      tag_ids: this.selectedTagIds()
+      tag_ids: this.selectedTagIds(),
     };
 
     console.log('Sending Product Payload to Backend API:', payload);
@@ -673,7 +808,10 @@ export class ProductFormComponent implements OnInit {
     setTimeout(() => {
       this.isSaving.set(false);
       this.isFormDirty.set(false);
-      this.toastService.success('Produto salvo com sucesso.', 'Todas as informações comerciais e técnicas foram salvas.');
+      this.toastService.success(
+        'Produto salvo com sucesso.',
+        'Todas as informações comerciais e técnicas foram salvas.',
+      );
 
       if (!continueEditing) {
         this.router.navigate(['/catalog/products']);
@@ -711,7 +849,10 @@ export class ProductFormComponent implements OnInit {
     this.router.navigate(['/catalog/products', id, 'duplicate']);
     this.mode.set('duplicate');
     this.formInternalCode.set('');
-    this.toastService.info('Modo Duplicar', 'Código interno limpo automaticamente conforme regra do sistema.');
+    this.toastService.info(
+      'Modo Duplicar',
+      'Código interno limpo automaticamente conforme regra do sistema.',
+    );
   }
 
   confirmDeleteProduct(): void {
@@ -720,7 +861,10 @@ export class ProductFormComponent implements OnInit {
 
   executeDeleteProduct(): void {
     this.deleteProductDialogOpen.set(false);
-    this.toastService.success('Produto Excluído', 'O produto foi removido do catálogo com sucesso.');
+    this.toastService.success(
+      'Produto Excluído',
+      'O produto foi removido do catálogo com sucesso.',
+    );
     this.router.navigate(['/catalog/products']);
   }
 }
