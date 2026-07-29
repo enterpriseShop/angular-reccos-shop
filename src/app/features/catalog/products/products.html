@@ -126,6 +126,7 @@
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
+    (actionClick)="handleProductAction($event)"
   />
 
   <app-pagination

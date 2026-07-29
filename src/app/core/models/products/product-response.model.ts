@@ -1,4 +1,4 @@
-export interface ProductResponse {
+export interface ProductResponse extends Record<string, unknown> {
   id: string;
   status: Status;
   category: Category;

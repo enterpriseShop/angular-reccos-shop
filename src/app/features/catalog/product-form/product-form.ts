@@ -15,6 +15,8 @@ import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-di
 import { AppIconComponent } from '../../../design-system/icon/app-icon';
 import { ToastService } from '../../../core/services/toast';
 import { ShellStateService } from '../../../core/services/shell-state';
+import { ProductService } from '../../../core/services/product-service';
+import { ProductResponse } from '../../../core/models/products/product-response.model';
 
 export type ProductFormMode = 'create' | 'edit' | 'view' | 'duplicate';
 export type FormTab = 'geral' | 'comercial' | 'compatibilidade' | 'midia' | 'administracao';
@@ -95,6 +97,7 @@ export class ProductFormComponent implements OnInit {
   readonly shellState = inject(ShellStateService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private productService = inject(ProductService);
   private toastService = inject(ToastService);
 
   readonly mode = signal<ProductFormMode>('create');
@@ -145,6 +148,66 @@ export class ProductFormComponent implements OnInit {
   readonly suppliers = signal<SupplierItem[]>([]);
   readonly selectedTagIds = signal<string[]>([]);
   readonly productNotes = signal<ProductNoteItem[]>([]);
+
+  readonly product = signal<ProductResponse>({
+    id: 'p0000000-0002-0000-0000-000000000002',
+    status: {
+      id: 's0000000-0001-0000-0000-000000000001',
+      module: 'PRODUCT',
+      code: 'DRAFT',
+      name: 'Rascunho',
+      color: '#64748B',
+      icon: 'file-text',
+    },
+    category: {
+      id: 'c0000000-0013-0000-0000-000000000013',
+      name: 'Filtros de Óleo',
+      slug: 'filtros-de-oleo',
+    },
+    manufacturer: {
+      id: 'm0000000-0001-0000-0000-000000000001',
+      name: 'Bosch',
+      slug: 'bosch',
+    },
+    internal_code: 'OF-002',
+    name: 'Filtro de Óleo Bosch OF-002',
+    slug: 'filtro-de-oleo-bosch-of-002',
+    icon: null,
+    image: null,
+    short_description: 'Filtro de óleo paralelo Bosch',
+    description: 'Filtro de óleo paralelo de alta qualidade para linha VW/Fiat 1.0 e 1.6.',
+    weight: '0.300',
+    height: '10.00',
+    width: '8.00',
+    length: '8.00',
+    featured: false,
+    active: 0,
+    is_sellable: false,
+    commercial_status: 'ready',
+    pricing: {
+      regular_price: 35.9,
+      promotional_price: 29.9,
+      current_price: 29.9,
+      is_on_promotion: true,
+      promotion_start: '2026-07-01',
+      promotion_end: '2026-12-31',
+      active: true,
+      display: {
+        from: 35.9,
+        to: 29.9,
+        label: 'de R$ 35,90 por R$ 29,90',
+      },
+    },
+    inventory: {
+      quantity: 50,
+      reserved_quantity: 0,
+      available_quantity: 50,
+      minimum_quantity: 5,
+      maximum_quantity: 300,
+      allow_backorder: true,
+      active: true,
+    },
+  });
 
   // Static Dropdown Options
   readonly categoryOptions: SelectOption[] = [
@@ -229,20 +292,39 @@ export class ProductFormComponent implements OnInit {
     const url = this.router.url;
     const id = this.route.snapshot.paramMap.get('id');
 
+    if (id) {
+      this.productById(id);
+    }
+
+    console.log('[URL CHEGANDO AQUI]', url);
+
     if (url.includes('/new')) {
       this.mode.set('create');
-    } else if (url.includes('/edit')) {
-      this.mode.set('edit');
-      this.loadMockProduct(id);
-    } else if (url.includes('/view') || (id && !url.includes('/duplicate'))) {
-      this.mode.set('view');
-      this.loadMockProduct(id);
-    } else if (url.includes('/duplicate')) {
-      this.mode.set('duplicate');
-      this.loadMockProduct(id);
-      // Backend mandate rule for duplicate: clean internal_code automatically
-      this.formInternalCode.set('');
     }
+    // else if (url.includes('/edit')) {
+    //   this.mode.set('edit');
+    //   this.loadMockProduct(id);
+    // } else if (url.includes('/view') || (id && !url.includes('/duplicate'))) {
+    //   this.mode.set('view');
+    //   this.loadMockProduct(id);
+    // } else if (url.includes('/duplicate')) {
+    //   this.mode.set('duplicate');
+    //   this.loadMockProduct(id);
+    //   // Backend mandate rule for duplicate: clean internal_code automatically
+    //   this.formInternalCode.set('');
+    // }
+  }
+
+  productById(productId: string) {
+    this.productService.getById(productId).subscribe({
+      next: (response) => {
+        console.log(response);
+        // this.product = response;
+      },
+      error: (error) => {
+        console.log(error);
+      },
+    });
   }
 
   loadMockProduct(id: string | null): void {

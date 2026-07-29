@@ -99,14 +99,23 @@ export class ProductsPageComponent implements OnInit {
     this.getPaginationAllProducts();
   }
 
-  getPaginationAllProducts() {
+  getPaginationAllProducts(): void {
+    this.loading.set(true);
     this.productService.getAll().subscribe({
       next: (response) => {
         this.allProducts.set(response.data);
-        console.log('[PRODUCT ALL LIST]', this.allProducts);
+        if (response.meta) {
+          this.totalItems.set(response.meta.total);
+          this.currentPage.set(response.meta.current_page);
+          this.pageSize.set(response.meta.per_page);
+        } else {
+          this.totalItems.set(response.data.length);
+        }
+        this.loading.set(false);
       },
       error: (error) => {
-        this.toastService.error('Erro ao buscar produtos', error.message);
+        this.loading.set(false);
+        this.toastService.error('Erro ao buscar produtos', error.message || 'Falha na requisição.');
       },
     });
   }
@@ -170,5 +179,17 @@ export class ProductsPageComponent implements OnInit {
       this.toastService.success('Produto Excluído', `${prod.name} foi removido com sucesso.`);
     }
     this.deleteDialogOpen.set(false);
+  }
+
+  handleProductAction(event: { actionId: string; row: ProductResponse }): void {
+    console.log('[HANDLE PRODUCT ACTION]', event);
+    switch (event.actionId) {
+      case 'edit':
+        this.editProduct(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
   }
 }

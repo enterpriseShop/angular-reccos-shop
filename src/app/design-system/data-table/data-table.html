@@ -58,27 +58,34 @@
             [class.text-right]="col.align === 'right'"
             class="px-4 py-3.5 font-normal"
           >
-            @if (col.cell) { {{ col.cell(row) }} } @else { {{ row[col.key] }} }
+            @if (col.type === 'badge' || col.badgeConfig) { @let bg = getBadgeConfig(row, col);
+            <app-badge [variant]="mapVariant(bg.variant)">
+              @if (bg.icon) {
+              <app-icon [name]="bg.icon" size="w-3 h-3" class="mr-1 inline" />
+              } {{ bg.text }}
+            </app-badge>
+            } @else if (col.type === 'icon' || col.iconGetter) { @let iconName = col.iconGetter ?
+            col.iconGetter(row) : 'box';
+            <div
+              class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300"
+            >
+              <app-icon [name]="iconName" size="w-4 h-4" />
+            </div>
+            } @else { {{ getFormattedValue(row, col) }} }
           </td>
           } @if (hasActions()) {
           <td class="px-4 py-3.5 text-right" (click)="$event.stopPropagation()">
             <div class="inline-flex items-center justify-end gap-1">
+              @for (act of getVisibleActions(row); track act.id) {
               <button
                 type="button"
-                (click)="onEdit(row)"
-                class="p-1 rounded text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-                title="Editar"
+                (click)="onActionClick(act, row, $event)"
+                [class]="'p-1.5 rounded transition-colors ' + (act.colorClass || 'text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700')"
+                [title]="act.title || act.label"
               >
-                <app-icon name="edit" size="w-4 h-4" />
+                <app-icon [name]="act.icon" size="w-4 h-4" />
               </button>
-              <button
-                type="button"
-                (click)="onDelete(row)"
-                class="p-1 rounded text-gray-400 hover:text-[#D66A6A] hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-                title="Excluir"
-              >
-                <app-icon name="trash-2" size="w-4 h-4" />
-              </button>
+              }
             </div>
           </td>
           }

@@ -7,7 +7,7 @@ import {
   TableBadgeConfig,
   TableColumn,
 } from '../../core/models/list-table/list-table.model';
-import { BadgeVariant } from '../badge/badge';
+import { BadgeVariant, BadgeComponent } from '../badge/badge';
 
 export interface ColumnDef<T> {
   key: string;
@@ -21,7 +21,7 @@ export interface ColumnDef<T> {
 @Component({
   selector: 'app-data-table',
   standalone: true,
-  imports: [AppIconComponent, SkeletonComponent, EmptyStateComponent],
+  imports: [AppIconComponent, SkeletonComponent, EmptyStateComponent, BadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-table.html',
   styleUrl: './data-table.css',
@@ -169,11 +169,12 @@ export class DataTableComponent<T extends Record<string, unknown>> {
     if (action.id) {
       action.handler(row);
     }
+    console.log('[ON ACTION CLICK]', action, action.id);
     this.actionClick.emit({ actionId: action.id, row });
-    if (action.id === 'edit') {
-      this.editRow.emit(row);
-    } else if (action.id === 'delete') {
-      this.deleteRow.emit(row);
-    }
+    // if (action.id === 'edit') {
+    //   this.editRow.emit(row);
+    // } else if (action.id === 'delete') {
+    //   this.deleteRow.emit(row);
+    // }
   }
 }
