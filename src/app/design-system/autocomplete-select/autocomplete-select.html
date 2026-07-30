@@ -1,0 +1,158 @@
+<div class="w-full relative">
+  @if (label()) {
+    <label [for]="selectId()" class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
+      {{ label() }}
+      @if (required()) {
+        <span class="text-red-500">*</span>
+      }
+    </label>
+  }
+
+  <div class="relative rounded-[8px]">
+    <div class="relative flex items-center">
+      <input
+        [id]="selectId()"
+        type="text"
+        [value]="displayText()"
+        [placeholder]="placeholder()"
+        [disabled]="disabled()"
+        (input)="onInputTextChange($event)"
+        (focus)="openDropdown()"
+        (click)="openDropdown()"
+        (keydown)="onKeyDown($event)"
+        autocomplete="off"
+        class="w-full pl-9 pr-16 py-2 text-sm bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-[8px] text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#4F8A6B] focus:ring-2 focus:ring-[#4F8A6B]/20 disabled:bg-gray-100 dark:disabled:bg-slate-900 disabled:cursor-not-allowed transition-colors"
+      />
+
+      <!-- Left Search Icon -->
+      <div class="absolute left-3 text-gray-400 dark:text-slate-500 pointer-events-none">
+        <app-icon name="search" size="w-4 h-4" />
+      </div>
+
+      <!-- Right Action Icons (Loading / Clear / Chevron) -->
+      <div class="absolute right-2.5 flex items-center gap-1">
+        @if (loading()) {
+          <div class="animate-spin text-[#4F8A6B] p-0.5">
+            <app-icon name="loader-2" size="w-4 h-4" />
+          </div>
+        }
+
+        @if (value() && !disabled()) {
+          <button
+            type="button"
+            (click)="clearSelection($event)"
+            title="Limpar seleção"
+            class="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            <app-icon name="x" size="w-3.5 h-3.5" />
+          </button>
+        }
+
+        <button
+          type="button"
+          (click)="toggleDropdown()"
+          tabindex="-1"
+          class="p-1 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
+        >
+          <app-icon [name]="isOpen() ? 'chevron-up' : 'chevron-down'" size="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Floating Dropdown Panel -->
+    @if (isOpen()) {
+      <div class="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-[10px] shadow-lg overflow-hidden flex flex-col max-h-64 animate-in fade-in slide-in-from-top-1 duration-150">
+        
+        <!-- Status Header Bar -->
+        <div class="px-3 py-1.5 bg-gray-50/80 dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-gray-500 dark:text-slate-400 font-medium">
+          @if (loading()) {
+            <span class="flex items-center gap-1.5 text-[#4F8A6B]">
+              <app-icon name="loader-2" size="w-3 h-3 animate-spin" />
+              Pesquisando no banco de dados...
+            </span>
+          } @else {
+            <span>{{ filteredOptions().length }} {{ filteredOptions().length === 1 ? 'item encontrado' : 'itens encontrados' }}</span>
+          }
+          @if (filterQuery()) {
+            <span class="truncate max-w-[150px] italic">"{{ filterQuery() }}"</span>
+          }
+        </div>
+
+        <!-- Options List -->
+        <div class="overflow-y-auto divide-y divide-gray-50 dark:divide-slate-700/40 py-1">
+          @if (loading() && filteredOptions().length === 0) {
+            <div class="p-4 text-center text-xs text-gray-400 dark:text-slate-500">
+              Carregando dados...
+            </div>
+          } @else if (filteredOptions().length === 0) {
+            <div class="p-4 text-center space-y-1">
+              <div class="inline-flex p-2 rounded-full bg-gray-100 dark:bg-slate-700/60 text-gray-400 dark:text-slate-400">
+                <app-icon name="search-x" size="w-5 h-5" />
+              </div>
+              <p class="text-xs font-medium text-gray-600 dark:text-slate-300">
+                {{ emptyText() }}
+              </p>
+              @if (filterQuery()) {
+                <p class="text-[11px] text-gray-400 dark:text-slate-500">
+                  Nenhum registro corresponde a "{{ filterQuery() }}"
+                </p>
+              }
+            </div>
+          } @else {
+            @for (opt of filteredOptions(); track opt.value; let idx = $index) {
+              @let isSelected = isOptionSelected(opt.value);
+              @let isHighlighted = idx === highlightedIndex();
+
+              <button
+                type="button"
+                (click)="selectOption(opt, $event)"
+                [disabled]="opt.disabled"
+                [class.bg-emerald-50]="isSelected && !isHighlighted"
+                [class.dark:bg-emerald-950\/30]="isSelected && !isHighlighted"
+                [class.text-[#4F8A6B]]="isSelected"
+                [class.dark:text-[#65A37D]]="isSelected"
+                [class.bg-gray-100]="isHighlighted && !isSelected"
+                [class.dark:bg-slate-700]="isHighlighted && !isSelected"
+                [class.opacity-50]="opt.disabled"
+                class="w-full text-left px-3 py-2 text-xs flex items-center justify-between gap-2 hover:bg-gray-50 dark:hover:bg-slate-700/60 transition-colors cursor-pointer disabled:cursor-not-allowed group"
+              >
+                <div class="flex items-center gap-2 min-w-0">
+                  @if (opt.icon) {
+                    <div class="w-6 h-6 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center shrink-0 text-gray-500 dark:text-slate-400 group-hover:text-[#4F8A6B]">
+                      <app-icon [name]="opt.icon" size="w-3.5 h-3.5" />
+                    </div>
+                  }
+                  <div class="min-w-0">
+                    <div class="font-medium truncate">{{ opt.label }}</div>
+                    @if (opt.sublabel) {
+                      <div class="text-[10px] text-gray-400 dark:text-slate-500 truncate">{{ opt.sublabel }}</div>
+                    }
+                  </div>
+                </div>
+
+                @if (isSelected) {
+                  <span class="shrink-0 text-[#4F8A6B] dark:text-[#65A37D]">
+                    <app-icon name="check" size="w-4 h-4" />
+                  </span>
+                }
+              </button>
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (helperText() && !error()) {
+    <p class="mt-1 text-[11px] text-gray-500 dark:text-slate-400">
+      {{ helperText() }}
+    </p>
+  }
+
+  @if (error()) {
+    <p class="mt-1 text-xs text-[#D66A6A] font-medium flex items-center gap-1">
+      <app-icon name="alert-circle" size="w-3.5 h-3.5 shrink-0" />
+      {{ error() }}
+    </p>
+  }
+</div>

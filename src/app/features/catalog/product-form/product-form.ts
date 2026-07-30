@@ -17,9 +17,22 @@ import { ToastService } from '../../../core/services/toast';
 import { ShellStateService } from '../../../core/services/shell-state';
 import { ProductService } from '../../../core/services/product-service';
 import { ProductResponse } from '../../../core/models/products/product-response.model';
+import {
+  AutocompleteOption,
+  AutocompleteSelectComponent,
+} from '../../../design-system/autocomplete-select/autocomplete-select';
+import { CategoryResponse } from '../../../core/models/catetories/categories.model';
+import { CategoryService } from '../../../core/services/category-service';
+import { ManufacturerService } from '../../../core/services/manufacture-service';
+import { CategoryOption } from '../../../core/models/catetories/category-options.model';
+import { debounceTime, distinctUntilChanged, Subject, switchMap } from 'rxjs';
+import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
+import { ManufacturerOption } from '../../../core/models/manufactureres/manufaturer-options.model';
+import { StatusService } from '../../../core/services/status-service';
 
 export type ProductFormMode = 'create' | 'edit' | 'view' | 'duplicate';
-export type FormTab = 'geral' | 'comercial' | 'compatibilidade' | 'midia' | 'administracao';
+export type FormTab =
+  'geral' | 'comercial' | 'inventario' | 'compatibilidade' | 'midia' | 'administracao';
 
 export interface OemCodeItem {
   id: string;
@@ -88,6 +101,7 @@ export interface ProductNoteItem {
     ButtonComponent,
     ConfirmDialogComponent,
     AppIconComponent,
+    AutocompleteSelectComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-form.html',
@@ -99,6 +113,15 @@ export class ProductFormComponent implements OnInit {
   private router = inject(Router);
   private productService = inject(ProductService);
   private toastService = inject(ToastService);
+  private categoryService = inject(CategoryService);
+  private manufacturerService = inject(ManufacturerService);
+  private statusService = inject(StatusService);
+
+  readonly queries = signal<GeneralOptionQuery>({
+    search: null,
+    active: null,
+    limit: 5,
+  });
 
   readonly mode = signal<ProductFormMode>('create');
   readonly activeTab = signal<FormTab>('geral');
@@ -124,6 +147,7 @@ export class ProductFormComponent implements OnInit {
   readonly formUnitId = signal<string>('');
   readonly formStatusId = signal<string>('st-01');
   readonly formDescription = signal<string>('');
+  readonly formSlug = signal<string>('');
 
   readonly formWeight = signal<number>(0);
   readonly formHeight = signal<number>(0);
@@ -136,7 +160,9 @@ export class ProductFormComponent implements OnInit {
   readonly formPromotionEndDate = signal<string>('');
   readonly formWarehouseId = signal<string>('wh-01');
   readonly formQuantity = signal<number>(0);
+  readonly formIsInvoiced = signal<boolean>(true);
   readonly formMinQuantity = signal<number>(0);
+  readonly formMaxQuantity = signal<number | null>(null);
   readonly formAllowBackorder = signal<boolean>(false);
 
   // Collection Signals
@@ -148,6 +174,22 @@ export class ProductFormComponent implements OnInit {
   readonly suppliers = signal<SupplierItem[]>([]);
   readonly selectedTagIds = signal<string[]>([]);
   readonly productNotes = signal<ProductNoteItem[]>([]);
+
+  readonly categoryLoading = signal(false);
+  readonly categoryQuery = signal('');
+  readonly fetchedCategories = signal<CategoryOption[]>([]);
+  readonly fetchedManufacturers = signal<ManufacturerOption[]>([]);
+
+  readonly manufacturerLoading = signal(false);
+  readonly manufacturerQuery = signal('');
+  // readonly manufacturerQuery = signal<GeneralOptionQuery>({
+  //   active: null,
+  //   search: '',
+  //   limit: 10,
+  // });
+
+  private readonly categorySearch$ = new Subject<GeneralOptionQuery>();
+  private readonly manufacturerSearch$ = new Subject<GeneralOptionQuery>();
 
   readonly product = signal<ProductResponse>({
     id: 'p0000000-0002-0000-0000-000000000002',
@@ -209,24 +251,32 @@ export class ProductFormComponent implements OnInit {
     },
   });
 
-  // Static Dropdown Options
-  readonly categoryOptions: SelectOption[] = [
-    { label: 'Sistemas de Freios', value: 'cat-01' },
-    { label: 'Motor & Transmissão', value: 'cat-02' },
-    { label: 'Suspensão & Direção', value: 'cat-03' },
-    { label: 'Sistema Elétrico', value: 'cat-04' },
-    { label: 'Arrefecimento', value: 'cat-05' },
-  ];
+  readonly categoryOptions = computed<AutocompleteOption[]>(() => {
+    const categories = this.fetchedCategories();
+    const query = this.categoryQuery().trim().toLowerCase();
 
-  readonly manufacturerOptions: SelectOption[] = [
-    { label: 'Bosch', value: 'm-01' },
-    { label: 'Continental', value: 'm-02' },
-    { label: 'Monroe', value: 'm-03' },
-    { label: 'NGK', value: 'm-04' },
-    { label: 'Fremax', value: 'm-05' },
-    { label: 'Magneti Marelli', value: 'm-06' },
-    { label: 'Sachs', value: 'm-07' },
-  ];
+    return categories
+      .filter((cat) => !query || cat.label.toLowerCase().includes(query))
+      .map((cat) => ({
+        label: cat.label,
+        value: cat.id,
+        sublabel: cat.description,
+        icon: cat.icon || 'folder',
+      }));
+  });
+
+  readonly manufacturerOptions = computed<AutocompleteOption[]>(() => {
+    const manufacturers = this.fetchedManufacturers();
+    const query = this.manufacturerQuery().trim().toLowerCase() || '';
+
+    return manufacturers
+      .filter((m) => !query || m.label.toLowerCase().includes(query))
+      .map((m) => ({
+        label: m.label,
+        value: m.id,
+        sublabel: m.description,
+      }));
+  });
 
   readonly partOriginOptions: SelectOption[] = [
     { label: 'Nacional', value: 'po-01' },
@@ -236,11 +286,15 @@ export class ProductFormComponent implements OnInit {
   ];
 
   readonly unitOptions: SelectOption[] = [
-    { label: 'UN - Unidade', value: 'u-01' },
-    { label: 'JG - Jogo', value: 'u-02' },
-    { label: 'PC - Peça', value: 'u-03' },
-    { label: 'PAR - Par', value: 'u-04' },
-    { label: 'KG - Quilograma', value: 'u-05' },
+    { label: 'Jogo', value: 'jogo' },
+    { label: 'Peça', value: 'peça' },
+    { label: 'Par', value: 'par' },
+    { label: 'Kit', value: 'kit' },
+    { label: 'Litro', value: 'litro' },
+    { label: 'Metro', value: 'metro' },
+    { label: 'Rolo', value: 'rolo' },
+    { label: 'Caixa', value: 'caixa' },
+    { label: 'Conjunto', value: 'conjunto' },
   ];
 
   readonly statusOptions: SelectOption[] = [
@@ -292,11 +346,51 @@ export class ProductFormComponent implements OnInit {
     const url = this.router.url;
     const id = this.route.snapshot.paramMap.get('id');
 
+    this.categorySearch$
+      .pipe(
+        debounceTime(600),
+        distinctUntilChanged(),
+        switchMap((query) => {
+          this.categoryLoading.set(true);
+          return this.categoryService.getOptions(query);
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.fetchedCategories.set(response.data);
+          this.categoryLoading.set(false);
+        },
+        error: () => {
+          this.categoryLoading.set(false);
+        },
+      });
+
+    this.manufacturerSearch$
+      .pipe(
+        debounceTime(600),
+        distinctUntilChanged(),
+        switchMap((query) => {
+          this.manufacturerLoading.set(true);
+          return this.manufacturerService.getOptions(query);
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.fetchedManufacturers.set(response.data);
+          this.manufacturerLoading.set(false);
+        },
+        error: () => {
+          this.manufacturerLoading.set(false);
+        },
+      });
+
+    this.onCategorySearch(this.queries());
+    this.onManufacturerSearch(this.queries());
+    this.getStatus();
+
     if (id) {
       this.productById(id);
     }
-
-    console.log('[URL CHEGANDO AQUI]', url);
 
     if (url.includes('/new')) {
       this.mode.set('create');
@@ -352,9 +446,11 @@ export class ProductFormComponent implements OnInit {
     this.formPromotionalPrice.set(169.9);
     this.formPromotionStartDate.set('2026-07-01');
     this.formPromotionEndDate.set('2026-08-31');
+    this.formIsInvoiced.set(true);
     this.formWarehouseId.set('wh-01');
     this.formQuantity.set(45);
     this.formMinQuantity.set(10);
+    this.formMaxQuantity.set(250);
     this.formAllowBackorder.set(true);
 
     this.oemCodes.set([
@@ -560,7 +656,15 @@ export class ProductFormComponent implements OnInit {
     const val = valStr.trim() === '' ? null : parseFloat(valStr);
     if (field === 'promotional_price') {
       this.formPromotionalPrice.set(val);
+    } else if (field === 'max_quantity') {
+      this.formMaxQuantity.set(val);
     }
+  }
+
+  toggleIsInvoiced(): void {
+    if (this.isReadOnly()) return;
+    this.isFormDirty.set(true);
+    this.formIsInvoiced.update((v) => !v);
   }
 
   onTextareaInput(event: Event): void {
@@ -878,10 +982,16 @@ export class ProductFormComponent implements OnInit {
       promotional_price: this.formPromotionalPrice(),
       promotion_start_date: this.formPromotionStartDate() || null,
       promotion_end_date: this.formPromotionEndDate() || null,
-      warehouse_id: this.formWarehouseId(),
-      quantity: this.formQuantity(),
-      min_quantity: this.formMinQuantity(),
-      allow_backorder: this.formAllowBackorder(),
+      is_invoiced: this.formIsInvoiced(),
+      inventory: {
+        warehouse_id: this.formWarehouseId(),
+        quantity: this.formQuantity(),
+        minimum_quantity: this.formMinQuantity(),
+        maximum_quantity: this.formMaxQuantity(),
+        allow_backorder: this.formAllowBackorder(),
+        reserved_quantity: 0,
+        active: true,
+      },
       tag_ids: this.selectedTagIds(),
     };
 
@@ -948,5 +1058,24 @@ export class ProductFormComponent implements OnInit {
       'O produto foi removido do catálogo com sucesso.',
     );
     this.router.navigate(['/catalog/products']);
+  }
+
+  onCategorySearch(query: GeneralOptionQuery): void {
+    this.categorySearch$.next(query);
+  }
+
+  onManufacturerSearch(query: GeneralOptionQuery): void {
+    this.manufacturerSearch$.next(query);
+  }
+
+  getStatus() {
+    this.statusService.getAll().subscribe({
+      next: (response) => {
+        console.log('Fetched Product Status Options:', response.data);
+      },
+      error: (error) => {
+        console.error('Error fetching product status options:', error);
+      },
+    });
   }
 }
