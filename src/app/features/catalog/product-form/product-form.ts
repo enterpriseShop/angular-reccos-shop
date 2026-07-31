@@ -9,7 +9,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
 import { InputComponent } from '../../../design-system/input/input';
-import { SelectComponent, SelectOption } from '../../../design-system/select/select';
+import { SelectComponent } from '../../../design-system/select/select';
 import { ButtonComponent } from '../../../design-system/button/button';
 import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
 import { AppIconComponent } from '../../../design-system/icon/app-icon';
@@ -29,6 +29,11 @@ import { debounceTime, distinctUntilChanged, Subject, switchMap } from 'rxjs';
 import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
 import { ManufacturerOption } from '../../../core/models/manufactureres/manufaturer-options.model';
 import { StatusService } from '../../../core/services/status-service';
+import {
+  StatusOption,
+  StatusOptionsResponse,
+} from '../../../core/models/status/status-options.model';
+import { DSelectOption } from '../../../core/models/design-system/select-option.model';
 
 export type ProductFormMode = 'create' | 'edit' | 'view' | 'duplicate';
 export type FormTab =
@@ -176,20 +181,20 @@ export class ProductFormComponent implements OnInit {
   readonly productNotes = signal<ProductNoteItem[]>([]);
 
   readonly categoryLoading = signal(false);
-  readonly categoryQuery = signal('');
+  readonly manufacturerLoading = signal(false);
+
+  readonly fetchedStatuses = signal<StatusOption[]>([]);
   readonly fetchedCategories = signal<CategoryOption[]>([]);
   readonly fetchedManufacturers = signal<ManufacturerOption[]>([]);
 
-  readonly manufacturerLoading = signal(false);
+  readonly statusQuery = signal('');
+  readonly categoryQuery = signal('');
   readonly manufacturerQuery = signal('');
-  // readonly manufacturerQuery = signal<GeneralOptionQuery>({
-  //   active: null,
-  //   search: '',
-  //   limit: 10,
-  // });
 
   private readonly categorySearch$ = new Subject<GeneralOptionQuery>();
   private readonly manufacturerSearch$ = new Subject<GeneralOptionQuery>();
+
+  private currentModule = signal<string>('PRODUCT');
 
   readonly product = signal<ProductResponse>({
     id: 'p0000000-0002-0000-0000-000000000002',
@@ -266,10 +271,10 @@ export class ProductFormComponent implements OnInit {
   });
 
   readonly manufacturerOptions = computed<AutocompleteOption[]>(() => {
-    const manufacturers = this.fetchedManufacturers();
+    const status = this.fetchedStatuses();
     const query = this.manufacturerQuery().trim().toLowerCase() || '';
 
-    return manufacturers
+    return status
       .filter((m) => !query || m.label.toLowerCase().includes(query))
       .map((m) => ({
         label: m.label,
@@ -278,14 +283,16 @@ export class ProductFormComponent implements OnInit {
       }));
   });
 
-  readonly partOriginOptions: SelectOption[] = [
+  readonly statusOptions = signal<DSelectOption[]>([]);
+
+  readonly partOriginOptions: DSelectOption[] = [
     { label: 'Nacional', value: 'po-01' },
     { label: 'Importado Direto', value: 'po-02' },
     { label: 'Original OEM', value: 'po-03' },
     { label: 'Aftermarket Premium', value: 'po-04' },
   ];
 
-  readonly unitOptions: SelectOption[] = [
+  readonly unitOptions: DSelectOption[] = [
     { label: 'Jogo', value: 'jogo' },
     { label: 'Peça', value: 'peça' },
     { label: 'Par', value: 'par' },
@@ -297,13 +304,7 @@ export class ProductFormComponent implements OnInit {
     { label: 'Conjunto', value: 'conjunto' },
   ];
 
-  readonly statusOptions: SelectOption[] = [
-    { label: 'Ativo', value: 'st-01' },
-    { label: 'Inativo', value: 'st-02' },
-    { label: 'Em Homologação', value: 'st-03' },
-  ];
-
-  readonly warehouseOptions: SelectOption[] = [
+  readonly warehouseOptions: DSelectOption[] = [
     { label: 'Depósito Central SP', value: 'wh-01' },
     { label: 'Depósito Filial PR', value: 'wh-02' },
     { label: 'Depósito Distribuição RJ', value: 'wh-03' },
@@ -384,9 +385,9 @@ export class ProductFormComponent implements OnInit {
         },
       });
 
+    this.onStatusSearch();
     this.onCategorySearch(this.queries());
     this.onManufacturerSearch(this.queries());
-    this.getStatus();
 
     if (id) {
       this.productById(id);
@@ -1068,10 +1069,15 @@ export class ProductFormComponent implements OnInit {
     this.manufacturerSearch$.next(query);
   }
 
-  getStatus() {
-    this.statusService.getAll().subscribe({
+  onStatusSearch(limit = null) {
+    this.statusService.getOptions(this.currentModule(), limit).subscribe({
       next: (response) => {
-        console.log('Fetched Product Status Options:', response.data);
+        const result = response.data.map((status) => ({
+          label: status.label,
+          value: status.id,
+          description: status.description,
+        }));
+        this.statusOptions.set(result);
       },
       error: (error) => {
         console.error('Error fetching product status options:', error);

@@ -11,10 +11,10 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { AppIconComponent } from '../icon/app-icon';
-import { SelectOption } from '../select/select';
 import { GeneralOptionQuery } from '../../core/models/generals/general-option-query.model';
+import { DSelectOption } from '../../core/models/design-system/select-option.model';
 
-export interface AutocompleteOption extends SelectOption {
+export interface AutocompleteOption extends DSelectOption {
   sublabel?: string;
   category?: string;
   icon?: string;
