@@ -34,6 +34,13 @@ import {
   StatusOptionsResponse,
 } from '../../../core/models/status/status-options.model';
 import { DSelectOption } from '../../../core/models/design-system/select-option.model';
+import { ProductFormState } from '../../../core/models/products/product-form-state.model';
+import {
+  mapProductBackendErrors,
+  transformToCreatePayload,
+  transformToUpdatePayload,
+  validateProductForm,
+} from '../../../core/utils/product-payload.transformer';
 
 export type ProductFormMode = 'create' | 'edit' | 'view' | 'duplicate';
 export type FormTab =
@@ -271,10 +278,10 @@ export class ProductFormComponent implements OnInit {
   });
 
   readonly manufacturerOptions = computed<AutocompleteOption[]>(() => {
-    const status = this.fetchedStatuses();
+    const manufacturers = this.fetchedManufacturers();
     const query = this.manufacturerQuery().trim().toLowerCase() || '';
 
-    return status
+    return manufacturers
       .filter((m) => !query || m.label.toLowerCase().includes(query))
       .map((m) => ({
         label: m.label,
@@ -282,6 +289,34 @@ export class ProductFormComponent implements OnInit {
         sublabel: m.description,
       }));
   });
+
+  readonly formState = computed<ProductFormState>(() => ({
+    name: this.formName(),
+    internal_code: this.formInternalCode(),
+    category_id: this.formCategoryId(),
+    manufacturer_id: this.formManufacturerId(),
+    unit: this.formUnitId(),
+    status_id: this.formStatusId(),
+    slug: this.formSlug(),
+    description: this.formDescription(),
+    weight: this.formWeight(),
+    height: this.formHeight(),
+    width: this.formWidth(),
+    length: this.formLength(),
+    price: this.formPrice(),
+    promotional_price: this.formPromotionalPrice(),
+    promotion_start_date: this.formPromotionStartDate(),
+    promotion_end_date: this.formPromotionEndDate(),
+    warehouse_id: this.formWarehouseId(),
+    quantity: this.formQuantity(),
+    minimum_quantity: this.formMinQuantity(),
+    maximum_quantity: this.formMaxQuantity(),
+    allow_backorder: this.formAllowBackorder(),
+  }));
+
+  readonly createPayload = computed(() => transformToCreatePayload(this.formState()));
+
+  readonly updatePayload = computed(() => transformToUpdatePayload(this.formState()));
 
   readonly statusOptions = signal<DSelectOption[]>([]);
 
@@ -390,34 +425,31 @@ export class ProductFormComponent implements OnInit {
     this.onManufacturerSearch(this.queries());
 
     if (id) {
+      if (url.includes('/edit')) {
+        this.mode.set('edit');
+      } else if (url.includes('/duplicate')) {
+        this.mode.set('duplicate');
+      } else {
+        this.mode.set('view');
+      }
       this.productById(id);
-    }
-
-    if (url.includes('/new')) {
+    } else {
       this.mode.set('create');
     }
-    // else if (url.includes('/edit')) {
-    //   this.mode.set('edit');
-    //   this.loadMockProduct(id);
-    // } else if (url.includes('/view') || (id && !url.includes('/duplicate'))) {
-    //   this.mode.set('view');
-    //   this.loadMockProduct(id);
-    // } else if (url.includes('/duplicate')) {
-    //   this.mode.set('duplicate');
-    //   this.loadMockProduct(id);
-    //   // Backend mandate rule for duplicate: clean internal_code automatically
-    //   this.formInternalCode.set('');
-    // }
   }
 
   productById(productId: string) {
     this.productService.getById(productId).subscribe({
       next: (response) => {
-        console.log(response);
-        // this.product = response;
+        console.log('Product fetched from API:', response);
+        this.populateForm(response);
+        if (this.mode() === 'duplicate') {
+          this.formInternalCode.set('');
+        }
       },
       error: (error) => {
-        console.log(error);
+        console.error('Error loading product:', error);
+        this.toastService.error('Erro', 'Não foi possível carregar os dados do produto.');
       },
     });
   }
@@ -567,7 +599,20 @@ export class ProductFormComponent implements OnInit {
       );
     }
     if (tab === 'comercial') {
-      return !!errs['price'];
+      return !!(
+        errs['price'] ||
+        errs['promotional_price'] ||
+        errs['promotion_start_date'] ||
+        errs['promotion_end_date']
+      );
+    }
+    if (tab === 'inventario') {
+      return !!(
+        errs['warehouse_id'] ||
+        errs['quantity'] ||
+        errs['min_quantity'] ||
+        errs['max_quantity']
+      );
     }
     return false;
   }
@@ -915,30 +960,39 @@ export class ProductFormComponent implements OnInit {
   }
 
   // --- SAVE & VALIDATE ---
-  validateForm(): boolean {
-    const errs: Record<string, string> = {};
+  populateForm(prod: ProductResponse): void {
+    this.formName.set(prod.name || '');
+    this.formInternalCode.set(prod.internal_code || '');
+    this.formCategoryId.set(prod.category?.id || '');
+    this.formManufacturerId.set(prod.manufacturer?.id || '');
+    this.formUnitId.set((prod['unit'] || prod['unit_id'] || '') as string);
+    this.formStatusId.set(prod.status?.id || '');
+    this.formDescription.set(prod.description || '');
+    this.formSlug.set(prod.slug || '');
 
-    if (!this.formName().trim()) {
-      errs['name'] = 'O nome do produto é obrigatório.';
+    this.formWeight.set(parseFloat(prod.weight) || 0);
+    this.formHeight.set(parseFloat(prod.height) || 0);
+    this.formWidth.set(parseFloat(prod.width) || 0);
+    this.formLength.set(parseFloat(prod.length) || 0);
+
+    if (prod.pricing) {
+      this.formPrice.set(prod.pricing.regular_price || 0);
+      this.formPromotionalPrice.set(prod.pricing.promotional_price || null);
+      this.formPromotionStartDate.set(prod.pricing.promotion_start || '');
+      this.formPromotionEndDate.set(prod.pricing.promotion_end || '');
     }
-    if (!this.formInternalCode().trim()) {
-      errs['internal_code'] = 'O código interno é obrigatório.';
+
+    if (prod.inventory) {
+      this.formWarehouseId.set(((prod.inventory as any)['warehouse_id'] || 'wh-01') as string);
+      this.formQuantity.set(prod.inventory.quantity || 0);
+      this.formMinQuantity.set(prod.inventory.minimum_quantity || 0);
+      this.formMaxQuantity.set(prod.inventory.maximum_quantity || null);
+      this.formAllowBackorder.set(!!prod.inventory.allow_backorder);
     }
-    if (!this.formCategoryId()) {
-      errs['category_id'] = 'Selecione uma categoria.';
-    }
-    if (!this.formManufacturerId()) {
-      errs['manufacturer_id'] = 'Selecione um fabricante.';
-    }
-    if (!this.formUnitId()) {
-      errs['unit_id'] = 'Selecione a unidade de medida.';
-    }
-    if (!this.formStatusId()) {
-      errs['status_id'] = 'Selecione o status do produto.';
-    }
-    if (this.formPrice() <= 0) {
-      errs['price'] = 'Informe um preço base válido superior a zero.';
-    }
+  }
+
+  validateForm(): boolean {
+    const errs = validateProductForm(this.formState(), this.mode());
 
     this.errors.set(errs);
 
@@ -947,6 +1001,8 @@ export class ProductFormComponent implements OnInit {
         this.activeTab.set('geral');
       } else if (this.hasTabError('comercial')) {
         this.activeTab.set('comercial');
+      } else if (this.hasTabError('inventario')) {
+        this.activeTab.set('inventario');
       }
       return false;
     }
@@ -965,53 +1021,63 @@ export class ProductFormComponent implements OnInit {
 
     this.isSaving.set(true);
 
-    // Build backend JSON payload matching specification contract
-    const payload = {
-      name: this.formName(),
-      internal_code: this.formInternalCode(),
-      category_id: this.formCategoryId(),
-      manufacturer_id: this.formManufacturerId(),
-      part_origin_id: this.formPartOriginId() || null,
-      unit_id: this.formUnitId(),
-      status_id: this.formStatusId(),
-      description: this.formDescription(),
-      weight: this.formWeight(),
-      height: this.formHeight(),
-      width: this.formWidth(),
-      length: this.formLength(),
-      price: this.formPrice(),
-      promotional_price: this.formPromotionalPrice(),
-      promotion_start_date: this.formPromotionStartDate() || null,
-      promotion_end_date: this.formPromotionEndDate() || null,
-      is_invoiced: this.formIsInvoiced(),
-      inventory: {
-        warehouse_id: this.formWarehouseId(),
-        quantity: this.formQuantity(),
-        minimum_quantity: this.formMinQuantity(),
-        maximum_quantity: this.formMaxQuantity(),
-        allow_backorder: this.formAllowBackorder(),
-        reserved_quantity: 0,
-        active: true,
+    const id = this.route.snapshot.paramMap.get('id');
+    const isEdit = this.mode() === 'edit' && id;
+
+    console.log(
+      'Sending Product Payload to Backend API:',
+      isEdit ? this.updatePayload() : this.createPayload(),
+    );
+
+    const request$ = isEdit
+      ? this.productService.update(id!, this.updatePayload())
+      : this.productService.create(this.createPayload());
+
+    request$.subscribe({
+      next: (response) => {
+        this.isSaving.set(false);
+        this.isFormDirty.set(false);
+        this.toastService.success(
+          'Produto salvo com sucesso.',
+          'Todas as informações comerciais e técnicas foram salvas.',
+        );
+
+        if (!continueEditing) {
+          this.router.navigate(['/catalog/products']);
+        } else if (this.mode() === 'create' || this.mode() === 'duplicate') {
+          this.mode.set('edit');
+          if (response.id) {
+            this.router.navigate(['/catalog/products', response.id, 'edit']);
+          }
+        }
       },
-      tag_ids: this.selectedTagIds(),
-    };
+      error: (err) => {
+        this.isSaving.set(false);
+        console.error('Error saving product:', err);
+        if (err.status === 422 && err.error?.errors) {
+          const mapped = mapProductBackendErrors(err.error.errors);
+          this.errors.set(mapped);
 
-    console.log('Sending Product Payload to Backend API:', payload);
+          this.toastService.error(
+            'Erro de validação',
+            err.error.message || 'Verifique as mensagens de erro nos campos.'
+          );
 
-    setTimeout(() => {
-      this.isSaving.set(false);
-      this.isFormDirty.set(false);
-      this.toastService.success(
-        'Produto salvo com sucesso.',
-        'Todas as informações comerciais e técnicas foram salvas.',
-      );
-
-      if (!continueEditing) {
-        this.router.navigate(['/catalog/products']);
-      } else if (this.mode() === 'create' || this.mode() === 'duplicate') {
-        this.mode.set('edit');
+          if (this.hasTabError('geral')) {
+            this.activeTab.set('geral');
+          } else if (this.hasTabError('comercial')) {
+            this.activeTab.set('comercial');
+          } else if (this.hasTabError('inventario')) {
+            this.activeTab.set('inventario');
+          }
+        } else {
+          this.toastService.error(
+            'Erro ao salvar o produto',
+            err.error?.message || err.message || 'Ocorreu um erro inesperado no servidor.'
+          );
+        }
       }
-    }, 600);
+    });
   }
 
   onCancel(): void {

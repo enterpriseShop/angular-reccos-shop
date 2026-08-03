@@ -1,17 +1,17 @@
 export interface CreateProductPayload {
-  category_id: string;
-  manufacturer_id: string;
-  status_id?: string;
+  category_id: string | null;
+  manufacturer_id: string | null;
+  status_id?: string | null;
 
-  internal_code: string;
-  name: string;
+  internal_code: string | null;
+  name: string | null;
 
-  slug?: string;
-  icon?: string;
-  image?: string;
+  slug?: string | null;
+  icon?: string | null;
+  image?: string | null;
 
-  short_description?: string;
-  description?: string;
+  short_description?: string | null;
+  description?: string | null;
 
   weight?: number;
   height?: number;
@@ -21,7 +21,7 @@ export interface CreateProductPayload {
   active?: boolean;
   featured?: boolean;
 
-  unit?: string;
+  unit?: string | null;
 
   price: ProductPricePayload;
 
@@ -30,18 +30,44 @@ export interface CreateProductPayload {
 
 export interface ProductPricePayload {
   price: number;
-  promotional_price?: number;
-  promotion_start?: string; // YYYY-MM-DD
-  promotion_end?: string; // YYYY-MM-DD
+  promotional_price?: number | null;
+  promotion_start?: string | null;
+  promotion_end?: string | null;
 }
 
 export interface ProductInventoryPayload {
-  warehouse_id: string;
+  warehouse_id: string | null;
 
   quantity: number;
 
   minimum_quantity?: number;
-  maximum_quantity?: number;
+  maximum_quantity?: number | null;
 
   allow_backorder?: boolean;
+}
+
+export interface UpdateProductPayload {
+  category_id?: string | null;
+  manufacturer_id?: string | null;
+  status_id?: string | null;
+
+  internal_code?: string | null;
+  name?: string | null;
+
+  slug?: string | null;
+  icon?: string | null;
+  image?: string | null;
+
+  short_description?: string | null;
+  description?: string | null;
+
+  weight?: number;
+  height?: number;
+  width?: number;
+  length?: number;
+
+  active?: boolean;
+  featured?: boolean;
+
+  unit?: string | null;
 }

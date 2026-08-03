@@ -1,6 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
+import {
+  CreateProductPayload,
+  UpdateProductPayload,
+} from '../models/products/product-request.model';
 import { ProductResponse } from '../models/products/product-response.model';
 import { environment } from '../../../environments/environment';
 
@@ -18,5 +22,13 @@ export class ProductService {
 
   getById(id: string) {
     return this.http.get<ProductResponse>(`${this.api}/${this.flag}/${id}`);
+  }
+
+  create(payload: CreateProductPayload) {
+    return this.http.post<ProductResponse>(`${this.api}/${this.flag}`, payload);
+  }
+
+  update(id: string, payload: UpdateProductPayload) {
+    return this.http.put<ProductResponse>(`${this.api}/${this.flag}/${id}`, payload);
   }
 }

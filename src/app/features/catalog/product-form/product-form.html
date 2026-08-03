@@ -264,6 +264,7 @@
         placeholder="0,00"
         [value]="formPromotionalPrice() !== null ? formPromotionalPrice()!.toString() : ''"
         [disabled]="isReadOnly()"
+        [error]="errors()['promotional_price']"
         iconPrefix="dollar-sign"
         (valueChange)="updateNullableNumberField('promotional_price', $event)"
       />
@@ -276,6 +277,7 @@
         type="date"
         [value]="formPromotionStartDate() || ''"
         [disabled]="isReadOnly()"
+        [error]="errors()['promotion_start_date']"
         (valueChange)="updateField('promotion_start_date', $event)"
       />
 
@@ -285,6 +287,7 @@
         type="date"
         [value]="formPromotionEndDate() || ''"
         [disabled]="isReadOnly()"
+        [error]="errors()['promotion_end_date']"
         (valueChange)="updateField('promotion_end_date', $event)"
       />
     </div>
@@ -378,6 +381,7 @@
         placeholder="Ex: 5"
         [value]="formMinQuantity().toString()"
         [disabled]="isReadOnly()"
+        [error]="errors()['min_quantity']"
         (valueChange)="updateNumberField('min_quantity', $event)"
       />
 
@@ -388,6 +392,7 @@
         placeholder="Ex: 100"
         [value]="formMaxQuantity() !== null ? formMaxQuantity()!.toString() : ''"
         [disabled]="isReadOnly()"
+        [error]="errors()['max_quantity']"
         (valueChange)="updateNullableNumberField('max_quantity', $event)"
       />
     </div>
