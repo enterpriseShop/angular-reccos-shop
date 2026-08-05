@@ -100,10 +100,28 @@ function buildProductRoot(state: ProductFormState) {
 }
 
 export function transformToCreatePayload(state: ProductFormState): CreateProductPayload {
+  const extended = state as ProductFormState & {
+    part_origin_id?: string;
+    barcode?: string;
+    short_description?: string;
+    featured?: boolean;
+  };
+
   return {
-    ...buildProductRoot(state),
-    price: buildPriceBlock(state),
-    inventory: buildInventoryBlock(state),
+    category_id: toNullableString(state.category_id) ?? '',
+    manufacturer_id: toNullableString(state.manufacturer_id) ?? '',
+    part_origin_id: toNullableString(extended.part_origin_id) ?? '',
+    unit_id: toNullableString(state.unit) ?? '',
+    internal_code: toNullableString(state.internal_code) ?? '',
+    barcode: toNullableString(extended.barcode) ?? '',
+    name: toNullableString(state.name) ?? '',
+    short_description: toNullableString(extended.short_description) ?? '',
+    description: toNullableString(state.description) ?? '',
+    weight: toNumber(state.weight),
+    height: toNumber(state.height),
+    width: toNumber(state.width),
+    length: toNumber(state.length),
+    featured: toBoolean(extended.featured),
   };
 }
 
@@ -113,10 +131,10 @@ export function transformToUpdatePayload(state: ProductFormState): UpdateProduct
 
 export function validateProductForm(
   state: ProductFormState,
-  mode: 'create' | 'edit' | 'view' | 'duplicate',
+  mode: 'create' | 'edit' | 'view',
 ): Record<string, string> {
   const errs: Record<string, string> = {};
-  const isCreateFlow = mode === 'create' || mode === 'duplicate';
+  const isCreateFlow = mode === 'create';
 
   if (!state.name.trim()) {
     errs['name'] = 'O nome do produto é obrigatório.';

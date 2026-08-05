@@ -1,0 +1,99 @@
+<div class="bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700/80 rounded-2xl p-4 shadow-2xs space-y-3">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+    <!-- Step 1 Button -->
+    <button
+      type="button"
+      (click)="setStep(1)"
+      [class]="currentStep() === 1 ? 'bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 border-[#4F8A6B] dark:border-[#5BAE6A]' : (currentStep() > 1 ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800' : 'bg-gray-50 dark:bg-slate-900/40 border-gray-200 dark:border-slate-700')"
+      class="flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer"
+    >
+      <div
+        [class]="currentStep() === 1 ? 'bg-[#4F8A6B] text-white' : (currentStep() > 1 ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-300')"
+        class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors"
+      >
+        @if (currentStep() > 1) {
+          <app-icon name="check" size="w-4 h-4" />
+        } @else {
+          1
+        }
+      </div>
+      <div class="space-y-0.5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-400 block">
+          Etapa 01
+        </span>
+        <h4 class="text-xs font-bold text-gray-900 dark:text-slate-100">
+          Informações & Descrições
+        </h4>
+        <p class="text-[11px] text-gray-500 dark:text-slate-400">
+          Nome, slug e resumo técnico
+        </p>
+      </div>
+    </button>
+
+    <!-- Step 2 Button -->
+    <button
+      type="button"
+      (click)="setStep(2)"
+      [class]="currentStep() === 2 ? 'bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 border-[#4F8A6B] dark:border-[#5BAE6A]' : (currentStep() > 2 ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800' : 'bg-gray-50 dark:bg-slate-900/40 border-gray-200 dark:border-slate-700')"
+      class="flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer"
+    >
+      <div
+        [class]="currentStep() === 2 ? 'bg-[#4F8A6B] text-white' : (currentStep() > 2 ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-300')"
+        class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors"
+      >
+        @if (currentStep() > 2) {
+          <app-icon name="check" size="w-4 h-4" />
+        } @else {
+          2
+        }
+      </div>
+      <div class="space-y-0.5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-400 block">
+          Etapa 02
+        </span>
+        <h4 class="text-xs font-bold text-gray-900 dark:text-slate-100">
+          Identificação & Classificação
+        </h4>
+        <p class="text-[11px] text-gray-500 dark:text-slate-400">
+          Categoria, fabricante & códigos
+        </p>
+      </div>
+    </button>
+
+    <!-- Step 3 Button -->
+    <button
+      type="button"
+      (click)="setStep(3)"
+      [class]="currentStep() === 3 ? 'bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 border-[#4F8A6B] dark:border-[#5BAE6A]' : 'bg-gray-50 dark:bg-slate-900/40 border-gray-200 dark:border-slate-700'"
+      class="flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer"
+    >
+      <div
+        [class]="currentStep() === 3 ? 'bg-[#4F8A6B] text-white' : 'bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-300'"
+        class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors"
+      >
+        3
+      </div>
+      <div class="space-y-0.5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-400 block">
+          Etapa 03
+        </span>
+        <h4 class="text-xs font-bold text-gray-900 dark:text-slate-100">
+          Especificações & Visibilidade
+        </h4>
+        <p class="text-[11px] text-gray-500 dark:text-slate-400">
+          Unidade, dimensões e ativação
+        </p>
+      </div>
+    </button>
+
+  </div>
+
+  <!-- Step Progress Bar -->
+  <div class="w-full bg-gray-100 dark:bg-slate-700/60 rounded-full h-1.5 overflow-hidden">
+    <div
+      class="bg-[#4F8A6B] h-full transition-all duration-300 rounded-full"
+      [style.width]="(currentStep() / 3 * 100) + '%'"
+    ></div>
+  </div>
+</div>

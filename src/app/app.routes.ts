@@ -19,27 +19,28 @@ export const routes: Routes = [
   {
     path: 'catalog/products/new',
     loadComponent: () =>
-      import('./features/catalog/product-form/product-form').then((m) => m.ProductFormComponent),
+      import('./features/catalog/product-create/product-create').then((m) => m.ProductCreateComponent),
   },
   {
     path: 'catalog/products/:id/edit',
     loadComponent: () =>
-      import('./features/catalog/product-form/product-form').then((m) => m.ProductFormComponent),
+      import('./features/catalog/product-workspace/product-workspace').then(
+        (m) => m.ProductWorkspaceComponent,
+      ),
   },
   {
     path: 'catalog/products/:id/view',
     loadComponent: () =>
-      import('./features/catalog/product-form/product-form').then((m) => m.ProductFormComponent),
-  },
-  {
-    path: 'catalog/products/:id/duplicate',
-    loadComponent: () =>
-      import('./features/catalog/product-form/product-form').then((m) => m.ProductFormComponent),
+      import('./features/catalog/product-workspace/product-workspace').then(
+        (m) => m.ProductWorkspaceComponent,
+      ),
   },
   {
     path: 'catalog/products/:id',
     loadComponent: () =>
-      import('./features/catalog/product-form/product-form').then((m) => m.ProductFormComponent),
+      import('./features/catalog/product-workspace/product-workspace').then(
+        (m) => m.ProductWorkspaceComponent,
+      ),
   },
   {
     path: 'catalog/:sub',

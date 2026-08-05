@@ -1,0 +1,371 @@
+<!-- MOBILE & TABLET COMPACT NAVIGATION BAR (< lg) -->
+<div
+  class="block lg:hidden bg-white dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3 sm:space-y-4 sticky top-[70px] z-20 backdrop-blur-md"
+>
+  <!-- Header Row: Product info summary + Quick Dropdown Selector -->
+  <div
+    class="flex items-center justify-between gap-3 sm:gap-5 pb-2.5 sm:pb-3 border-b border-gray-100 dark:border-slate-700/60"
+  >
+    <div class="min-w-0 flex-1 space-y-1">
+      <div class="flex items-center gap-2">
+        <span
+          class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#4F8A6B] dark:text-[#5BAE6A]"
+        >
+          Workspace
+        </span>
+        <span
+          class="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-full"
+          [class]="active() ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-300'"
+        >
+          {{ active() ? 'Ativo' : 'Inativo' }}
+        </span>
+      </div>
+      <h3
+        class="font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-100 truncate leading-tight"
+        [title]="productName()"
+      >
+        {{ productName() || 'Produto sem nome' }}
+      </h3>
+    </div>
+
+    <!-- Quick Dropdown Selector matching Design System app-select standard -->
+    <div class="relative shrink-0 w-40 sm:w-56">
+      <select
+        [value]="activeTab()"
+        (change)="onSelectTab($event)"
+        class="w-full pl-3 pr-8 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-[8px] text-gray-900 dark:text-slate-100 appearance-none focus:outline-none focus:border-[#4F8A6B] focus:ring-2 focus:ring-[#4F8A6B]/20 transition-colors cursor-pointer shadow-2xs"
+      >
+        <optgroup label="Dados Principais">
+          <option value="geral">Dados do Produto</option>
+          <option value="comercial">Preço Comercial</option>
+          <option value="inventario">Estoque & Logística</option>
+        </optgroup>
+        <optgroup label="Enriquecimento de Catálogo">
+          <option value="midia">Imagens ({{ mediaImagesCount() }})</option>
+          <option value="oem">OEM Codes ({{ oemCodesCount() }})</option>
+          <option value="codigos">Product Codes ({{ productCodesCount() }})</option>
+          <option value="compatibilidade">Aplicações ({{ vehicleApplicationsCount() }})</option>
+          <option value="equivalentes">Equivalentes ({{ equivalentProductsCount() }})</option>
+          <option value="fornecimento">Fornecedores ({{ suppliersCount() }})</option>
+          <option value="tags">Tags ({{ tagsCount() }})</option>
+          <option value="observacoes">Notas & Alertas ({{ notesCount() }})</option>
+        </optgroup>
+      </select>
+      <div
+        class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-gray-400 dark:text-slate-500"
+      >
+        <app-icon name="chevron-down" size="w-3.5 h-3.5" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Horizontal Scrollable Tab Strip with Mobile Scroll Indicator & Fade Effect -->
+  <div class="relative group">
+    <!-- Fade gradient overlay on right to visually indicate scrollable content on mobile -->
+    <div
+      class="sm:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-slate-800 to-transparent pointer-events-none z-10"
+    ></div>
+
+    <div
+      class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 text-xs pr-8 sm:pr-0 scroll-smooth"
+    >
+      <button type="button" (click)="setActiveTab('geral')" [class]="mobileTabClasses('geral')">
+        <app-icon name="box" size="w-3.5 h-3.5" />
+        <span>Geral</span>
+        @if (hasTabError('geral')) {
+        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+        }
+      </button>
+
+      <button
+        type="button"
+        (click)="setActiveTab('comercial')"
+        [class]="mobileTabClasses('comercial')"
+      >
+        <app-icon name="shopping-bag" size="w-3.5 h-3.5" />
+        <span>Preço</span>
+        @if (hasTabError('comercial')) {
+        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+        }
+      </button>
+
+      <button
+        type="button"
+        (click)="setActiveTab('inventario')"
+        [class]="mobileTabClasses('inventario')"
+      >
+        <app-icon name="archive" size="w-3.5 h-3.5" />
+        <span>Estoque</span>
+        @if (hasTabError('inventario')) {
+        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+        }
+      </button>
+
+      <div class="h-4 w-px bg-gray-200 dark:bg-slate-700 shrink-0 mx-0.5"></div>
+
+      <button type="button" (click)="setActiveTab('midia')" [class]="mobileTabClasses('midia')">
+        <app-icon name="image" size="w-3.5 h-3.5" />
+        <span>Imagens</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ mediaImagesCount() }}
+        </span>
+      </button>
+
+      <button type="button" (click)="setActiveTab('oem')" [class]="mobileTabClasses('oem')">
+        <app-icon name="hash" size="w-3.5 h-3.5" />
+        <span>OEM</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ oemCodesCount() }}
+        </span>
+      </button>
+
+      <button type="button" (click)="setActiveTab('codigos')" [class]="mobileTabClasses('codigos')">
+        <app-icon name="barcode" size="w-3.5 h-3.5" />
+        <span>Códigos</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ productCodesCount() }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        (click)="setActiveTab('compatibilidade')"
+        [class]="mobileTabClasses('compatibilidade')"
+      >
+        <app-icon name="layers" size="w-3.5 h-3.5" />
+        <span>Aplicações</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ vehicleApplicationsCount() }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        (click)="setActiveTab('equivalentes')"
+        [class]="mobileTabClasses('equivalentes')"
+      >
+        <app-icon name="copy" size="w-3.5 h-3.5" />
+        <span>Equivalentes</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ equivalentProductsCount() }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        (click)="setActiveTab('fornecimento')"
+        [class]="mobileTabClasses('fornecimento')"
+      >
+        <app-icon name="truck" size="w-3.5 h-3.5" />
+        <span>Fornecedores</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ suppliersCount() }}
+        </span>
+      </button>
+
+      <button type="button" (click)="setActiveTab('tags')" [class]="mobileTabClasses('tags')">
+        <app-icon name="tag" size="w-3.5 h-3.5" />
+        <span>Tags</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ tagsCount() }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        (click)="setActiveTab('observacoes')"
+        [class]="mobileTabClasses('observacoes')"
+      >
+        <app-icon name="file-text" size="w-3.5 h-3.5" />
+        <span>Notas</span>
+        <span class="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-black/10 dark:bg-white/10">
+          {{ notesCount() }}
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DESKTOP VERTICAL SIDEBAR (lg:block) -->
+<aside
+  class="hidden lg:block bg-white dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-4 shadow-2xs space-y-5 sticky top-[80px] max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar"
+>
+  <!-- Product Summary Identity Widget -->
+  <div
+    class="p-3 bg-gray-50 dark:bg-slate-900/60 rounded-xl border border-gray-100 dark:border-slate-700/50 space-y-1.5"
+  >
+    <div class="flex items-center justify-between">
+      <span
+        class="text-[10px] font-bold uppercase tracking-wider text-[#4F8A6B] dark:text-[#5BAE6A]"
+      >
+        Workspace
+      </span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-md"
+        [class]="active() ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-300'"
+      >
+        {{ active() ? 'Ativo' : 'Inativo' }}
+      </span>
+    </div>
+    <h3
+      class="font-bold text-xs text-gray-900 dark:text-slate-100 line-clamp-2"
+      [title]="productName()"
+    >
+      {{ productName() || 'Produto sem nome' }}
+    </h3>
+    <p class="text-[11px] font-mono text-gray-500 dark:text-slate-400">
+      SKU: {{ internalCode() || 'N/A' }}
+    </p>
+  </div>
+
+  <!-- Section 1: Dados do Produto -->
+  <div class="space-y-1">
+    <p
+      class="px-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500 mb-1"
+    >
+      Dados Principais
+    </p>
+
+    <button type="button" (click)="setActiveTab('geral')" [class]="sidebarTabClasses('geral')">
+      <app-icon name="box" size="w-4 h-4" />
+      <span class="flex-1 text-left">Dados do Produto</span>
+      @if (hasTabError('geral')) {
+      <span class="w-2 h-2 rounded-full bg-red-500"></span>
+      }
+    </button>
+
+    <button
+      type="button"
+      (click)="setActiveTab('comercial')"
+      [class]="sidebarTabClasses('comercial')"
+    >
+      <app-icon name="shopping-bag" size="w-4 h-4" />
+      <span class="flex-1 text-left">Preço</span>
+      @if (hasTabError('comercial')) {
+      <span class="w-2 h-2 rounded-full bg-red-500"></span>
+      }
+    </button>
+
+    <button
+      type="button"
+      (click)="setActiveTab('inventario')"
+      [class]="sidebarTabClasses('inventario')"
+    >
+      <app-icon name="archive" size="w-4 h-4" />
+      <span class="flex-1 text-left">Estoque</span>
+      @if (hasTabError('inventario')) {
+      <span class="w-2 h-2 rounded-full bg-red-500"></span>
+      }
+    </button>
+  </div>
+
+  <div class="h-px bg-gray-200 dark:bg-slate-700/80"></div>
+
+  <!-- Section 2: Enriquecimento do Produto -->
+  <div class="space-y-1">
+    <div class="px-2 pb-1 flex items-center justify-between">
+      <span
+        class="text-[10px] font-bold uppercase tracking-wider text-[#4F8A6B] dark:text-[#5BAE6A]"
+      >
+        Enriquecimento
+      </span>
+      <span class="text-[9px] text-gray-400">Módulos</span>
+    </div>
+
+    <button type="button" (click)="setActiveTab('midia')" [class]="sidebarTabClasses('midia')">
+      <app-icon name="image" size="w-4 h-4" />
+      <span class="flex-1 text-left">Imagens</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ mediaImagesCount() }}
+      </span>
+    </button>
+
+    <button type="button" (click)="setActiveTab('oem')" [class]="sidebarTabClasses('oem')">
+      <app-icon name="hash" size="w-4 h-4" />
+      <span class="flex-1 text-left">OEM Codes</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ oemCodesCount() }}
+      </span>
+    </button>
+
+    <button type="button" (click)="setActiveTab('codigos')" [class]="sidebarTabClasses('codigos')">
+      <app-icon name="barcode" size="w-4 h-4" />
+      <span class="flex-1 text-left">Product Codes</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ productCodesCount() }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="setActiveTab('compatibilidade')"
+      [class]="sidebarTabClasses('compatibilidade')"
+    >
+      <app-icon name="layers" size="w-4 h-4" />
+      <span class="flex-1 text-left">Aplicações</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ vehicleApplicationsCount() }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="setActiveTab('equivalentes')"
+      [class]="sidebarTabClasses('equivalentes')"
+    >
+      <app-icon name="copy" size="w-4 h-4" />
+      <span class="flex-1 text-left">Equivalentes</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ equivalentProductsCount() }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="setActiveTab('fornecimento')"
+      [class]="sidebarTabClasses('fornecimento')"
+    >
+      <app-icon name="truck" size="w-4 h-4" />
+      <span class="flex-1 text-left">Fornecedores</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ suppliersCount() }}
+      </span>
+    </button>
+
+    <button type="button" (click)="setActiveTab('tags')" [class]="sidebarTabClasses('tags')">
+      <app-icon name="tag" size="w-4 h-4" />
+      <span class="flex-1 text-left">Tags</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ tagsCount() }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="setActiveTab('observacoes')"
+      [class]="sidebarTabClasses('observacoes')"
+    >
+      <app-icon name="file-text" size="w-4 h-4" />
+      <span class="flex-1 text-left">Notas & Alertas</span>
+      <span
+        class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+      >
+        {{ notesCount() }}
+      </span>
+    </button>
+  </div>
+</aside>

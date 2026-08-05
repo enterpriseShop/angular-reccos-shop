@@ -10,10 +10,6 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
-    path: 'catalog/products/:id/duplicate',
-    renderMode: RenderMode.Server,
-  },
-  {
     path: 'catalog/products/:id',
     renderMode: RenderMode.Server,
   },

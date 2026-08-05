@@ -1,32 +1,61 @@
 export interface CreateProductPayload {
-  category_id: string | null;
-  manufacturer_id: string | null;
-  status_id?: string | null;
+  category_id: string;
+  manufacturer_id: string;
+  part_origin_id: string;
+  unit_id: string;
 
-  internal_code: string | null;
-  name: string | null;
+  internal_code: string;
+  barcode: string;
 
-  slug?: string | null;
-  icon?: string | null;
-  image?: string | null;
+  name: string;
+  short_description: string;
+  description: string;
 
-  short_description?: string | null;
-  description?: string | null;
+  weight: number;
+  height: number;
+  width: number;
+  length: number;
 
-  weight?: number;
-  height?: number;
-  width?: number;
-  length?: number;
-
-  active?: boolean;
-  featured?: boolean;
-
-  unit?: string | null;
-
-  price: ProductPricePayload;
-
-  inventory: ProductInventoryPayload;
+  featured: boolean;
 }
+
+export interface ProductCreateResponse {
+  success: boolean;
+  message: string;
+  data: ProductCreate;
+}
+
+export interface ProductCreate {
+  id: string;
+  status: ProductStatus;
+  internal_code: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  image: string | null;
+  short_description: string;
+  description: string;
+  weight: string;
+  height: string;
+  width: string;
+  length: string;
+  featured: boolean;
+  is_sellable: boolean;
+  commercial_status: CommercialStatus;
+}
+
+export interface ProductStatus {
+  id: string;
+  module: string;
+  code: string;
+  name: string;
+  color: string;
+  icon: string;
+}
+
+export type CommercialStatus = 'pending' | 'approved' | 'rejected';
+
+// PARA REMOVER FUTURAMENTE APÓS UPDATE
 
 export interface ProductPricePayload {
   price: number;

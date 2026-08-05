@@ -1,4 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { compatibilityMenuChildren } from '../config/compatibility-modules.config';
 import { MenuItem, NotificationItem, ShortcutItem } from '../models/menu-item';
 
 export interface MenuGroup {
@@ -61,16 +62,7 @@ export class ShellStateService {
       id: 'compatibility',
       label: 'Compatibilidade',
       icon: 'layers',
-      children: [
-        { id: 'oem', label: 'OEM Codes', route: '/compatibility/oem-codes' },
-        { id: 'product-codes', label: 'Product Codes', route: '/compatibility/product-codes' },
-        {
-          id: 'equivalents',
-          label: 'Produtos Equivalentes',
-          route: '/compatibility/equivalent-products',
-        },
-        { id: 'applications', label: 'Aplicações', route: '/compatibility/applications' },
-      ],
+      children: compatibilityMenuChildren(),
     },
     {
       id: 'vehicles',

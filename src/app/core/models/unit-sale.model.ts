@@ -1,10 +1,10 @@
-export interface CategoryOptionsResponse {
+export interface UnitSaleOptionsResponse {
   success: boolean;
   message: string;
-  data: CategoryOption[];
+  data: UnitSaleOption[];
 }
 
-export interface CategoryOption {
+export interface UnitSaleOption {
   id: string;
   label: string;
   description: string;

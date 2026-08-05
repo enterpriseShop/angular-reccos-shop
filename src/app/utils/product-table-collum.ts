@@ -63,14 +63,6 @@ export const productTableActions: TableAction<ProductResponse>[] = [
     handler: (p) => ['/catalog/products', p.id, 'edit'],
   },
   {
-    id: 'duplicate',
-    label: 'Duplicar',
-    icon: 'copy',
-    colorClass: 'text-gray-400 hover:text-amber-600 hover:bg-gray-100 dark:hover:bg-slate-700',
-    title: 'Duplicar Produto',
-    handler: (p) => ['/catalog/products', p.id, 'duplicate'],
-  },
-  {
     id: 'delete',
     label: 'Excluir',
     icon: 'trash-2',

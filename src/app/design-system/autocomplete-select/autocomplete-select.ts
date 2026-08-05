@@ -58,12 +58,19 @@ export class AutocompleteSelectComponent implements OnDestroy {
   readonly selectedOption = computed(() => {
     const val = this.value();
     if (val === undefined || val === null || val === '') return null;
-    return (
-      this.options().find((opt) => String(opt.value) === String(val)) || {
-        label: String(val),
-        value: val,
-      }
+    const found = this.options().find((opt) => String(opt.value) === String(val));
+    if (found) return found;
+
+    // Fallback: search by label if value was populated as label
+    const foundByLabel = this.options().find(
+      (opt) => opt.label.toLowerCase() === String(val).toLowerCase(),
     );
+    if (foundByLabel) return foundByLabel;
+
+    return {
+      label: String(val),
+      value: val,
+    };
   });
 
   // Display Text shown in input
