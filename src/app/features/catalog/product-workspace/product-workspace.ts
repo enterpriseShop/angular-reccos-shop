@@ -40,6 +40,7 @@ import {
   ProductFormData,
   ProductWorkspaceMode,
 } from '../models/product-workspace.model';
+import { WarehousesService } from '../../../core/services/warehouses-service';
 
 @Component({
   selector: 'app-product-workspace',
@@ -60,30 +61,33 @@ import {
   styleUrl: './product-workspace.css',
 })
 export class ProductWorkspaceComponent implements OnInit {
-  readonly shellState = inject(ShellStateService);
-  private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
+  private route = inject(ActivatedRoute);
+  private toastService = inject(ToastService);
+  readonly shellState = inject(ShellStateService);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
-  private manufacturerService = inject(ManufacturerService);
   private statusService = inject(StatusService);
-  private toastService = inject(ToastService);
   private partOriginService = inject(PartOriginService);
-  private location = inject(Location);
+  private warehouseService = inject(WarehousesService);
+  private manufacturerService = inject(ManufacturerService);
 
-  readonly mode = signal<ProductWorkspaceMode>('edit');
   readonly activeTab = signal<FormTab>('geral');
+  readonly mode = signal<ProductWorkspaceMode>('edit');
+
   readonly isSaving = signal<boolean>(false);
   readonly isDragging = signal<boolean>(false);
   readonly isFormDirty = signal<boolean>(false);
+  readonly categoryLoading = signal<boolean>(false);
+  readonly manufacturerLoading = signal<boolean>(false);
   readonly productCreatedSuccessBanner = signal<boolean>(false);
 
-  readonly categoryLoading = signal<boolean>(false);
-  readonly fetchedCategories = signal<AutocompleteOption[]>([]);
-  readonly manufacturerLoading = signal<boolean>(false);
-  readonly fetchedManufacturers = signal<AutocompleteOption[]>([]);
   readonly fetchedStatuses = signal<DSelectOption[]>([]);
+  readonly fetchedWarehouses = signal<DSelectOption[]>([]);
   readonly fetchedPartOrigins = signal<DSelectOption[]>([]);
+  readonly fetchedCategories = signal<AutocompleteOption[]>([]);
+  readonly fetchedManufacturers = signal<AutocompleteOption[]>([]);
 
   readonly deleteProductDialogOpen = signal<boolean>(false);
   readonly unsavedChangesDialogOpen = signal<boolean>(false);
@@ -108,6 +112,7 @@ export class ProductWorkspaceComponent implements OnInit {
     partOriginOptions: this.fetchedPartOrigins(),
     unitOptions: this.unitOptions,
     statusOptions: this.statusOptions(),
+    warehouseOptions: this.fetchedWarehouses(),
   }));
 
   readonly isReadOnly = computed(() => this.mode() === 'view');
@@ -140,12 +145,6 @@ export class ProductWorkspaceComponent implements OnInit {
     { label: 'Rolo', value: 'rolo' },
     { label: 'Caixa', value: 'caixa' },
     { label: 'Conjunto', value: 'conjunto' },
-  ];
-
-  readonly warehouseOptions: DSelectOption[] = [
-    { label: 'Depósito Central SP', value: 'wh-01' },
-    { label: 'Depósito Filial PR', value: 'wh-02' },
-    { label: 'Depósito Distribuição RJ', value: 'wh-03' },
   ];
 
   readonly availableTags = [
@@ -221,6 +220,16 @@ export class ProductWorkspaceComponent implements OnInit {
         this.fetchedPartOrigins.set(opts);
       },
     });
+
+    this.warehouseService.getOptions(query).subscribe({
+      next: (res) => {
+        const opts: DSelectOption[] = (res.data || []).map((w) => ({
+          label: w.label,
+          value: w.id,
+        }));
+        this.fetchedWarehouses.set(opts);
+      },
+    });
   }
 
   productById(productId: string): void {
@@ -250,12 +259,13 @@ export class ProductWorkspaceComponent implements OnInit {
       | undefined;
 
     this.productForm.set({
-      categoryId: prod.category?.id || (prod['category_id'] as string) || '',
-      manufacturerId: prod.manufacturer?.id || (prod['manufacturer_id'] as string) || '',
-      partOriginId: (prod['part_origin_id'] as string) || '',
-      statusId: prod.status?.id || (prod['status_id'] as string) || 'st-01',
+      category_id: prod.category?.id || (prod['category_id'] as string) || '',
+      manufacturer_id: prod.manufacturer?.id || (prod['manufacturer_id'] as string) || '',
+      part_origin_id: prod.part_origin?.id || (prod['part_origin_id'] as string) || '',
+      status_id: prod.status?.id || (prod['status_id'] as string) || 'st-01',
+      unit_id: prod.unit?.id || (prod['unit_id'] as string) || 'un',
 
-      internalCode: prod.internal_code || '',
+      internal_code: prod.internal_code || '',
       barcode: (prod['barcode'] as string) || '',
 
       name: prod.name || '',
@@ -264,15 +274,13 @@ export class ProductWorkspaceComponent implements OnInit {
       icon: prod.icon || '',
       image: prod.image || '',
 
-      shortDescription: (prod['short_description'] as string) || '',
+      short_description: (prod['short_description'] as string) || '',
       description: prod.description || '',
 
       weight: parseFloat(prod.weight as string) || 0,
       height: parseFloat(prod.height as string) || 0,
       width: parseFloat(prod.width as string) || 0,
       length: parseFloat(prod.length as string) || 0,
-
-      unitId: (prod['unit']?.id || prod['unit_id'] || 'un') as string,
 
       featured: !!prod['featured'],
       active: prod['active'] !== undefined ? !!prod['active'] : true,
@@ -336,7 +344,7 @@ export class ProductWorkspaceComponent implements OnInit {
         errs['category_id'] ||
         errs['manufacturer_id'] ||
         errs['unit_id'] ||
-        errs['status_id']
+        errs['unit_id']
       );
     }
     if (tab === 'comercial') {
@@ -362,22 +370,15 @@ export class ProductWorkspaceComponent implements OnInit {
     this.isFormDirty.set(true);
     const fieldMapping: Record<string, keyof ProductFormData> = {
       name: 'name',
-      internal_code: 'internalCode',
-      internalCode: 'internalCode',
+      internal_code: 'internal_code',
       barcode: 'barcode',
-      category_id: 'categoryId',
-      categoryId: 'categoryId',
-      manufacturer_id: 'manufacturerId',
-      manufacturerId: 'manufacturerId',
-      part_origin_id: 'partOriginId',
-      partOriginId: 'partOriginId',
-      unit_id: 'unitId',
-      unitId: 'unitId',
-      status_id: 'statusId',
-      statusId: 'statusId',
+      category_id: 'category_id',
+      manufacturer_id: 'manufacturer_id',
+      part_origin_id: 'part_origin_id',
+      unit_id: 'unit_id',
+      status_id: 'status_id',
       slug: 'slug',
-      short_description: 'shortDescription',
-      shortDescription: 'shortDescription',
+      short_description: 'short_description',
       promotion_start_date: 'promotionStartDate',
       promotion_end_date: 'promotionEndDate',
       warehouse_id: 'warehouseId',
@@ -856,16 +857,16 @@ export class ProductWorkspaceComponent implements OnInit {
     if (!p.name.trim()) {
       errs['name'] = 'O nome do produto é obrigatório.';
     }
-    if (!p.internalCode.trim()) {
+    if (!p.internal_code.trim()) {
       errs['internal_code'] = 'O código interno é obrigatório.';
     }
-    if (!p.categoryId) {
+    if (!p.category_id) {
       errs['category_id'] = 'Selecione uma categoria.';
     }
-    if (!p.manufacturerId) {
+    if (!p.manufacturer_id) {
       errs['manufacturer_id'] = 'Selecione um fabricante.';
     }
-    if (!p.unitId) {
+    if (!p.unit_id) {
       errs['unit_id'] = 'Selecione a unidade de medida.';
     }
     if (p.price <= 0) {
@@ -903,18 +904,18 @@ export class ProductWorkspaceComponent implements OnInit {
     const p = this.productForm();
 
     const payload: UpdateProductPayload = {
-      category_id: p.categoryId,
-      manufacturer_id: p.manufacturerId,
-      part_origin_id: p.partOriginId,
-      status_id: p.statusId,
+      category_id: p.category_id,
+      manufacturer_id: p.manufacturer_id,
+      part_origin_id: p.part_origin_id,
+      unit_id: p.status_id,
 
-      internal_code: p.internalCode,
+      internal_code: p.internal_code,
       barcode: p.barcode,
 
       name: p.name,
       slug: p.slug,
 
-      short_description: p.shortDescription,
+      short_description: p.short_description,
       description: p.description,
 
       weight: p.weight,
@@ -922,10 +923,9 @@ export class ProductWorkspaceComponent implements OnInit {
       width: p.width,
       length: p.length,
 
-      unit: p.unitId,
+      unit: p.unit_id,
 
       featured: p.featured,
-      active: p.active,
 
       price: {
         price: p.price,

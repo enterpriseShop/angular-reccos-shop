@@ -3,7 +3,7 @@
   <div class="shrink-0 space-y-6">
     <app-page-header
       [title]="productForm().name || 'Workspace do Produto'"
-      [subtitle]="'SKU: ' + (productForm().internalCode || 'N/A') + ' • Módulo de Gestão e Enriquecimento'"
+      [subtitle]="'SKU: ' + (productForm().internal_code || 'N/A') + ' • Módulo de Gestão e Enriquecimento'"
       [breadcrumbs]="breadcrumbs()"
     >
       <div actions class="flex items-center gap-2">
@@ -68,7 +68,7 @@
     <app-product-workspace-sidebar
       class="block w-full"
       [productName]="productForm().name"
-      [internalCode]="productForm().internalCode"
+      [internal_code]="productForm().internal_code"
       [status]="currentStatus()"
       [activeTab]="activeTab()"
       [mediaImagesCount]="productForm().mediaImages.length"
@@ -121,7 +121,7 @@
         [formMinQuantity]="productForm().minQuantity"
         [formMaxQuantity]="productForm().maxQuantity"
         [formAllowBackorder]="productForm().allowBackorder"
-        [warehouseOptions]="warehouseOptions"
+        [warehouseOptions]="generalFormOptions().warehouseOptions"
         [isReadOnly]="isReadOnly()"
         [errors]="errors()"
         (fieldChange)="updateField($event.field, $event.value)"

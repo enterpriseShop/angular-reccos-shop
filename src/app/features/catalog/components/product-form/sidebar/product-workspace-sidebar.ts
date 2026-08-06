@@ -22,7 +22,7 @@ export class ProductWorkspaceSidebarComponent implements AfterViewInit {
   @ViewChild('navContainer') navContainer?: ElementRef<HTMLDivElement>;
 
   readonly productName = input<string>('');
-  readonly internalCode = input<string>('');
+  readonly internal_code = input<string>('');
   readonly status = input<{ name?: string; color?: string; code?: string } | null>(null);
   readonly activeTab = input.required<FormTab>();
 
@@ -90,7 +90,7 @@ export class ProductWorkspaceSidebarComponent implements AfterViewInit {
     const errs = this.errors();
     if (!errs) return false;
     if (tab === 'geral') {
-      return !!(errs['name'] || errs['categoryId'] || errs['manufacturerId']);
+      return !!(errs['name'] || errs['category_id'] || errs['manufacturer_id']);
     }
     if (tab === 'comercial') {
       return !!errs['price'];

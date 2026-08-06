@@ -167,19 +167,13 @@ export class ProductCreateComponent implements OnInit {
     this.isFormDirty.set(true);
     const fieldMapping: Record<string, keyof ProductCreateFormState> = {
       name: 'name',
-      internal_code: 'internalCode',
-      internalCode: 'internalCode',
+      internal_code: 'internal_code',
       barcode: 'barcode',
-      category_id: 'categoryId',
-      categoryId: 'categoryId',
-      manufacturer_id: 'manufacturerId',
-      manufacturerId: 'manufacturerId',
-      part_origin_id: 'partOriginId',
-      partOriginId: 'partOriginId',
-      unit_id: 'unitId',
-      unitId: 'unitId',
-      short_description: 'shortDescription',
-      shortDescription: 'shortDescription',
+      category_id: 'category_id',
+      manufacturer_id: 'manufacturer_id',
+      part_origin_id: 'part_origin_id',
+      unit_id: 'unit_id',
+      short_description: 'short_description',
     };
     const key = fieldMapping[field];
     if (key) {
@@ -262,19 +256,19 @@ export class ProductCreateComponent implements OnInit {
     if (!p.name.trim()) {
       errs['name'] = 'O nome do produto é obrigatório.';
     }
-    if (!p.internalCode.trim()) {
+    if (!p.internal_code.trim()) {
       errs['internal_code'] = 'O código interno é obrigatório.';
     }
-    if (!p.categoryId) {
+    if (!p.category_id) {
       errs['category_id'] = 'Selecione uma categoria.';
     }
-    if (!p.manufacturerId) {
+    if (!p.manufacturer_id) {
       errs['manufacturer_id'] = 'Selecione um fabricante.';
     }
-    if (!p.unitId) {
+    if (!p.unit_id) {
       errs['unit_id'] = 'Selecione a unidade de medida.';
     }
-    if (!p.partOriginId) {
+    if (!p.part_origin_id) {
       errs['part_origin_id'] = 'Selecione a origem da peça.';
     }
 

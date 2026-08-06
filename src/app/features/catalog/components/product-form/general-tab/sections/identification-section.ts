@@ -37,7 +37,7 @@ import { GeneralOptionQuery } from '../../../../../../core/models/generals/gener
           [disabled]="isReadOnly()"
           [loading]="categoryLoading()"
           [error]="errors()['category_id']"
-          (valueChange)="fieldChange.emit({ field: 'categoryId', value: $event })"
+          (valueChange)="fieldChange.emit({ field: 'category_id', value: $event })"
           (searchQueryChange)="categorySearch.emit($event)"
         />
 
@@ -49,7 +49,7 @@ import { GeneralOptionQuery } from '../../../../../../core/models/generals/gener
           [value]="formManufacturerId()"
           [disabled]="isReadOnly()"
           [loading]="manufacturerLoading()"
-          (valueChange)="fieldChange.emit({ field: 'manufacturerId', value: $event })"
+          (valueChange)="fieldChange.emit({ field: 'manufacturer_id', value: $event })"
           (searchQueryChange)="manufacturerSearch.emit($event)"
         />
 
@@ -61,19 +61,19 @@ import { GeneralOptionQuery } from '../../../../../../core/models/generals/gener
           [value]="formPartOriginId()"
           [disabled]="isReadOnly()"
           [error]="errors()['part_origin_id']"
-          (valueChange)="fieldChange.emit({ field: 'partOriginId', value: $event })"
+          (valueChange)="fieldChange.emit({ field: 'part_origin_id', value: $event })"
         />
 
         <!-- Status -->
         @if (!isCreateMode()) {
-        <app-select
-          label="Status do Cadastro"
-          placeholder="Selecione o status..."
-          [options]="statusOptions()"
-          [value]="formStatusId()"
-          [disabled]="isReadOnly()"
-          (valueChange)="fieldChange.emit({ field: 'statusId', value: $event })"
-        />
+          <app-select
+            label="Status do Cadastro"
+            placeholder="Selecione o status..."
+            [options]="statusOptions()"
+            [value]="formStatusId()"
+            [disabled]="isReadOnly()"
+            (valueChange)="fieldChange.emit({ field: 'status_id', value: $event })"
+          />
         }
 
         <!-- Código Interno (SKU / Reccos) -->
@@ -83,7 +83,7 @@ import { GeneralOptionQuery } from '../../../../../../core/models/generals/gener
           [value]="formInternalCode()"
           [disabled]="isReadOnly()"
           helperText="Código interno único de identificação"
-          (valueChange)="fieldChange.emit({ field: 'internalCode', value: $event })"
+          (valueChange)="fieldChange.emit({ field: 'internal_code', value: $event })"
         />
 
         <!-- Código de Barras (EAN / GTIN) -->

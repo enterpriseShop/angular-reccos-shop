@@ -4,7 +4,7 @@
   <app-product-basic-info-section
     [formName]="form().name"
     [formSlug]="form().slug"
-    [formShortDescription]="form().shortDescription"
+    [formShortDescription]="form().short_description"
     [formDescription]="form().description"
     [isReadOnly]="isReadOnly()"
     [isCreateMode]="isCreateMode()"
@@ -17,11 +17,11 @@
   <!-- Section 2: Identificação & Classificação (Etapa 2) -->
   @if ((currentStep() === 0 && activeTab() === 'classification') || currentStep() === 2) {
   <app-product-identification-section
-    [formCategoryId]="form().categoryId"
-    [formManufacturerId]="form().manufacturerId"
-    [formPartOriginId]="form().partOriginId"
-    [formStatusId]="form().statusId"
-    [formInternalCode]="form().internalCode"
+    [formCategoryId]="form().category_id"
+    [formManufacturerId]="form().manufacturer_id"
+    [formPartOriginId]="form().part_origin_id"
+    [formStatusId]="form().status_id"
+    [formInternalCode]="form().internal_code"
     [formBarcode]="form().barcode"
     [isReadOnly]="isReadOnly()"
     [isCreateMode]="isCreateMode()"
@@ -41,13 +41,14 @@
   <!-- Section 3 & 4: Especificações & Visibilidade (Etapa 3) -->
   @if ((currentStep() === 0 && activeTab() === 'logistics') || currentStep() === 3) {
   <app-product-dimensions-section
-    [formUnitId]="form().unitId"
+    [formUnitId]="form().unit_id"
     [formWeight]="form().weight"
     [formHeight]="form().height"
     [formWidth]="form().width"
     [formLength]="form().length"
     [isReadOnly]="isReadOnly()"
     [unitOptions]="options().unitOptions"
+    [warehouseOptions]="options().warehouseOptions"
     (fieldChange)="onFieldChange($event.field, $event.value)"
     (numberFieldChange)="onNumberFieldChange($event.field, $event.value)"
   />

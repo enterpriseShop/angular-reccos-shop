@@ -25,9 +25,9 @@
         class="font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-100 truncate leading-tight"
         [title]="productName()"
       >
-        {{ productName() || 'Produto sem nome' }} @if (internalCode()) {
+        {{ productName() || 'Produto sem nome' }} @if (internal_code()) {
         <span class="text-xs font-mono font-normal text-gray-500 dark:text-slate-400 ml-1.5">
-          (SKU: {{ internalCode() }})
+          (SKU: {{ internal_code() }})
         </span>
         }
       </h3>

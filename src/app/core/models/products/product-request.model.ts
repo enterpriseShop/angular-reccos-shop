@@ -79,7 +79,7 @@ export interface UpdateProductPayload {
   category_id?: string | null;
   manufacturer_id?: string | null;
   part_origin_id?: string | null;
-  status_id?: string | null;
+  unit_id?: string | null;
 
   internal_code?: string | null;
   barcode?: string | null;

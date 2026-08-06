@@ -4,7 +4,7 @@ export interface ProductFormState {
   category_id: string;
   manufacturer_id: string;
   unit: string;
-  status_id: string;
+  unit_id: string;
   slug: string;
   description: string;
 

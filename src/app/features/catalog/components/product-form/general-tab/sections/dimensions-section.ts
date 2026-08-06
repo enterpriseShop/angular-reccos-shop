@@ -29,7 +29,7 @@ import { DSelectOption } from '../../../../../../core/models/design-system/selec
           [options]="unitOptions()"
           [value]="formUnitId()"
           [disabled]="isReadOnly()"
-          (valueChange)="fieldChange.emit({ field: 'unitId', value: $event })"
+          (valueChange)="fieldChange.emit({ field: 'unit_id', value: $event })"
         />
 
         <!-- Peso -->
@@ -92,6 +92,7 @@ export class ProductDimensionsSectionComponent {
 
   readonly isReadOnly = input<boolean>(false);
   readonly unitOptions = input<DSelectOption[]>([]);
+  readonly warehouseOptions = input<DSelectOption[]>([]);
 
   readonly fieldChange = output<{ field: string; value: string }>();
   readonly numberFieldChange = output<{ field: string; value: string }>();

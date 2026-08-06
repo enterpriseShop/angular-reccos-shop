@@ -4,17 +4,15 @@ import { InputComponent } from '../../../../../design-system/input/input';
 @Component({
   selector: 'app-product-commercial-tab',
   standalone: true,
-  imports: [
-    InputComponent
-  ],
+  imports: [InputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './commercial-tab.html'
+  templateUrl: './commercial-tab.html',
 })
 export class ProductCommercialTabComponent {
   readonly formPrice = input<number>(0);
   readonly formPromotionalPrice = input<number | null>(null);
-  readonly formPromotionStartDate = input<string>('');
-  readonly formPromotionEndDate = input<string>('');
+  readonly formPromotionStartDate = input<string | null>(null);
+  readonly formPromotionEndDate = input<string | null>(null);
   readonly formIsInvoiced = input<boolean>(true);
 
   readonly isReadOnly = input<boolean>(false);

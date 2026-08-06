@@ -83,12 +83,12 @@ export interface ProductNoteItem {
 }
 
 export interface ProductFormData {
-  categoryId: string;
-  manufacturerId: string;
-  partOriginId: string;
-  statusId: string;
+  category_id: string;
+  manufacturer_id: string;
+  part_origin_id: string;
+  status_id: string;
 
-  internalCode: string;
+  internal_code: string;
   barcode: string;
 
   name: string;
@@ -97,7 +97,7 @@ export interface ProductFormData {
   icon: string;
   image: string;
 
-  shortDescription: string;
+  short_description: string;
   description: string;
 
   weight: number;
@@ -105,7 +105,7 @@ export interface ProductFormData {
   width: number;
   length: number;
 
-  unitId: string;
+  unit_id: string;
 
   featured: boolean;
   active: boolean;
@@ -136,12 +136,12 @@ export interface ProductFormData {
 
 export function defaultProductFormData(): ProductFormData {
   return {
-    categoryId: '',
-    manufacturerId: '',
-    partOriginId: '',
-    statusId: 'st-01',
+    category_id: '',
+    manufacturer_id: '',
+    part_origin_id: '',
+    status_id: 'st-01',
 
-    internalCode: '',
+    internal_code: '',
     barcode: '',
 
     name: '',
@@ -150,7 +150,7 @@ export function defaultProductFormData(): ProductFormData {
     icon: '',
     image: '',
 
-    shortDescription: '',
+    short_description: '',
     description: '',
 
     weight: 0,
@@ -158,7 +158,7 @@ export function defaultProductFormData(): ProductFormData {
     width: 0,
     length: 0,
 
-    unitId: 'un',
+    unit_id: 'un',
 
     featured: false,
     active: true,

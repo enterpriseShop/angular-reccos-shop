@@ -53,7 +53,11 @@ export function toNullableDate(val: unknown): string | null {
 }
 
 function hasPromotionalPrice(promotionalPrice: number | null): boolean {
-  return promotionalPrice !== null && promotionalPrice !== undefined && String(promotionalPrice).trim() !== '';
+  return (
+    promotionalPrice !== null &&
+    promotionalPrice !== undefined &&
+    String(promotionalPrice).trim() !== ''
+  );
 }
 
 function buildPriceBlock(state: ProductFormState) {
@@ -81,7 +85,7 @@ function buildProductRoot(state: ProductFormState) {
   return {
     category_id: toNullableString(state.category_id),
     manufacturer_id: toNullableString(state.manufacturer_id),
-    status_id: toNullableString(state.status_id),
+    unit_id: toNullableString(state.unit_id),
     internal_code: toNullableString(state.internal_code),
     name: toNullableString(state.name),
     slug: toNullableString(state.slug),
@@ -151,8 +155,8 @@ export function validateProductForm(
   if (!state.unit) {
     errs['unit_id'] = 'Selecione a unidade de medida.';
   }
-  if (!state.status_id) {
-    errs['status_id'] = 'Selecione o status do produto.';
+  if (!state.unit_id) {
+    errs['unit_id'] = 'Selecione o status do produto.';
   }
 
   if (isCreateFlow) {

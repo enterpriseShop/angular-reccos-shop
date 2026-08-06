@@ -3,14 +3,14 @@ import { DSelectOption } from '../design-system/select-option.model';
 
 /** Estado interno do formulário de criação (campos do POST) */
 export interface ProductCreateFormState {
-  categoryId: string;
-  manufacturerId: string;
-  partOriginId: string;
-  unitId: string;
-  internalCode: string;
+  category_id: string;
+  manufacturer_id: string;
+  part_origin_id: string;
+  unit_id: string;
+  internal_code: string;
   barcode: string;
   name: string;
-  shortDescription: string;
+  short_description: string;
   description: string;
   weight: number;
   height: number;
@@ -21,14 +21,14 @@ export interface ProductCreateFormState {
 
 export function defaultProductCreateFormState(): ProductCreateFormState {
   return {
-    categoryId: '',
-    manufacturerId: '',
-    partOriginId: '',
-    unitId: '',
-    internalCode: '',
+    category_id: '',
+    manufacturer_id: '',
+    part_origin_id: '',
+    unit_id: '',
+    internal_code: '',
     barcode: '',
     name: '',
-    shortDescription: '',
+    short_description: '',
     description: '',
     weight: 0,
     height: 0,
@@ -42,7 +42,7 @@ export function createFormToGeneralSource(state: ProductCreateFormState): Produc
   return {
     ...state,
     slug: '',
-    statusId: '',
+    status_id: '',
     active: true,
   };
 }
@@ -69,15 +69,15 @@ export interface CreateProductPayload {
 export interface ProductGeneralFormData {
   name: string;
   slug: string;
-  shortDescription: string;
+  short_description: string;
   description: string;
-  categoryId: string;
-  manufacturerId: string;
-  partOriginId: string;
-  statusId: string;
-  internalCode: string;
+  category_id: string;
+  manufacturer_id: string;
+  part_origin_id: string;
+  status_id: string;
+  internal_code: string;
   barcode: string;
-  unitId: string;
+  unit_id: string;
   weight: number;
   height: number;
   width: number;
@@ -94,20 +94,21 @@ export interface ProductGeneralFormOptions {
   partOriginOptions: DSelectOption[];
   unitOptions: DSelectOption[];
   statusOptions: DSelectOption[];
+  warehouseOptions: DSelectOption[];
 }
 
 export interface ProductGeneralFormSource {
   name: string;
   slug: string;
-  shortDescription: string;
+  short_description: string;
   description: string;
-  categoryId: string;
-  manufacturerId: string;
-  partOriginId: string;
-  statusId: string;
-  internalCode: string;
+  category_id: string;
+  manufacturer_id: string;
+  part_origin_id: string;
+  status_id: string;
+  internal_code: string;
   barcode: string;
-  unitId: string;
+  unit_id: string;
   weight: number;
   height: number;
   width: number;
@@ -120,15 +121,15 @@ export function toProductGeneralFormData(source: ProductGeneralFormSource): Prod
   return {
     name: source.name,
     slug: source.slug,
-    shortDescription: source.shortDescription,
+    short_description: source.short_description,
     description: source.description,
-    categoryId: source.categoryId,
-    manufacturerId: source.manufacturerId,
-    partOriginId: source.partOriginId,
-    statusId: source.statusId,
-    internalCode: source.internalCode,
+    category_id: source.category_id,
+    manufacturer_id: source.manufacturer_id,
+    part_origin_id: source.part_origin_id,
+    status_id: source.status_id,
+    internal_code: source.internal_code,
     barcode: source.barcode,
-    unitId: source.unitId,
+    unit_id: source.unit_id,
     weight: source.weight,
     height: source.height,
     width: source.width,
@@ -140,14 +141,14 @@ export function toProductGeneralFormData(source: ProductGeneralFormSource): Prod
 
 export function toCreateProductPayload(source: ProductGeneralFormSource): CreateProductPayload {
   return {
-    category_id: source.categoryId,
-    manufacturer_id: source.manufacturerId,
-    part_origin_id: source.partOriginId,
-    unit_id: source.unitId,
-    internal_code: source.internalCode,
+    category_id: source.category_id,
+    manufacturer_id: source.manufacturer_id,
+    part_origin_id: source.part_origin_id,
+    unit_id: source.unit_id,
+    internal_code: source.internal_code,
     barcode: source.barcode,
     name: source.name,
-    short_description: source.shortDescription,
+    short_description: source.short_description,
     description: source.description,
     weight: source.weight,
     height: source.height,
