@@ -1,33 +1,37 @@
 @if (isOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <!-- Backdrop -->
-    <div class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs transition-opacity duration-200"></div>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs transition-opacity duration-200"
+  ></div>
 
-    <!-- Card -->
-    <div class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-[16px] shadow-2xl border border-gray-100 dark:border-slate-700/80 p-6 transform transition-all animate-in fade-in zoom-in-95 duration-150">
-      <div class="flex items-start gap-4">
-        <div [class]="iconBgClass()" class="p-3 rounded-xl shrink-0 flex items-center justify-center">
-          <app-icon [name]="typeIcon()" size="w-6 h-6" />
-        </div>
-
-        <div class="flex-1">
-          <h3 class="text-base font-semibold text-gray-900 dark:text-slate-100 mb-1">
-            {{ title() }}
-          </h3>
-          <p class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
-            {{ message() }}
-          </p>
-        </div>
+  <!-- Card -->
+  <div
+    class="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-[16px] shadow-2xl border border-gray-100 dark:border-slate-700/80 p-6 transform transition-all animate-in fade-in zoom-in-95 duration-150"
+  >
+    <div class="flex items-start gap-4">
+      <div [class]="iconBgClass()" class="p-3 rounded-xl shrink-0 flex items-center justify-center">
+        <app-icon [name]="typeIcon()" size="w-6 h-6" />
       </div>
 
-      <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-700/80">
-        <app-button variant="outline" size="sm" (btnClick)="onCancel()">
-          {{ cancelText() }}
-        </app-button>
-        <app-button [variant]="confirmVariant()" size="sm" (btnClick)="onConfirm()">
-          {{ confirmText() }}
-        </app-button>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-slate-100 mb-1">
+          {{ title() }}
+        </h3>
+        <p class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">{{ message() }}</p>
       </div>
     </div>
+
+    <div
+      class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-700/80"
+    >
+      <app-button variant="outline" size="sm" (btnClick)="onCancel()">
+        {{ cancelText() }}
+      </app-button>
+      <app-button [variant]="confirmVariant()" size="sm" (btnClick)="onConfirm()">
+        {{ confirmText() }}
+      </app-button>
+    </div>
   </div>
+</div>
 }

@@ -8,11 +8,13 @@ import { ButtonComponent } from '../button/button';
   imports: [AppIconComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './error-state.html',
-  styleUrl: './error-state.css'
+  styleUrl: './error-state.css',
 })
 export class ErrorStateComponent {
   readonly title = input<string>('Erro ao carregar dados');
-  readonly message = input<string>('Ocorreu uma falha na comunicação com o servidor. Por favor, tente novamente.');
+  readonly message = input<string>(
+    'Ocorreu uma falha na comunicação com o servidor. Por favor, tente novamente.',
+  );
 
   readonly retry = output<void>();
 

@@ -7,7 +7,7 @@ import { BreadcrumbComponent, BreadcrumbItem } from '../breadcrumb/breadcrumb';
   imports: [BreadcrumbComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './page-header.html',
-  styleUrl: './page-header.css'
+  styleUrl: './page-header.css',
 })
 export class PageHeaderComponent {
   readonly title = input.required<string>();

@@ -7,7 +7,7 @@ import { AppIconComponent } from '../icon/app-icon';
   imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './drawer.html',
-  styleUrl: './drawer.css'
+  styleUrl: './drawer.css',
 })
 export class DrawerComponent {
   readonly isOpen = input.required<boolean>();
@@ -28,9 +28,13 @@ export class DrawerComponent {
   get widthClass(): () => string {
     return () => {
       switch (this.width()) {
-        case 'sm': return 'max-w-sm';
-        case 'lg': return 'max-w-xl';
-        case 'md': default: return 'max-w-md';
+        case 'sm':
+          return 'max-w-sm';
+        case 'lg':
+          return 'max-w-xl';
+        case 'md':
+        default:
+          return 'max-w-md';
       }
     };
   }

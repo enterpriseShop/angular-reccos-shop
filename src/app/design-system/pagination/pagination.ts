@@ -12,7 +12,7 @@ export interface PageItem {
   imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pagination.html',
-  styleUrl: './pagination.css'
+  styleUrl: './pagination.css',
 })
 export class PaginationComponent {
   readonly currentPage = input<number>(1);

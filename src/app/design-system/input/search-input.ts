@@ -7,7 +7,7 @@ import { AppIconComponent } from '../icon/app-icon';
   imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search-input.html',
-  styleUrl: './search-input.css'
+  styleUrl: './search-input.css',
 })
 export class SearchInputComponent {
   readonly value = input<string>('');

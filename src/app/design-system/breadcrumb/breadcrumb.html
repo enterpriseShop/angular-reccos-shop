@@ -1,21 +1,19 @@
 <nav class="flex items-center text-xs text-gray-500 dark:text-slate-400 font-medium mb-2">
   <div class="flex items-center gap-1.5 flex-wrap">
-    <a href="javascript:void(0)" class="hover:text-[#4F8A6B] transition-colors flex items-center gap-1">
+    <a
+      href="javascript:void(0)"
+      class="hover:text-[#4F8A6B] transition-colors flex items-center gap-1"
+    >
       <app-icon name="box" size="w-3.5 h-3.5" />
       <span>Reccos Shop</span>
     </a>
 
     @for (item of items(); track item.label) {
-      <app-icon name="chevron-right" size="w-3 h-3 text-gray-300 dark:text-slate-600 shrink-0" />
-      @if (item.route) {
-        <a href="javascript:void(0)" class="hover:text-[#4F8A6B] transition-colors">
-          {{ item.label }}
-        </a>
-      } @else {
-        <span class="text-gray-900 dark:text-slate-200 font-semibold">
-          {{ item.label }}
-        </span>
-      }
-    }
+    <app-icon name="chevron-right" size="w-3 h-3 text-gray-300 dark:text-slate-600 shrink-0" />
+    @if (item.route) {
+    <a href="javascript:void(0)" class="hover:text-[#4F8A6B] transition-colors">{{ item.label }}</a>
+    } @else {
+    <span class="text-gray-900 dark:text-slate-200 font-semibold">{{ item.label }}</span>
+    } }
   </div>
 </nav>

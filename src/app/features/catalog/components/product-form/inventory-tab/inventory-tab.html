@@ -1,0 +1,117 @@
+<div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs space-y-6">
+  <div class="border-b border-gray-100 dark:border-slate-700/60 pb-3">
+    <h3 class="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+      <app-icon name="archive" size="w-4 h-4" class="text-[#4F8A6B]" />
+      Configuração de Estoque Inicial e Inventário
+    </h3>
+    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+      As informações abaixo serão utilizadas para criar automaticamente o registro correspondente na tabela de inventário, vinculando o produto ao depósito selecionado.
+    </p>
+  </div>
+
+  <!-- Campos Editáveis do Usuário -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Depósito (warehouse_id) -->
+    <app-select
+      label="Depósito"
+      [required]="true"
+      placeholder="Selecione o depósito"
+      [value]="formWarehouseId()"
+      [options]="warehouseOptions()"
+      [disabled]="isReadOnly()"
+      [error]="errors()['warehouse_id']"
+      (valueChange)="onFieldChange('warehouse_id', $event)"
+    />
+
+    <!-- Quantidade Inicial (quantity) -->
+    <app-input
+      label="Quantidade Inicial em Estoque"
+      type="number"
+      [required]="true"
+      placeholder="0"
+      [value]="formQuantity().toString()"
+      [disabled]="isReadOnly()"
+      [error]="errors()['quantity']"
+      (valueChange)="onNumberFieldChange('quantity', $event)"
+    />
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Estoque Mínimo (minimum_quantity) -->
+    <app-input
+      label="Estoque Mínimo (Alerta de Reposição)"
+      type="number"
+      placeholder="Ex: 5"
+      [value]="formMinQuantity().toString()"
+      [disabled]="isReadOnly()"
+      (valueChange)="onNumberFieldChange('min_quantity', $event)"
+    />
+
+    <!-- Estoque Máximo (maximum_quantity) -->
+    <app-input
+      label="Estoque Máximo (Recomendado)"
+      type="number"
+      placeholder="Ex: 100"
+      [value]="formMaxQuantity() !== null ? formMaxQuantity()!.toString() : ''"
+      [disabled]="isReadOnly()"
+      (valueChange)="onNullableNumberFieldChange('max_quantity', $event)"
+    />
+  </div>
+
+  <!-- Permitir Backorder (allow_backorder) -->
+  <div class="pt-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between">
+    <div>
+      <p class="text-sm font-semibold text-gray-900 dark:text-slate-200">Permitir Backorder (Venda sem Estoque)</p>
+      <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+        Define se o produto poderá ser vendido mesmo quando não houver estoque disponível em saldo físico.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      [disabled]="isReadOnly()"
+      (click)="onToggleBackorder()"
+      [class]="formAllowBackorder() ? 'bg-[#4F8A6B]' : 'bg-gray-200 dark:bg-slate-700'"
+      class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <span
+        [class]="formAllowBackorder() ? 'translate-x-5' : 'translate-x-0'"
+        class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+      ></span>
+    </button>
+  </div>
+
+  <!-- Painel Informativo: Campos Gerenciados Automaticamente pelo Sistema -->
+  <div class="p-4 bg-gray-50/90 dark:bg-slate-900/50 rounded-xl border border-gray-200/70 dark:border-slate-700/70 space-y-3">
+    <div class="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider">
+      <app-icon name="check-circle" size="w-4 h-4" class="text-[#4F8A6B]" />
+      <span>Campos Gerenciados Automaticamente pelo Sistema</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
+        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">ID (id)</span>
+        <span class="font-mono text-gray-800 dark:text-slate-200 text-[11px] bg-gray-100 dark:bg-slate-700/60 px-1.5 py-0.5 rounded">
+          Gerado Auto (UUID)
+        </span>
+      </div>
+
+      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
+        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">Produto (product_id)</span>
+        <span class="font-medium text-gray-800 dark:text-slate-200">Vínculo Automático</span>
+      </div>
+
+      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
+        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">Qtd. Reservada (reserved)</span>
+        <span class="font-medium text-emerald-600 dark:text-emerald-400">0 (Inicial)</span>
+      </div>
+
+      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
+        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">Status (active)</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-300/50">
+          Ativo (true)
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,6 @@
-<header class="fixed top-0 left-0 right-0 h-[64px] bg-white dark:bg-slate-800 border-b border-gray-200/80 dark:border-slate-700/80 z-30 px-4 flex items-center justify-between gap-4 transition-colors">
+<header
+  class="fixed top-0 left-0 right-0 h-[64px] bg-white dark:bg-slate-800 border-b border-gray-200/80 dark:border-slate-700/80 z-30 px-4 flex items-center justify-between gap-4 transition-colors"
+>
   <!-- Left Section: Logo & Sidebar Toggle -->
   <div class="flex items-center gap-3 shrink-0">
     <!-- Mobile Drawer Toggle -->
@@ -29,12 +31,17 @@
       role="button"
       class="flex items-center gap-2.5 cursor-pointer group focus:outline-none"
     >
-      <div class="w-8 h-8 rounded-xl bg-[#4F8A6B] text-white flex items-center justify-center font-bold text-sm shadow-xs group-hover:bg-[#38624C] transition-colors">
+      <div
+        class="w-8 h-8 rounded-xl bg-[#4F8A6B] text-white flex items-center justify-center font-bold text-sm shadow-xs group-hover:bg-[#38624C] transition-colors"
+      >
         R
       </div>
       <div class="hidden sm:flex flex-col">
-        <span class="font-bold text-sm text-gray-900 dark:text-slate-100 leading-none tracking-tight">
-          RECCOS <span class="text-[#4F8A6B]">SHOP</span>
+        <span
+          class="font-bold text-sm text-gray-900 dark:text-slate-100 leading-none tracking-tight"
+        >
+          RECCOS
+          <span class="text-[#4F8A6B]">SHOP</span>
         </span>
         <span class="text-[10px] text-gray-400 dark:text-slate-400 font-mono tracking-wider mt-0.5">
           CATÁLOGO V2.4
@@ -73,7 +80,9 @@
     >
       <app-icon name="bell" size="w-5 h-5" />
       @if (shellState.unreadNotificationsCount() > 0) {
-        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#4F8A6B] rounded-full ring-2 ring-white dark:ring-slate-800"></span>
+      <span
+        class="absolute top-1.5 right-1.5 w-2 h-2 bg-[#4F8A6B] rounded-full ring-2 ring-white dark:ring-slate-800"
+      ></span>
       }
     </button>
 
@@ -81,8 +90,13 @@
 
     <!-- User Profile Dropdown -->
     <app-dropdown [items]="userMenuItems">
-      <div trigger class="flex items-center gap-2 p-1 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer transition-colors">
-        <div class="w-8 h-8 rounded-full bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] font-semibold text-xs flex items-center justify-center border border-[#4F8A6B]/20">
+      <div
+        trigger
+        class="flex items-center gap-2 p-1 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+      >
+        <div
+          class="w-8 h-8 rounded-full bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] font-semibold text-xs flex items-center justify-center border border-[#4F8A6B]/20"
+        >
           JS
         </div>
         <div class="hidden xl:flex flex-col text-left pr-1">

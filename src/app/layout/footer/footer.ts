@@ -6,7 +6,7 @@ import { ShellStateService } from '../../core/services/shell-state';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './footer.html',
-  styleUrl: './footer.css'
+  styleUrl: './footer.css',
 })
 export class FooterComponent {
   readonly shellState = inject(ShellStateService);

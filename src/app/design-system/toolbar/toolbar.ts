@@ -5,6 +5,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './toolbar.html',
-  styleUrl: './toolbar.css'
+  styleUrl: './toolbar.css',
 })
 export class ToolbarComponent {}

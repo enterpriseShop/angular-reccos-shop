@@ -1,44 +1,46 @@
 @if (isOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <!-- Backdrop -->
-    <div
-      class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs transition-opacity duration-200"
-      (click)="onBackdropClick()"
-      (keydown.escape)="onBackdropClick()"
-      tabindex="0"
-      role="button"
-      aria-label="Fechar modal"
-    ></div>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 bg-slate-900/50 dark:bg-black/70 backdrop-blur-xs transition-opacity duration-200"
+    (click)="onBackdropClick()"
+    (keydown.escape)="onBackdropClick()"
+    tabindex="0"
+    role="button"
+    aria-label="Fechar modal"
+  ></div>
 
-    <!-- Dialog Box -->
+  <!-- Dialog Box -->
+  <div
+    [class]="sizeClass()"
+    class="relative w-full bg-white dark:bg-slate-800 rounded-[16px] shadow-2xl border border-gray-100 dark:border-slate-700/80 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-150"
+  >
+    <!-- Header -->
     <div
-      [class]="sizeClass()"
-      class="relative w-full bg-white dark:bg-slate-800 rounded-[16px] shadow-2xl border border-gray-100 dark:border-slate-700/80 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-150"
+      class="px-6 py-4 border-b border-gray-100 dark:border-slate-700/80 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/50"
     >
-      <!-- Header -->
-      <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700/80 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/50">
-        <h3 class="text-base font-semibold text-gray-900 dark:text-slate-100">
-          {{ title() }}
-        </h3>
+      <h3 class="text-base font-semibold text-gray-900 dark:text-slate-100">{{ title() }}</h3>
 
-        <button
-          type="button"
-          (click)="close()"
-          class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-        >
-          <app-icon name="x" size="w-5 h-5" />
-        </button>
-      </div>
+      <button
+        type="button"
+        (click)="close()"
+        class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+      >
+        <app-icon name="x" size="w-5 h-5" />
+      </button>
+    </div>
 
-      <!-- Content -->
-      <div class="p-6 max-h-[75vh] overflow-y-auto">
-        <ng-content />
-      </div>
+    <!-- Content -->
+    <div class="p-6 max-h-[75vh] overflow-y-auto">
+      <ng-content />
+    </div>
 
-      <!-- Footer -->
-      <div class="px-6 py-3.5 border-t border-gray-100 dark:border-slate-700/80 bg-gray-50/50 dark:bg-slate-800/50 flex items-center justify-end gap-3">
-        <ng-content select="[footer]" />
-      </div>
+    <!-- Footer -->
+    <div
+      class="px-6 py-3.5 border-t border-gray-100 dark:border-slate-700/80 bg-gray-50/50 dark:bg-slate-800/50 flex items-center justify-end gap-3"
+    >
+      <ng-content select="[footer]" />
     </div>
   </div>
+</div>
 }

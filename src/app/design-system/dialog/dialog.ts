@@ -7,7 +7,7 @@ import { AppIconComponent } from '../icon/app-icon';
   imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dialog.html',
-  styleUrl: './dialog.css'
+  styleUrl: './dialog.css',
 })
 export class DialogComponent {
   readonly isOpen = input.required<boolean>();
@@ -27,10 +27,15 @@ export class DialogComponent {
   get sizeClass(): () => string {
     return () => {
       switch (this.size()) {
-        case 'sm': return 'max-w-md';
-        case 'lg': return 'max-w-2xl';
-        case 'xl': return 'max-w-4xl';
-        case 'md': default: return 'max-w-lg';
+        case 'sm':
+          return 'max-w-md';
+        case 'lg':
+          return 'max-w-2xl';
+        case 'xl':
+          return 'max-w-4xl';
+        case 'md':
+        default:
+          return 'max-w-lg';
       }
     };
   }

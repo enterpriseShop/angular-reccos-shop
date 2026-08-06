@@ -8,7 +8,7 @@ import { ShellStateService } from '../../core/services/shell-state';
   imports: [RouterOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './content.html',
-  styleUrl: './content.css'
+  styleUrl: './content.css',
 })
 export class ContentComponent {
   readonly shellState = inject(ShellStateService);

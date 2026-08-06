@@ -1,0 +1,88 @@
+<div class="p-6 max-w-7xl mx-auto space-y-6">
+  <!-- Header -->
+  <app-page-header
+    title="Novo Produto"
+    subtitle="Cadastre os dados essenciais do produto em etapas guiadas para liberar o workspace."
+    [breadcrumbs]="breadcrumbs"
+  >
+    <div actions class="flex items-center gap-2">
+      <app-button variant="outline" size="sm" (btnClick)="onCancel()">Cancelar</app-button>
+      <app-button
+        variant="primary"
+        size="sm"
+        iconStart="save"
+        [loading]="isSaving()"
+        (btnClick)="saveProduct()"
+      >
+        Salvar Produto
+      </app-button>
+    </div>
+  </app-page-header>
+
+  <!-- Stepper Navigation Bar -->
+  <app-product-create-stepper [currentStep]="createStep()" (stepChange)="setCreateStep($event)" />
+
+  <!-- Active Step Content Card -->
+  <div class="mb-28 space-y-4">
+    <app-product-general-tab
+      [currentStep]="createStep()"
+      [form]="generalForm()"
+      [options]="generalFormOptions()"
+      [isCreateMode]="true"
+      [errors]="errors()"
+      (fieldChange)="updateField($event.field, $event.value)"
+      (numberFieldChange)="updateNumberField($event.field, $event.value)"
+      (booleanFieldChange)="updateBooleanField($event.field, $event.value)"
+      (categorySearch)="onCategorySearch($event)"
+      (manufacturerSearch)="onManufacturerSearch($event)"
+      (descriptionChange)="updateDescription($event)"
+    />
+
+    <!-- Inline Step Actions -->
+    <div
+      class="p-4 bg-white dark:bg-slate-800 border border-gray-200/80 dark:border-slate-700/80 rounded-2xl flex items-center justify-between shadow-2xs"
+    >
+      <div class="flex items-center gap-2">
+        @if (createStep() > 1) {
+        <app-button
+          variant="outline"
+          size="sm"
+          iconStart="arrow-left"
+          (btnClick)="prevCreateStep()"
+        >
+          Anterior
+        </app-button>
+        }
+      </div>
+
+      <div class="flex items-center gap-3">
+        @if (createStep() < 3) {
+        <app-button variant="primary" size="sm" iconEnd="arrow-right" (btnClick)="nextCreateStep()">
+          Próximo Passo
+        </app-button>
+        }
+        <app-button
+          [variant]="createStep() === 3 ? 'primary' : 'secondary'"
+          size="sm"
+          iconStart="save"
+          [loading]="isSaving()"
+          (btnClick)="saveProduct()"
+        >
+          Salvar Produto
+        </app-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unsaved Changes Dialog -->
+  <app-confirm-dialog
+    [isOpen]="unsavedChangesDialogOpen()"
+    title="Alterações Não Salvas"
+    message="Você possui alterações não salvas no formulário. Deseja realmente sair sem salvar?"
+    confirmText="Sair sem Salvar"
+    cancelText="Continuar Editando"
+    variant="warning"
+    (confirm)="executeExitWithoutSave()"
+    (cancel)="unsavedChangesDialogOpen.set(false)"
+  />
+</div>

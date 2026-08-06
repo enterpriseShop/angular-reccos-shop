@@ -1,13 +1,13 @@
 <!-- Mobile Drawer Overlay -->
 @if (shellState.mobileDrawerOpen()) {
-  <div
-    class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
-    (click)="shellState.closeMobileDrawer()"
-    (keydown.escape)="shellState.closeMobileDrawer()"
-    tabindex="0"
-    role="button"
-    aria-label="Fechar navegação lateral"
-  ></div>
+<div
+  class="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+  (click)="shellState.closeMobileDrawer()"
+  (keydown.escape)="shellState.closeMobileDrawer()"
+  tabindex="0"
+  role="button"
+  aria-label="Fechar navegação lateral"
+></div>
 }
 
 <!-- Sidebar Container -->
@@ -21,99 +21,98 @@
   <!-- Navigation Menu Groups -->
   <div class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
     @for (group of shellState.menuGroups(); track group.id) {
-      <div>
-        <!-- Group Header (Only visible when expanded or in drawer) -->
-        @if (shellState.sidebarExpanded() || shellState.mobileDrawerOpen()) {
-          <div class="px-3 mb-2 flex items-center justify-between">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-400">
-              {{ group.title }}
-            </span>
-          </div>
-        } @else {
-          <div class="my-2 border-t border-gray-100 dark:border-slate-700/60"></div>
-        }
+    <div>
+      <!-- Group Header (Only visible when expanded or in drawer) -->
+      @if (shellState.sidebarExpanded() || shellState.mobileDrawerOpen()) {
+      <div class="px-3 mb-2 flex items-center justify-between">
+        <span
+          class="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-400"
+        >
+          {{ group.title }}
+        </span>
+      </div>
+      } @else {
+      <div class="my-2 border-t border-gray-100 dark:border-slate-700/60"></div>
+      }
 
-        <!-- Group Items -->
-        <div class="space-y-1">
-          @for (item of group.items; track item.id) {
-            <div>
-              <!-- Main Item Link or Toggle Header -->
-              <button
-                type="button"
-                (click)="onItemClick(item)"
-                [class]="getItemClasses(item)"
-                [title]="item.label"
-              >
-                <div class="flex items-center gap-3 min-w-0">
-                  <app-icon
-                    [name]="item.icon"
-                    [size]="shellState.sidebarExpanded() || shellState.mobileDrawerOpen() ? 'w-5 h-5' : 'w-5 h-5 mx-auto'"
-                    [class.text-[#4F8A6B]]="isRouteActive(item.route)"
-                  />
+      <!-- Group Items -->
+      <div class="space-y-1">
+        @for (item of group.items; track item.id) {
+        <div>
+          <!-- Main Item Link or Toggle Header -->
+          <button
+            type="button"
+            (click)="onItemClick(item)"
+            [class]="getItemClasses(item)"
+            [title]="item.label"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <app-icon
+                [name]="item.icon"
+                [size]="shellState.sidebarExpanded() || shellState.mobileDrawerOpen() ? 'w-5 h-5' : 'w-5 h-5 mx-auto'"
+                [class.text-[#4F8A6B]]="isRouteActive(item.route)"
+              />
 
-                  @if (shellState.sidebarExpanded() || shellState.mobileDrawerOpen()) {
-                    <span class="truncate font-medium">{{ item.label }}</span>
-                  }
-                </div>
-
-                @if (shellState.sidebarExpanded() || shellState.mobileDrawerOpen()) {
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    @if (item.badge) {
-                      <app-badge variant="primary">
-                        {{ item.badge }}
-                      </app-badge>
-                    }
-
-                    @if (item.children && item.children.length > 0) {
-                      <app-icon
-                        [name]="isExpanded(item.id) ? 'chevron-down' : 'chevron-right'"
-                        size="w-4 h-4 text-gray-400"
-                      />
-                    }
-                  </div>
-                }
-              </button>
-
-              <!-- Collapsible Submenu -->
-              @if (item.children && item.children.length > 0 && isExpanded(item.id) && (shellState.sidebarExpanded() || shellState.mobileDrawerOpen())) {
-                <div class="ml-4 pl-3 my-1 space-y-1 border-l-2 border-gray-100 dark:border-slate-700">
-                  @for (child of item.children; track child.id) {
-                    <button
-                      type="button"
-                      (click)="onChildClick(child.route)"
-                      [class.text-[#4F8A6B]]="isRouteActive(child.route)"
-                      [class.font-semibold]="isRouteActive(child.route)"
-                      [class.bg-[#EAF4EE]]="isRouteActive(child.route)"
-                      [class.dark:bg-[#4F8A6B]/20]="isRouteActive(child.route)"
-                      class="w-full text-left px-3 py-1.5 text-xs rounded-md text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 hover:bg-gray-100/60 dark:hover:bg-slate-700/60 transition-colors flex items-center justify-between cursor-pointer select-none"
-                    >
-                      <span class="truncate">{{ child.label }}</span>
-                      @if (child.badge) {
-                        <app-badge variant="neutral">{{ child.badge }}</app-badge>
-                      }
-                    </button>
-                  }
-                </div>
+              @if (shellState.sidebarExpanded() || shellState.mobileDrawerOpen()) {
+              <span class="truncate font-medium">{{ item.label }}</span>
               }
             </div>
+
+            @if (shellState.sidebarExpanded() || shellState.mobileDrawerOpen()) {
+            <div class="flex items-center gap-1.5 shrink-0">
+              @if (item.badge) {
+              <app-badge variant="primary">{{ item.badge }}</app-badge>
+              } @if (item.children && item.children.length > 0) {
+              <app-icon
+                [name]="isExpanded(item.id) ? 'chevron-down' : 'chevron-right'"
+                size="w-4 h-4 text-gray-400"
+              />
+              }
+            </div>
+            }
+          </button>
+
+          <!-- Collapsible Submenu -->
+          @if (item.children && item.children.length > 0 && isExpanded(item.id) &&
+          (shellState.sidebarExpanded() || shellState.mobileDrawerOpen())) {
+          <div class="ml-4 pl-3 my-1 space-y-1 border-l-2 border-gray-100 dark:border-slate-700">
+            @for (child of item.children; track child.id) {
+            <button
+              type="button"
+              (click)="onChildClick(child.route)"
+              [class.text-[#4F8A6B]]="isRouteActive(child.route)"
+              [class.font-semibold]="isRouteActive(child.route)"
+              [class.bg-[#EAF4EE]]="isRouteActive(child.route)"
+              [class.dark:bg-[#4F8A6B]/20]="isRouteActive(child.route)"
+              class="w-full text-left px-3 py-1.5 text-xs rounded-md text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 hover:bg-gray-100/60 dark:hover:bg-slate-700/60 transition-colors flex items-center justify-between cursor-pointer select-none"
+            >
+              <span class="truncate">{{ child.label }}</span>
+              @if (child.badge) {
+              <app-badge variant="neutral">{{ child.badge }}</app-badge>
+              }
+            </button>
+            }
+          </div>
           }
         </div>
+        }
       </div>
+    </div>
     }
   </div>
 
   <!-- Footer Quick Status Card inside Sidebar -->
   @if (shellState.sidebarExpanded() || shellState.mobileDrawerOpen()) {
-    <div class="p-3 m-3 bg-[#EAF4EE] dark:bg-[#4F8A6B]/15 rounded-[12px] border border-[#4F8A6B]/20">
-      <div class="flex items-center gap-2 mb-1">
-        <span class="w-2 h-2 rounded-full bg-[#4F8A6B] animate-pulse"></span>
-        <span class="text-xs font-semibold text-gray-900 dark:text-slate-100">
-          API Reccos Conectada
-        </span>
-      </div>
-      <p class="text-[10px] text-gray-500 dark:text-slate-400">
-        Sincronização em tempo real com o banco mestre de autopeças.
-      </p>
+  <div class="p-3 m-3 bg-[#EAF4EE] dark:bg-[#4F8A6B]/15 rounded-[12px] border border-[#4F8A6B]/20">
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-2 h-2 rounded-full bg-[#4F8A6B] animate-pulse"></span>
+      <span class="text-xs font-semibold text-gray-900 dark:text-slate-100">
+        API Reccos Conectada
+      </span>
     </div>
+    <p class="text-[10px] text-gray-500 dark:text-slate-400">
+      Sincronização em tempo real com o banco mestre de autopeças.
+    </p>
+  </div>
   }
 </aside>

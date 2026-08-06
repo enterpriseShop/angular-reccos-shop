@@ -12,7 +12,7 @@ import { DropdownComponent, DropdownItem } from '../../design-system/dropdown/dr
   imports: [AppIconComponent, SearchInputComponent, DropdownComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './header.html',
-  styleUrl: './header.css'
+  styleUrl: './header.css',
 })
 export class HeaderComponent {
   readonly shellState = inject(ShellStateService);
@@ -24,7 +24,7 @@ export class HeaderComponent {
     { id: 'settings', label: 'Configurações de Conta', icon: 'settings' },
     { id: 'help', label: 'Suporte & Documentação', icon: 'help-circle' },
     { id: 'div1', label: '', divider: true },
-    { id: 'logout', label: 'Sair da Conta', icon: 'log-out', danger: true }
+    { id: 'logout', label: 'Sair da Conta', icon: 'log-out', danger: true },
   ];
 
   navigateHome(): void {

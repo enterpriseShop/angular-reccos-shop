@@ -8,7 +8,7 @@ import { ButtonComponent } from '../button/button';
   imports: [AppIconComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './confirm-dialog.html',
-  styleUrl: './confirm-dialog.css'
+  styleUrl: './confirm-dialog.css',
 })
 export class ConfirmDialogComponent {
   readonly isOpen = input.required<boolean>();
@@ -30,15 +30,19 @@ export class ConfirmDialogComponent {
   }
 
   get confirmVariant(): () => 'danger' | 'primary' {
-    return () => this.type() === 'danger' ? 'danger' : 'primary';
+    return () => (this.type() === 'danger' ? 'danger' : 'primary');
   }
 
   get typeIcon(): () => string {
     return () => {
       switch (this.type()) {
-        case 'danger': return 'trash-2';
-        case 'warning': return 'alert-circle';
-        case 'info': default: return 'info';
+        case 'danger':
+          return 'trash-2';
+        case 'warning':
+          return 'alert-circle';
+        case 'info':
+        default:
+          return 'info';
       }
     };
   }
@@ -46,9 +50,13 @@ export class ConfirmDialogComponent {
   get iconBgClass(): () => string {
     return () => {
       switch (this.type()) {
-        case 'danger': return 'bg-rose-50 dark:bg-rose-950/40 text-[#D66A6A]';
-        case 'warning': return 'bg-amber-50 dark:bg-amber-950/40 text-[#E9B949]';
-        case 'info': default: return 'bg-blue-50 dark:bg-blue-950/40 text-[#5A8DEE]';
+        case 'danger':
+          return 'bg-rose-50 dark:bg-rose-950/40 text-[#D66A6A]';
+        case 'warning':
+          return 'bg-amber-50 dark:bg-amber-950/40 text-[#E9B949]';
+        case 'info':
+        default:
+          return 'bg-blue-50 dark:bg-blue-950/40 text-[#5A8DEE]';
       }
     };
   }

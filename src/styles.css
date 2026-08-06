@@ -1,33 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --font-sans: 'Inter', sans-serif;
-  --color-reccos-primary: #4F8A6B;
-  --color-reccos-hover: #43765C;
-  --color-reccos-light: #EAF4EE;
-  --color-reccos-success: #5BAE6A;
-  --color-reccos-warning: #E9B949;
-  --color-reccos-error: #D66A6A;
-  --color-reccos-info: #5A8DEE;
+  --color-reccos-primary: #4f8a6b;
+  --color-reccos-hover: #43765c;
+  --color-reccos-light: #eaf4ee;
+  --color-reccos-success: #5bae6a;
+  --color-reccos-warning: #e9b949;
+  --color-reccos-error: #d66a6a;
+  --color-reccos-info: #5a8dee;
 }
 
 :root {
-  --bg-app: #F7F8FA;
-  --bg-surface: #FFFFFF;
-  --bg-surface-hover: #F3F4F6;
-  --border-color: #E5E7EB;
-  --text-main: #1F2937;
-  --text-muted: #6B7280;
+  --bg-app: #f7f8fa;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f3f4f6;
+  --border-color: #e5e7eb;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
 }
 
 html.dark {
-  --bg-app: #0F172A;
-  --bg-surface: #1E293B;
+  --bg-app: #0f172a;
+  --bg-surface: #1e293b;
   --bg-surface-hover: #334155;
   --border-color: #334155;
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
 }
 
 body {
@@ -40,18 +40,49 @@ body {
 }
 
 /* Custom Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.35) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.4);
+  background-color: rgba(156, 163, 175, 0.35);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(156, 163, 175, 0.7);
+  background-color: rgba(156, 163, 175, 0.6);
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.7);
+}

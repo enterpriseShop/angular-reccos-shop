@@ -2,11 +2,11 @@ import { Injectable, signal, effect, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ThemeService {
   private platformId = inject(PLATFORM_ID);
-  
+
   // Signal for theme mode
   readonly isDarkMode = signal<boolean>(false);
 
@@ -35,7 +35,7 @@ export class ThemeService {
   }
 
   toggleTheme(): void {
-    this.isDarkMode.update(dark => !dark);
+    this.isDarkMode.update((dark) => !dark);
   }
 
   setDarkMode(enabled: boolean): void {

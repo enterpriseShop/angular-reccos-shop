@@ -12,7 +12,7 @@ export interface BreadcrumbItem {
   imports: [AppIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './breadcrumb.html',
-  styleUrl: './breadcrumb.css'
+  styleUrl: './breadcrumb.css',
 })
 export class BreadcrumbComponent {
   readonly items = input<BreadcrumbItem[]>([]);
