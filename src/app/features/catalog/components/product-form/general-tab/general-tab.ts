@@ -30,6 +30,7 @@ export class ProductGeneralTabComponent {
   readonly isCreateMode = input<boolean>(false);
   readonly currentStep = input<number>(0);
   readonly errors = input<Record<string, string>>({});
+  readonly activeTab = input<string>('geral');
 
   // Outputs
   readonly fieldChange = output<{ field: string; value: string }>();

@@ -23,6 +23,9 @@
       [placeholder]="placeholder()"
       [disabled]="disabled()"
       [readOnly]="readonly()"
+      [attr.step]="type() === 'number' ? step() : null"
+      [attr.min]="type() === 'number' ? min() : null"
+      [attr.max]="type() === 'number' ? max() : null"
       (input)="onInput($event)"
       [class]="inputClasses()"
     />

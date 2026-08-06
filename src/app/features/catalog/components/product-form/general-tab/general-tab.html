@@ -1,63 +1,63 @@
 <div class="space-y-6">
   <!-- Section 1: Informações Básicas (Etapa 1) -->
-  @if (currentStep() === 0 || currentStep() === 1) {
-    <app-product-basic-info-section
-      [formName]="form().name"
-      [formSlug]="form().slug"
-      [formShortDescription]="form().shortDescription"
-      [formDescription]="form().description"
-      [isReadOnly]="isReadOnly()"
-      [isCreateMode]="isCreateMode()"
-      [errors]="errors()"
-      (fieldChange)="onFieldChange($event.field, $event.value)"
-      (descriptionChange)="descriptionChange.emit($event)"
-    />
+  @if ((currentStep() === 0 && activeTab() === 'geral') || currentStep() === 1) {
+  <app-product-basic-info-section
+    [formName]="form().name"
+    [formSlug]="form().slug"
+    [formShortDescription]="form().shortDescription"
+    [formDescription]="form().description"
+    [isReadOnly]="isReadOnly()"
+    [isCreateMode]="isCreateMode()"
+    [errors]="errors()"
+    (fieldChange)="onFieldChange($event.field, $event.value)"
+    (descriptionChange)="descriptionChange.emit($event)"
+  />
   }
 
   <!-- Section 2: Identificação & Classificação (Etapa 2) -->
-  @if (currentStep() === 0 || currentStep() === 2) {
-    <app-product-identification-section
-      [formCategoryId]="form().categoryId"
-      [formManufacturerId]="form().manufacturerId"
-      [formPartOriginId]="form().partOriginId"
-      [formStatusId]="form().statusId"
-      [formInternalCode]="form().internalCode"
-      [formBarcode]="form().barcode"
-      [isReadOnly]="isReadOnly()"
-      [isCreateMode]="isCreateMode()"
-      [errors]="errors()"
-      [categoryOptions]="options().categoryOptions"
-      [categoryLoading]="options().categoryLoading"
-      [manufacturerOptions]="options().manufacturerOptions"
-      [manufacturerLoading]="options().manufacturerLoading"
-      [partOriginOptions]="options().partOriginOptions"
-      [statusOptions]="options().statusOptions"
-      (fieldChange)="onFieldChange($event.field, $event.value)"
-      (categorySearch)="categorySearch.emit($event)"
-      (manufacturerSearch)="manufacturerSearch.emit($event)"
-    />
+  @if ((currentStep() === 0 && activeTab() === 'classification') || currentStep() === 2) {
+  <app-product-identification-section
+    [formCategoryId]="form().categoryId"
+    [formManufacturerId]="form().manufacturerId"
+    [formPartOriginId]="form().partOriginId"
+    [formStatusId]="form().statusId"
+    [formInternalCode]="form().internalCode"
+    [formBarcode]="form().barcode"
+    [isReadOnly]="isReadOnly()"
+    [isCreateMode]="isCreateMode()"
+    [errors]="errors()"
+    [categoryOptions]="options().categoryOptions"
+    [categoryLoading]="options().categoryLoading"
+    [manufacturerOptions]="options().manufacturerOptions"
+    [manufacturerLoading]="options().manufacturerLoading"
+    [partOriginOptions]="options().partOriginOptions"
+    [statusOptions]="options().statusOptions"
+    (fieldChange)="onFieldChange($event.field, $event.value)"
+    (categorySearch)="categorySearch.emit($event)"
+    (manufacturerSearch)="manufacturerSearch.emit($event)"
+  />
   }
 
   <!-- Section 3 & 4: Especificações & Visibilidade (Etapa 3) -->
-  @if (currentStep() === 0 || currentStep() === 3) {
-    <app-product-dimensions-section
-      [formUnitId]="form().unitId"
-      [formWeight]="form().weight"
-      [formHeight]="form().height"
-      [formWidth]="form().width"
-      [formLength]="form().length"
-      [isReadOnly]="isReadOnly()"
-      [unitOptions]="options().unitOptions"
-      (fieldChange)="onFieldChange($event.field, $event.value)"
-      (numberFieldChange)="onNumberFieldChange($event.field, $event.value)"
-    />
+  @if ((currentStep() === 0 && activeTab() === 'logistics') || currentStep() === 3) {
+  <app-product-dimensions-section
+    [formUnitId]="form().unitId"
+    [formWeight]="form().weight"
+    [formHeight]="form().height"
+    [formWidth]="form().width"
+    [formLength]="form().length"
+    [isReadOnly]="isReadOnly()"
+    [unitOptions]="options().unitOptions"
+    (fieldChange)="onFieldChange($event.field, $event.value)"
+    (numberFieldChange)="onNumberFieldChange($event.field, $event.value)"
+  />
 
-    <app-product-visibility-section
-      [formActive]="form().active"
-      [formFeatured]="form().featured"
-      [isReadOnly]="isReadOnly()"
-      [isCreateMode]="isCreateMode()"
-      (booleanFieldToggle)="onBooleanFieldToggle($event.field, $event.currentValue)"
-    />
+  <app-product-visibility-section
+    [formActive]="form().active"
+    [formFeatured]="form().featured"
+    [isReadOnly]="isReadOnly()"
+    [isCreateMode]="isCreateMode()"
+    (booleanFieldToggle)="onBooleanFieldToggle($event.field, $event.currentValue)"
+  />
   }
 </div>

@@ -6,6 +6,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { Location } from '@angular/common';
 import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
 import { ButtonComponent } from '../../../design-system/button/button';
 import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
@@ -14,8 +15,8 @@ import { ProductGeneralTabComponent } from '../components/product-form/general-t
 import { ProductCommercialTabComponent } from '../components/product-form/commercial-tab/commercial-tab';
 import { ProductInventoryTabComponent } from '../components/product-form/inventory-tab/inventory-tab';
 import { ProductCompatibilityTabComponent } from '../components/product-form/compatibility-tab/compatibility-tab';
-import { ProductMediaTabComponent } from '../components/product-form/media-tab/media-tab';
-import { ProductAdministrationTabComponent } from '../components/product-form/administration-tab/administration-tab';
+// import { ProductMediaTabComponent } from '../components/product-form/media-tab/media-tab';
+// import { ProductAdministrationTabComponent } from '../components/product-form/administration-tab/administration-tab';
 import { ProductWorkspaceSidebarComponent } from '../components/product-form/sidebar/product-workspace-sidebar';
 import { ShellStateService } from '../../../core/services/shell-state';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -52,8 +53,6 @@ import {
     ProductCommercialTabComponent,
     ProductInventoryTabComponent,
     ProductCompatibilityTabComponent,
-    ProductMediaTabComponent,
-    ProductAdministrationTabComponent,
     ProductWorkspaceSidebarComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,6 +69,7 @@ export class ProductWorkspaceComponent implements OnInit {
   private statusService = inject(StatusService);
   private toastService = inject(ToastService);
   private partOriginService = inject(PartOriginService);
+  private location = inject(Location);
 
   readonly mode = signal<ProductWorkspaceMode>('edit');
   readonly activeTab = signal<FormTab>('geral');
@@ -92,6 +92,7 @@ export class ProductWorkspaceComponent implements OnInit {
   readonly errors = signal<Record<string, string>>({});
 
   readonly productForm = signal<ProductFormData>(defaultProductFormData());
+  readonly currentStatus = signal<any>(null);
 
   readonly categoryOptions = computed<AutocompleteOption[]>(() => this.fetchedCategories());
   readonly manufacturerOptions = computed<AutocompleteOption[]>(() => this.fetchedManufacturers());
@@ -159,8 +160,9 @@ export class ProductWorkspaceComponent implements OnInit {
   ngOnInit(): void {
     const url = this.router.url;
     const id = this.route.snapshot.paramMap.get('id');
+    const state = this.location.getState() as any;
 
-    this.productCreatedSuccessBanner.set(!!history.state?.['productJustCreated']);
+    this.productCreatedSuccessBanner.set(!!state?.['productJustCreated']);
 
     this.loadInitialOptions(this.queries);
 
@@ -223,7 +225,10 @@ export class ProductWorkspaceComponent implements OnInit {
 
   productById(productId: string): void {
     this.productService.getById(productId).subscribe({
-      next: (response: ProductResponse) => this.populateForm(response),
+      next: (response) => {
+        const prodData = response.data || response;
+        this.populateForm(prodData);
+      },
       error: (error) => {
         console.error('Error loading product:', error);
         this.toastService.error('Erro', 'Não foi possível carregar os dados do produto.');
@@ -232,6 +237,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   populateForm(prod: ProductResponse): void {
+    this.currentStatus.set(prod.status || null);
     const pricingObj = prod.pricing as unknown as Record<string, unknown> | undefined;
     const inventoryObj = prod.inventory as unknown as Record<string, unknown> | undefined;
     const rawPrice = prod['price'] as unknown as
@@ -248,11 +254,16 @@ export class ProductWorkspaceComponent implements OnInit {
       manufacturerId: prod.manufacturer?.id || (prod['manufacturer_id'] as string) || '',
       partOriginId: (prod['part_origin_id'] as string) || '',
       statusId: prod.status?.id || (prod['status_id'] as string) || 'st-01',
+
       internalCode: prod.internal_code || '',
       barcode: (prod['barcode'] as string) || '',
 
       name: prod.name || '',
       slug: prod.slug || '',
+
+      icon: prod.icon || '',
+      image: prod.image || '',
+
       shortDescription: (prod['short_description'] as string) || '',
       description: prod.description || '',
 
@@ -260,38 +271,55 @@ export class ProductWorkspaceComponent implements OnInit {
       height: parseFloat(prod.height as string) || 0,
       width: parseFloat(prod.width as string) || 0,
       length: parseFloat(prod.length as string) || 0,
-      unitId: (prod['unit'] || prod['unit_id'] || 'un') as string,
+
+      unitId: (prod['unit']?.id || prod['unit_id'] || 'un') as string,
 
       featured: !!prod['featured'],
       active: prod['active'] !== undefined ? !!prod['active'] : true,
 
       price: prod.pricing?.regular_price || rawPrice?.price || 0,
+
       promotionalPrice: prod.pricing?.promotional_price || rawPrice?.promotional_price || null,
-      promotionStartDate: prod.pricing?.promotion_start || rawPrice?.promotion_start || '',
-      promotionEndDate: prod.pricing?.promotion_end || rawPrice?.promotion_end || '',
+
+      promotionStartDate: prod.pricing?.promotion_start || rawPrice?.promotion_start || null,
+
+      promotionEndDate: prod.pricing?.promotion_end || rawPrice?.promotion_end || null,
+
       isInvoiced:
         typeof pricingObj?.['is_invoiced'] === 'boolean' ? pricingObj['is_invoiced'] : true,
 
       warehouseId: (inventoryObj?.['warehouse_id'] as string) || 'wh-01',
+
       quantity: prod.inventory?.quantity || 0,
+
       minQuantity: prod.inventory?.minimum_quantity || 0,
+
       maxQuantity: prod.inventory?.maximum_quantity || null,
+
       allowBackorder: !!prod.inventory?.allow_backorder,
 
       oemCodes: (prod['oem_codes'] as ProductFormData['oemCodes']) || [],
+
       productCodes: (prod['product_codes'] as ProductFormData['productCodes']) || [],
+
       equivalentProducts:
         (prod['equivalent_products'] as ProductFormData['equivalentProducts']) || [],
+
       vehicleApplications:
         (prod['vehicle_applications'] as ProductFormData['vehicleApplications']) || [],
+
       mediaImages: (prod['media_images'] as ProductFormData['mediaImages']) || [],
+
       suppliers: (prod['suppliers'] as ProductFormData['suppliers']) || [],
+
       selectedTagIds: (prod['tags'] as string[]) || [],
+
       productNotes: (prod['notes'] as ProductFormData['productNotes']) || [],
     });
   }
 
   setActiveTab(tab: FormTab): void {
+    console.log('tab', tab);
     this.activeTab.set(tab);
   }
 
@@ -874,16 +902,18 @@ export class ProductWorkspaceComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     const p = this.productForm();
 
-    const payload = {
+    const payload: UpdateProductPayload = {
       category_id: p.categoryId,
       manufacturer_id: p.manufacturerId,
       part_origin_id: p.partOriginId,
       status_id: p.statusId,
+
       internal_code: p.internalCode,
       barcode: p.barcode,
 
       name: p.name,
       slug: p.slug,
+
       short_description: p.shortDescription,
       description: p.description,
 
@@ -891,6 +921,7 @@ export class ProductWorkspaceComponent implements OnInit {
       height: p.height,
       width: p.width,
       length: p.length,
+
       unit: p.unitId,
 
       featured: p.featured,
@@ -902,13 +933,7 @@ export class ProductWorkspaceComponent implements OnInit {
         promotion_start: p.promotionStartDate,
         promotion_end: p.promotionEndDate,
       },
-      pricing: {
-        regular_price: p.price,
-        promotional_price: p.promotionalPrice,
-        promotion_start: p.promotionStartDate,
-        promotion_end: p.promotionEndDate,
-        is_invoiced: p.isInvoiced,
-      },
+
       inventory: {
         warehouse_id: p.warehouseId,
         quantity: p.quantity,
@@ -916,13 +941,6 @@ export class ProductWorkspaceComponent implements OnInit {
         maximum_quantity: p.maxQuantity,
         allow_backorder: p.allowBackorder,
       },
-      oem_codes: p.oemCodes,
-      product_codes: p.productCodes,
-      equivalent_products: p.equivalentProducts,
-      vehicle_applications: p.vehicleApplications,
-      suppliers: p.suppliers,
-      tags: p.selectedTagIds,
-      notes: p.productNotes,
     };
 
     this.productService.update(id!, payload as UpdateProductPayload).subscribe({

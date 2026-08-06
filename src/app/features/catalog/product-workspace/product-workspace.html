@@ -1,6 +1,4 @@
-<div
-  class="product-workspace-root h-[calc(100vh-72px)] max-w-7xl mx-auto px-6 py-6 flex flex-col gap-6 overflow-hidden"
->
+<div class="p-6 max-w-7xl mx-auto space-y-6">
   <!-- Page Header (fixo no topo do workspace) -->
   <div class="shrink-0 space-y-6">
     <app-page-header
@@ -65,15 +63,13 @@
   </div>
 
   <!-- Workspace Main Layout (Sidebar Menu + Active Panel) -->
-  <div
-    class="flex flex-col lg:grid lg:grid-cols-12 gap-6 flex-1 h-[calc(100vh-200px)] items-stretch"
-  >
+  <div class="space-y-6 mb-28">
     <!-- Left Sidebar Menu (Internal Workspace Nav) -->
     <app-product-workspace-sidebar
-      class="lg:col-span-3 block shrink-0 lg:shrink lg:h-full"
+      class="block w-full"
       [productName]="productForm().name"
       [internalCode]="productForm().internalCode"
-      [active]="productForm().active"
+      [status]="currentStatus()"
       [activeTab]="activeTab()"
       [mediaImagesCount]="productForm().mediaImages.length"
       [oemCodesCount]="productForm().oemCodes.length"
@@ -88,15 +84,15 @@
     />
 
     <!-- Right Active Panel Workspace -->
-    <main
-      class="flex-1 h-full lg:col-span-9 lg:h-full overflow-y-auto overscroll-contain workspace-panel-scroll space-y-6 pb-24 lg:pb-20 pr-0.5 -mr-0.5"
-    >
-      @if (activeTab() === 'geral') {
+    <main class="w-full space-y-6">
+      @if (activeTab() === 'geral' || activeTab() === 'classification' || activeTab() ===
+      'logistics' || activeTab() === 'visibility') {
       <app-product-general-tab
         [form]="generalForm()"
         [options]="generalFormOptions()"
         [isReadOnly]="isReadOnly()"
         [errors]="errors()"
+        [activeTab]="activeTab()"
         (fieldChange)="updateField($event.field, $event.value)"
         (numberFieldChange)="updateNumberField($event.field, $event.value)"
         (booleanFieldChange)="updateBooleanField($event.field, $event.value)"
@@ -155,7 +151,8 @@
         (toggleVehicleStatus)="toggleVehicleStatus($event)"
         (removeVehicleApplication)="removeVehicleApplication($event)"
       />
-      } @if (activeTab() === 'midia') {
+      }
+      <!-- @if (activeTab() === 'midia') {
       <app-product-media-tab
         [mediaImages]="productForm().mediaImages"
         [isReadOnly]="isReadOnly()"
@@ -185,7 +182,7 @@
         (removeNote)="removeNote($event)"
         (toggleNoteStatus)="toggleNoteStatus($event)"
       />
-      }
+      } -->
     </main>
   </div>
 

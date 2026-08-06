@@ -11,7 +11,10 @@ export type FormTab =
   | 'equivalentes'
   | 'compatibilidade'
   | 'tags'
-  | 'observacoes';
+  | 'observacoes'
+  | 'classification'
+  | 'logistics'
+  | 'visibility';
 
 export interface OemCodeItem {
   id: string;
@@ -84,11 +87,16 @@ export interface ProductFormData {
   manufacturerId: string;
   partOriginId: string;
   statusId: string;
+
   internalCode: string;
   barcode: string;
 
   name: string;
   slug: string;
+
+  icon: string;
+  image: string;
+
   shortDescription: string;
   description: string;
 
@@ -96,6 +104,7 @@ export interface ProductFormData {
   height: number;
   width: number;
   length: number;
+
   unitId: string;
 
   featured: boolean;
@@ -103,8 +112,8 @@ export interface ProductFormData {
 
   price: number;
   promotionalPrice: number | null;
-  promotionStartDate: string;
-  promotionEndDate: string;
+  promotionStartDate: string | null;
+  promotionEndDate: string | null;
   isInvoiced: boolean;
 
   warehouseId: string;
@@ -119,7 +128,9 @@ export interface ProductFormData {
   vehicleApplications: VehicleApplicationItem[];
   mediaImages: MediaImageItem[];
   suppliers: SupplierItem[];
+
   selectedTagIds: string[];
+
   productNotes: ProductNoteItem[];
 }
 
@@ -129,11 +140,16 @@ export function defaultProductFormData(): ProductFormData {
     manufacturerId: '',
     partOriginId: '',
     statusId: 'st-01',
+
     internalCode: '',
     barcode: '',
 
     name: '',
     slug: '',
+
+    icon: '',
+    image: '',
+
     shortDescription: '',
     description: '',
 
@@ -141,6 +157,7 @@ export function defaultProductFormData(): ProductFormData {
     height: 0,
     width: 0,
     length: 0,
+
     unitId: 'un',
 
     featured: false,
@@ -148,8 +165,8 @@ export function defaultProductFormData(): ProductFormData {
 
     price: 0,
     promotionalPrice: null,
-    promotionStartDate: '',
-    promotionEndDate: '',
+    promotionStartDate: null,
+    promotionEndDate: null,
     isInvoiced: true,
 
     warehouseId: 'wh-01',
@@ -164,7 +181,9 @@ export function defaultProductFormData(): ProductFormData {
     vehicleApplications: [],
     mediaImages: [],
     suppliers: [],
+
     selectedTagIds: [],
+
     productNotes: [],
   };
 }

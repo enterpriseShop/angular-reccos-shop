@@ -1,6 +1,5 @@
 <div class="space-y-6">
-  @switch (activeTab()) {
-  @case ('oem') {
+  @switch (activeTab()) { @case ('oem') {
   <!-- Card OEM Codes -->
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
@@ -8,12 +7,14 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon [name]="getModule('oem').headerIcon" size="w-5 h-5" [class]="getModule('oem').headerIconClass" />
+          <app-icon
+            [name]="getModule('oem').headerIcon"
+            size="w-5 h-5"
+            [class]="getModule('oem').headerIconClass"
+          />
           {{ getModule('oem').label }}
         </h3>
-        <p class="text-xs text-gray-500 dark:text-slate-400">
-          {{ getModule('oem').description }}
-        </p>
+        <p class="text-xs text-gray-500 dark:text-slate-400">{{ getModule('oem').description }}</p>
       </div>
 
       @if (!isReadOnly()) {
@@ -111,8 +112,7 @@
     </div>
     }
   </div>
-  }
-  @case ('codigos') {
+  } @case ('codigos') {
   <!-- Card Product Codes -->
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
@@ -120,7 +120,11 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon [name]="getModule('codigos').headerIcon" size="w-5 h-5" [class]="getModule('codigos').headerIconClass" />
+          <app-icon
+            [name]="getModule('codigos').headerIcon"
+            size="w-5 h-5"
+            [class]="getModule('codigos').headerIconClass"
+          />
           {{ getModule('codigos').label }}
         </h3>
         <p class="text-xs text-gray-500 dark:text-slate-400">
@@ -204,8 +208,7 @@
     </div>
     }
   </div>
-  }
-  @case ('equivalentes') {
+  } @case ('equivalentes') {
   <!-- Card Produtos Equivalentes -->
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
@@ -213,7 +216,11 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon [name]="getModule('equivalentes').headerIcon" size="w-5 h-5" [class]="getModule('equivalentes').headerIconClass" />
+          <app-icon
+            [name]="getModule('equivalentes').headerIcon"
+            size="w-5 h-5"
+            [class]="getModule('equivalentes').headerIconClass"
+          />
           {{ getModule('equivalentes').label }}
         </h3>
         <p class="text-xs text-gray-500 dark:text-slate-400">
@@ -297,8 +304,7 @@
     </div>
     }
   </div>
-  }
-  @case ('compatibilidade') {
+  } @case ('compatibilidade') {
   <!-- Card Aplicações Veiculares -->
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
@@ -306,7 +312,11 @@
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon [name]="getModule('compatibilidade').headerIcon" size="w-5 h-5" [class]="getModule('compatibilidade').headerIconClass" />
+          <app-icon
+            [name]="getModule('compatibilidade').headerIcon"
+            size="w-5 h-5"
+            [class]="getModule('compatibilidade').headerIconClass"
+          />
           {{ getModule('compatibilidade').label }}
         </h3>
         <p class="text-xs text-gray-500 dark:text-slate-400">
@@ -400,6 +410,5 @@
     </div>
     }
   </div>
-  }
-  }
+  } }
 </div>

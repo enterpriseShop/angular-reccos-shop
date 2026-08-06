@@ -78,25 +78,46 @@ export interface ProductInventoryPayload {
 export interface UpdateProductPayload {
   category_id?: string | null;
   manufacturer_id?: string | null;
+  part_origin_id?: string | null;
   status_id?: string | null;
 
   internal_code?: string | null;
+  barcode?: string | null;
   name?: string | null;
-
   slug?: string | null;
+
   icon?: string | null;
   image?: string | null;
 
   short_description?: string | null;
   description?: string | null;
 
-  weight?: number;
-  height?: number;
-  width?: number;
-  length?: number;
+  weight?: number | null;
+  height?: number | null;
+  width?: number | null;
+  length?: number | null;
+
+  unit?: string | null;
 
   active?: boolean;
   featured?: boolean;
 
-  unit?: string | null;
+  price?: UpdateProductPricePayload;
+
+  inventory?: UpdateProductInventoryPayload;
+}
+
+export interface UpdateProductPricePayload {
+  price?: number | null;
+  promotional_price?: number | null;
+  promotion_start?: string | null;
+  promotion_end?: string | null;
+}
+
+export interface UpdateProductInventoryPayload {
+  warehouse_id?: string | null;
+  quantity?: number | null;
+  minimum_quantity?: number | null;
+  maximum_quantity?: number | null;
+  allow_backorder?: boolean;
 }

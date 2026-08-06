@@ -20,6 +20,9 @@ export class InputComponent {
   readonly error = input<string | undefined>(undefined);
   readonly helperText = input<string | undefined>(undefined);
   readonly iconPrefix = input<string | undefined>(undefined);
+  readonly step = input<number | undefined>(undefined);
+  readonly min = input<number | undefined>(undefined);
+  readonly max = input<number | undefined>(undefined);
   readonly inputId = input<string>('input-' + Math.random().toString(36).substring(2, 7));
 
   readonly valueChange = output<string>();

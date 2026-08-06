@@ -5,6 +5,7 @@ import { CreateProductPayload } from '../models/products/product-create.model';
 import { UpdateProductPayload } from '../models/products/product-request.model';
 import { ProductResponse } from '../models/products/product-response.model';
 import { environment } from '../../../environments/environment';
+import { getAllResponse } from '../models/generals/general-responses-list.model';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +20,7 @@ export class ProductService {
   }
 
   getById(id: string) {
-    return this.http.get<ProductResponse>(`${this.api}/${this.flag}/${id}`);
+    return this.http.get<getAllResponse<ProductResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
   create(payload: CreateProductPayload) {

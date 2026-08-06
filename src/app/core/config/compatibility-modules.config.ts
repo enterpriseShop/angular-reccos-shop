@@ -11,10 +11,7 @@ export interface CompatibilityModuleConfig {
   headerIconClass: string;
   description: string;
   countKey:
-    | 'oemCodesCount'
-    | 'productCodesCount'
-    | 'equivalentProductsCount'
-    | 'vehicleApplicationsCount';
+    'oemCodesCount' | 'productCodesCount' | 'equivalentProductsCount' | 'vehicleApplicationsCount';
 }
 
 /** Módulos de compatibilidade — fonte única alinhada ao menu do shell-state */

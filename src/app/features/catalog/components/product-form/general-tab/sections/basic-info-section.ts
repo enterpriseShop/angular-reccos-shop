@@ -7,12 +7,16 @@ import { InputComponent } from '../../../../../../design-system/input/input';
   imports: [InputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs space-y-4">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs space-y-4"
+    >
       <div class="border-b border-gray-100 dark:border-slate-700/60 pb-3">
         <h3 class="text-xs font-bold text-gray-900 dark:text-slate-200 uppercase tracking-wider">
           Informações Básicas & Descrições
         </h3>
-        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Título, identificador URL e descrições técnicas e comerciais</p>
+        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+          Título, identificador URL e descrições técnicas e comerciais
+        </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -29,14 +33,14 @@ import { InputComponent } from '../../../../../../design-system/input/input';
 
         <!-- Slug -->
         @if (!isCreateMode()) {
-        <app-input
-          label="Slug (URL amigável)"
-          placeholder="Ex.: jogo-de-pastilhas-de-freio-dianteira"
-          [value]="formSlug()"
-          [disabled]="isReadOnly()"
-          helperText="Gerado automaticamente ou personalizável"
-          (valueChange)="fieldChange.emit({ field: 'slug', value: $event })"
-        />
+          <app-input
+            label="Slug (URL amigável)"
+            placeholder="Ex.: jogo-de-pastilhas-de-freio-dianteira"
+            [value]="formSlug()"
+            [disabled]="isReadOnly()"
+            helperText="Gerado automaticamente ou personalizável"
+            (valueChange)="fieldChange.emit({ field: 'slug', value: $event })"
+          />
         }
       </div>
 
@@ -51,7 +55,10 @@ import { InputComponent } from '../../../../../../design-system/input/input';
 
       <!-- Descrição Detalhada -->
       <div>
-        <label for="description-textarea" class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
+        <label
+          for="description-textarea"
+          class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1"
+        >
           Descrição Detalhada
         </label>
         <textarea
@@ -65,7 +72,7 @@ import { InputComponent } from '../../../../../../design-system/input/input';
         ></textarea>
       </div>
     </div>
-  `
+  `,
 })
 export class ProductBasicInfoSectionComponent {
   readonly formName = input<string>('');
