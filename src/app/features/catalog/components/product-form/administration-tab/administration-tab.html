@@ -46,18 +46,20 @@
           @for (sup of suppliersPaginated(); track sup.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-semibold text-gray-900 dark:text-slate-100">
-              {{ sup.supplierName }}
+              {{ sup.supplier.name }}
             </td>
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300 font-bold">
-              {{ sup.supplierCode }}
+              {{ sup.supplier.id }}
             </td>
             <td class="px-4 py-3 text-right font-semibold text-emerald-700 dark:text-emerald-400">
-              R$ {{ sup.purchasePrice.toFixed(2) }}
+              R$ {{ sup.purchase_price.toFixed(2) }}
             </td>
-            <td class="px-4 py-3 text-center">{{ sup.leadTimeDays }} dias</td>
-            <td class="px-4 py-3 text-center font-mono">{{ sup.minQuantity || 1 }} un</td>
+            <td class="px-4 py-3 text-center">{{ sup.lead_time_days }} dias</td>
+            <td class="px-4 py-3 text-center font-mono">
+              {{ sup.minimum_order_quantity || 1 }} un
+            </td>
             <td class="px-4 py-3 text-center">
-              @if (sup.isPreferential) {
+              @if (sup.active) {
               <span
                 class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A]"
               >
@@ -77,19 +79,19 @@
             </td>
             <td
               class="px-4 py-3 text-gray-600 dark:text-slate-400 max-w-xs truncate"
-              [title]="sup.notes || ''"
+              [title]="sup.observation || ''"
             >
-              {{ sup.notes || '-' }}
+              {{ sup.observation || '-' }}
             </td>
             <td class="px-4 py-3 text-center">
               <button
                 type="button"
                 [disabled]="isReadOnly()"
                 (click)="onToggleSupplierStatus(sup.id)"
-                [class]="(sup.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
+                [class]="(sup.active || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
               >
-                {{ sup.status || 'Ativo' }}
+                {{ sup.active || 'Ativo' }}
               </button>
             </td>
             <td class="px-4 py-3 text-right">

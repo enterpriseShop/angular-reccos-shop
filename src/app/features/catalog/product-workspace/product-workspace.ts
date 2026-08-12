@@ -15,8 +15,6 @@ import { ProductGeneralTabComponent } from '../components/product-form/general-t
 import { ProductCommercialTabComponent } from '../components/product-form/commercial-tab/commercial-tab';
 import { ProductInventoryTabComponent } from '../components/product-form/inventory-tab/inventory-tab';
 import { ProductCompatibilityTabComponent } from '../components/product-form/compatibility-tab/compatibility-tab';
-// import { ProductMediaTabComponent } from '../components/product-form/media-tab/media-tab';
-// import { ProductAdministrationTabComponent } from '../components/product-form/administration-tab/administration-tab';
 import { ProductWorkspaceSidebarComponent } from '../components/product-form/sidebar/product-workspace-sidebar';
 import { ShellStateService } from '../../../core/services/shell-state';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -30,17 +28,17 @@ import { AutocompleteOption } from '../../../design-system/autocomplete-select/a
 import { DSelectOption } from '../../../core/models/design-system/select-option.model';
 import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
 import { ProductResponse } from '../../../core/models/products/product-response.model';
-import { UpdateProductPayload } from '../../../core/models/products/product-request.model';
-import { isCompatibilityWorkspaceTab } from '../../../core/config/compatibility-modules.config';
-import { toProductGeneralFormData } from '../../../core/models/products/product-create.model';
 import {
-  defaultProductFormData,
-  FormTab,
-  MediaImageItem,
-  ProductFormData,
-  ProductWorkspaceMode,
-} from '../models/product-workspace.model';
+  UpdateProductPayload,
+  mapResponseToPayload,
+  defaultUpdatePayload,
+} from '../../../core/models/products/product-request.model';
+import { isCompatibilityWorkspaceTab } from '../../../core/config/compatibility-modules.config';
+import { ProductGeneralFormData } from '../../../core/models/products/product-create.model';
+import { FormTab, MediaImageItem, ProductWorkspaceMode } from '../models/product-workspace.model';
 import { WarehousesService } from '../../../core/services/warehouses-service';
+import { initialProductPayload } from '../../../core/utils/product-initial-payload';
+import { UnitSaleService } from '../../../core/services/unit-sale-service';
 
 @Component({
   selector: 'app-product-workspace',
@@ -65,10 +63,11 @@ export class ProductWorkspaceComponent implements OnInit {
   private location = inject(Location);
   private route = inject(ActivatedRoute);
   private toastService = inject(ToastService);
+  private statusService = inject(StatusService);
   readonly shellState = inject(ShellStateService);
   private productService = inject(ProductService);
+  private unitSaleService = inject(UnitSaleService);
   private categoryService = inject(CategoryService);
-  private statusService = inject(StatusService);
   private partOriginService = inject(PartOriginService);
   private warehouseService = inject(WarehousesService);
   private manufacturerService = inject(ManufacturerService);
@@ -95,24 +94,48 @@ export class ProductWorkspaceComponent implements OnInit {
   readonly selectedImageForDelete = signal<MediaImageItem | null>(null);
   readonly errors = signal<Record<string, string>>({});
 
-  readonly productForm = signal<ProductFormData>(defaultProductFormData());
-  readonly currentStatus = signal<any>(null);
+  // Dual Signal: product armazena dados brutos da API; productForm armazena o payload mutável para envio.
+  readonly product = signal<ProductResponse>(initialProductPayload);
+  readonly productForm = signal<UpdateProductPayload>(defaultUpdatePayload());
 
   readonly categoryOptions = computed<AutocompleteOption[]>(() => this.fetchedCategories());
   readonly manufacturerOptions = computed<AutocompleteOption[]>(() => this.fetchedManufacturers());
   readonly statusOptions = computed<DSelectOption[]>(() => this.fetchedStatuses());
 
-  readonly generalForm = computed(() => toProductGeneralFormData(this.productForm()));
+  readonly currentStatus = computed(() => this.product()?.status ?? null);
+
+  readonly generalForm = computed<ProductGeneralFormData>(() => {
+    const p = this.productForm();
+    return {
+      name: p.name || '',
+      slug: p.slug || '',
+      short_description: p.short_description || '',
+      description: p.description || '',
+      category_id: p.category_id || '',
+      manufacturer_id: p.manufacturer_id || '',
+      part_origin_id: p.part_origin_id || '',
+      status_id: p.status_id || '',
+      internal_code: p.internal_code || '',
+      barcode: p.barcode || '',
+      unit_id: p.unit_id || '',
+      weight: p.weight || 0,
+      height: p.height || 0,
+      width: p.width || 0,
+      length: p.length || 0,
+      featured: !!p.featured,
+      active: p.active !== undefined ? !!p.active : true,
+    };
+  });
 
   readonly generalFormOptions = computed(() => ({
+    unitOptions: this.unitOptions(),
+    statusOptions: this.statusOptions(),
     categoryOptions: this.categoryOptions(),
     categoryLoading: this.categoryLoading(),
+    warehouseOptions: this.fetchedWarehouses(),
+    partOriginOptions: this.fetchedPartOrigins(),
     manufacturerOptions: this.manufacturerOptions(),
     manufacturerLoading: this.manufacturerLoading(),
-    partOriginOptions: this.fetchedPartOrigins(),
-    unitOptions: this.unitOptions,
-    statusOptions: this.statusOptions(),
-    warehouseOptions: this.fetchedWarehouses(),
   }));
 
   readonly isReadOnly = computed(() => this.mode() === 'view');
@@ -135,26 +158,9 @@ export class ProductWorkspaceComponent implements OnInit {
     limit: null,
   };
 
-  readonly unitOptions: DSelectOption[] = [
-    { label: 'Jogo', value: 'jogo' },
-    { label: 'Peça', value: 'peça' },
-    { label: 'Par', value: 'par' },
-    { label: 'Kit', value: 'kit' },
-    { label: 'Litro', value: 'litro' },
-    { label: 'Metro', value: 'metro' },
-    { label: 'Rolo', value: 'rolo' },
-    { label: 'Caixa', value: 'caixa' },
-    { label: 'Conjunto', value: 'conjunto' },
-  ];
+  readonly unitOptions = signal<DSelectOption[]>([]);
 
-  readonly availableTags = [
-    { id: 'tag-1', label: 'Garantia 12 Meses' },
-    { id: 'tag-2', label: 'Linha Leve' },
-    { id: 'tag-3', label: 'Alto Giro' },
-    { id: 'tag-4', label: 'Primeira Linha' },
-    { id: 'tag-5', label: 'Importado' },
-    { id: 'tag-6', label: 'Oferta Especial' },
-  ];
+  readonly availableTags = [];
 
   ngOnInit(): void {
     const url = this.router.url;
@@ -230,99 +236,29 @@ export class ProductWorkspaceComponent implements OnInit {
         this.fetchedWarehouses.set(opts);
       },
     });
+
+    this.unitSaleService.getOptions(query).subscribe({
+      next: (res) => {
+        const opts: DSelectOption[] = (res.data || []).map((u) => ({
+          label: u.label,
+          value: u.id,
+        }));
+        this.unitOptions.set(opts);
+      },
+    });
   }
 
   productById(productId: string): void {
     this.productService.getById(productId).subscribe({
       next: (response) => {
         const prodData = response.data || response;
-        this.populateForm(prodData);
+        this.product.set(prodData);
+        this.productForm.set(mapResponseToPayload(prodData));
       },
       error: (error) => {
         console.error('Error loading product:', error);
         this.toastService.error('Erro', 'Não foi possível carregar os dados do produto.');
       },
-    });
-  }
-
-  populateForm(prod: ProductResponse): void {
-    this.currentStatus.set(prod.status || null);
-    const pricingObj = prod.pricing as unknown as Record<string, unknown> | undefined;
-    const inventoryObj = prod.inventory as unknown as Record<string, unknown> | undefined;
-    const rawPrice = prod['price'] as unknown as
-      | {
-          price?: number;
-          promotional_price?: number;
-          promotion_start?: string;
-          promotion_end?: string;
-        }
-      | undefined;
-
-    this.productForm.set({
-      category_id: prod.category?.id || (prod['category_id'] as string) || '',
-      manufacturer_id: prod.manufacturer?.id || (prod['manufacturer_id'] as string) || '',
-      part_origin_id: prod.part_origin?.id || (prod['part_origin_id'] as string) || '',
-      status_id: prod.status?.id || (prod['status_id'] as string) || 'st-01',
-      unit_id: prod.unit?.id || (prod['unit_id'] as string) || 'un',
-
-      internal_code: prod.internal_code || '',
-      barcode: (prod['barcode'] as string) || '',
-
-      name: prod.name || '',
-      slug: prod.slug || '',
-
-      icon: prod.icon || '',
-      image: prod.image || '',
-
-      short_description: (prod['short_description'] as string) || '',
-      description: prod.description || '',
-
-      weight: parseFloat(prod.weight as string) || 0,
-      height: parseFloat(prod.height as string) || 0,
-      width: parseFloat(prod.width as string) || 0,
-      length: parseFloat(prod.length as string) || 0,
-
-      featured: !!prod['featured'],
-      active: prod['active'] !== undefined ? !!prod['active'] : true,
-
-      price: prod.pricing?.regular_price || rawPrice?.price || 0,
-
-      promotionalPrice: prod.pricing?.promotional_price || rawPrice?.promotional_price || null,
-
-      promotionStartDate: prod.pricing?.promotion_start || rawPrice?.promotion_start || null,
-
-      promotionEndDate: prod.pricing?.promotion_end || rawPrice?.promotion_end || null,
-
-      isInvoiced:
-        typeof pricingObj?.['is_invoiced'] === 'boolean' ? pricingObj['is_invoiced'] : true,
-
-      warehouseId: (inventoryObj?.['warehouse_id'] as string) || 'wh-01',
-
-      quantity: prod.inventory?.quantity || 0,
-
-      minQuantity: prod.inventory?.minimum_quantity || 0,
-
-      maxQuantity: prod.inventory?.maximum_quantity || null,
-
-      allowBackorder: !!prod.inventory?.allow_backorder,
-
-      oemCodes: (prod['oem_codes'] as ProductFormData['oemCodes']) || [],
-
-      productCodes: (prod['product_codes'] as ProductFormData['productCodes']) || [],
-
-      equivalentProducts:
-        (prod['equivalent_products'] as ProductFormData['equivalentProducts']) || [],
-
-      vehicleApplications:
-        (prod['vehicle_applications'] as ProductFormData['vehicleApplications']) || [],
-
-      mediaImages: (prod['media_images'] as ProductFormData['mediaImages']) || [],
-
-      suppliers: (prod['suppliers'] as ProductFormData['suppliers']) || [],
-
-      selectedTagIds: (prod['tags'] as string[]) || [],
-
-      productNotes: (prod['notes'] as ProductFormData['productNotes']) || [],
     });
   }
 
@@ -343,7 +279,6 @@ export class ProductWorkspaceComponent implements OnInit {
         errs['internal_code'] ||
         errs['category_id'] ||
         errs['manufacturer_id'] ||
-        errs['unit_id'] ||
         errs['unit_id']
       );
     }
@@ -368,7 +303,7 @@ export class ProductWorkspaceComponent implements OnInit {
 
   updateField(field: string, val: string): void {
     this.isFormDirty.set(true);
-    const fieldMapping: Record<string, keyof ProductFormData> = {
+    const fieldMapping: Record<string, keyof UpdateProductPayload> = {
       name: 'name',
       internal_code: 'internal_code',
       barcode: 'barcode',
@@ -379,9 +314,6 @@ export class ProductWorkspaceComponent implements OnInit {
       status_id: 'status_id',
       slug: 'slug',
       short_description: 'short_description',
-      promotion_start_date: 'promotionStartDate',
-      promotion_end_date: 'promotionEndDate',
-      warehouse_id: 'warehouseId',
     };
     const key = fieldMapping[field];
     if (key) {
@@ -409,18 +341,27 @@ export class ProductWorkspaceComponent implements OnInit {
   updateNumberField(field: string, valStr: string): void {
     this.isFormDirty.set(true);
     const num = parseFloat(valStr) || 0;
-    const fieldMapping: Record<string, keyof ProductFormData> = {
+    const fieldMapping: Record<string, keyof UpdateProductPayload> = {
       weight: 'weight',
       height: 'height',
       width: 'width',
       length: 'length',
-      price: 'price',
-      quantity: 'quantity',
-      min_quantity: 'minQuantity',
     };
     const key = fieldMapping[field];
     if (key) {
       this.productForm.update((p) => ({ ...p, [key]: num }));
+    } else if (field === 'price') {
+      this.productForm.update((p) => ({
+        ...p,
+        price: {
+          ...(p.price || {}),
+          price: num,
+        },
+      }));
+    } else if (field === 'quantity') {
+      this.updateInventoryField('quantity', num);
+    } else if (field === 'min_quantity') {
+      this.updateInventoryField('minimum_quantity', num);
     }
 
     if (this.errors()[field]) {
@@ -436,10 +377,32 @@ export class ProductWorkspaceComponent implements OnInit {
     this.isFormDirty.set(true);
     const val = valStr.trim() === '' ? null : parseFloat(valStr);
     if (field === 'promotional_price') {
-      this.productForm.update((p) => ({ ...p, promotionalPrice: val }));
+      this.productForm.update((p) => ({
+        ...p,
+        price: {
+          ...(p.price || {}),
+          promotional_price: val,
+        },
+      }));
     } else if (field === 'max_quantity') {
-      this.productForm.update((p) => ({ ...p, maxQuantity: val }));
+      this.updateInventoryField('maximum_quantity', val);
     }
+  }
+
+  private updateInventoryField(key: string, val: any): void {
+    this.productForm.update((p) => {
+      const invs = p.inventories || [];
+      const first = invs[0] || { warehouse_id: '', quantity: 0 };
+      return {
+        ...p,
+        inventories: [
+          {
+            ...first,
+            [key]: val,
+          },
+        ],
+      };
+    });
   }
 
   updateDescription(val: string): void {
@@ -448,165 +411,230 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   toggleIsInvoiced(): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({ ...p, isInvoiced: !p.isInvoiced }));
+    // Não suportado diretamente no payload, mas mantido se necessário localmente.
   }
 
   toggleBackorder(): void {
     if (this.isReadOnly()) return;
     this.isFormDirty.set(true);
-    this.productForm.update((p) => ({ ...p, allowBackorder: !p.allowBackorder }));
+    this.productForm.update((p) => {
+      const invs = p.inventories || [];
+      const first = invs[0] || { warehouse_id: '', quantity: 0 };
+      return {
+        ...p,
+        inventories: [
+          {
+            ...first,
+            allow_backorder: !first.allow_backorder,
+          },
+        ],
+      };
+    });
   }
 
   openAddOemModal(): void {
     const code = prompt('Digite o Código OEM:');
     if (!code) return;
     const manufacturer = prompt('Digite o Fabricante/Montadora:', 'Volkswagen') || 'Montadora';
-    this.productForm.update((p) => ({
+
+    // Simula a adição relacional: adiciona ao sinal product (UI) e adiciona o ID ao productForm
+    const newId = 'oem-' + Date.now();
+    const newOem = {
+      id: newId,
+      oem_code: code.toUpperCase(),
+      manufacturer: { id: '', name: manufacturer, slug: '' },
+      is_primary: this.product().oem_codes.length === 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.product.update((p) => ({
       ...p,
-      oemCodes: [
-        ...p.oemCodes,
-        {
-          id: 'oem-' + Date.now(),
-          manufacturer,
-          oemCode: code.toUpperCase(),
-          isPrimary: p.oemCodes.length === 0,
-        },
-      ],
+      oem_codes: [...p.oem_codes, newOem],
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      oem_code_ids: [...(pf.oem_code_ids || this.product().oem_codes.map((o) => o.id)), newId],
+    }));
+
     this.isFormDirty.set(true);
   }
 
   setPrimaryOem(id: string): void {
-    this.productForm.update((p) => ({
+    this.product.update((p) => ({
       ...p,
-      oemCodes: p.oemCodes.map((o) => ({ ...o, isPrimary: o.id === id })),
+      oem_codes: p.oem_codes.map((o) => ({ ...o, is_primary: o.id === id })),
     }));
     this.isFormDirty.set(true);
   }
 
   removeOemCode(id: string): void {
-    this.productForm.update((p) => ({
+    this.product.update((p) => ({
       ...p,
-      oemCodes: p.oemCodes.filter((o) => o.id !== id),
+      oem_codes: p.oem_codes.filter((o) => o.id !== id),
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      oem_code_ids: (pf.oem_code_ids || this.product().oem_codes.map((o) => o.id)).filter(
+        (oId) => oId !== id,
+      ),
+    }));
+
     this.isFormDirty.set(true);
   }
 
   toggleOemStatus(id: string): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({
-      ...p,
-      oemCodes: p.oemCodes.map((o) =>
-        o.id === id ? { ...o, status: o.status === 'Ativo' ? 'Inativo' : 'Ativo' } : o,
-      ),
-    }));
+    console.log(id);
+    // No backend, o status do OEM é atualizado individualmente
   }
 
   openAddProductCodeModal(): void {
     const code = prompt('Digite o Código:');
     if (!code) return;
     const type = prompt('Digite o Tipo (Ex.: EAN-13, Código Fábrica):', 'EAN-13') || 'Geral';
-    this.productForm.update((p) => ({
+
+    const newId = 'pc-' + Date.now();
+    const newCode = { id: newId, type, code, active: true };
+
+    this.product.update((p) => ({
       ...p,
-      productCodes: [...p.productCodes, { id: 'pc-' + Date.now(), type, code }],
+      codes: [...p.codes, newCode],
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      product_code_ids: [...(pf.product_code_ids || this.product().codes.map((c) => c.id)), newId],
+    }));
+
     this.isFormDirty.set(true);
   }
 
   removeProductCode(id: string): void {
-    this.productForm.update((p) => ({
+    this.product.update((p) => ({
       ...p,
-      productCodes: p.productCodes.filter((pc) => pc.id !== id),
+      codes: p.codes.filter((pc) => pc.id !== id),
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      product_code_ids: (pf.product_code_ids || this.product().codes.map((c) => c.id)).filter(
+        (pcId) => pcId !== id,
+      ),
+    }));
+
     this.isFormDirty.set(true);
   }
 
   toggleProductCodeStatus(id: string): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({
-      ...p,
-      productCodes: p.productCodes.map((pc) =>
-        pc.id === id ? { ...pc, status: pc.status === 'Ativo' ? 'Inativo' : 'Ativo' } : pc,
-      ),
-    }));
+    console.log(id);
+    // No backend
   }
 
   openAddEquivalentModal(): void {
     const name = prompt('Digite o Nome do Produto Equivalente:');
     if (!name) return;
     const notes = prompt('Observação de equivalência:', 'Compatibilidade direta') || '';
-    this.productForm.update((p) => ({
+
+    const newId = 'eq-' + Date.now();
+    const newEquivalent = {
+      id: newId,
+      observation: notes,
+      product: { id: '', name: '', slug: '' },
+      equivalent_product: { id: newId, name, slug: '' },
+    };
+
+    this.product.update((p) => ({
       ...p,
-      equivalentProducts: [
-        ...p.equivalentProducts,
-        { id: 'eq-' + Date.now(), productName: name, notes },
+      equivalents: [...p.equivalents, newEquivalent],
+    }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      equivalent_product_ids: [
+        ...(pf.equivalent_product_ids || this.product().equivalents.map((e) => e.id)),
+        newId,
       ],
     }));
+
     this.isFormDirty.set(true);
   }
 
   removeEquivalent(id: string): void {
-    this.productForm.update((p) => ({
+    this.product.update((p) => ({
       ...p,
-      equivalentProducts: p.equivalentProducts.filter((e) => e.id !== id),
+      equivalents: p.equivalents.filter((e) => e.id !== id),
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      equivalent_product_ids: (
+        pf.equivalent_product_ids || this.product().equivalents.map((e) => e.id)
+      ).filter((eqId) => eqId !== id),
+    }));
+
     this.isFormDirty.set(true);
   }
 
   toggleEquivalentStatus(id: string): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({
-      ...p,
-      equivalentProducts: p.equivalentProducts.map((e) =>
-        e.id === id ? { ...e, status: e.status === 'Ativo' ? 'Inativo' : 'Ativo' } : e,
-      ),
-    }));
+    console.log(id);
+    // No backend
   }
 
   openAddVehicleModal(): void {
     const brand = prompt('Marca do Veículo:', 'Volkswagen') || 'Volkswagen';
     const model = prompt('Modelo:', 'Gol') || 'Modelo';
     const engine = prompt('Motorização:', '1.6 8V') || '1.0';
-    this.productForm.update((p) => ({
+
+    const newId = 'veh-' + Date.now();
+    const newApplication = {
+      id: newId,
+      manufacturer: { id: '', name: brand, slug: '' },
+      model,
+      year_from: 2015,
+      year_to: 2022,
+      engine,
+      details: 'Flex',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    this.product.update((p) => ({
       ...p,
-      vehicleApplications: [
-        ...p.vehicleApplications,
-        {
-          id: 'veh-' + Date.now(),
-          brand,
-          model,
-          version: 'Flex',
-          engine,
-          startYear: 2015,
-          endYear: 2022,
-        },
+      applications: [...p.applications, newApplication],
+    }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      application_ids: [
+        ...(pf.application_ids || this.product().applications.map((a) => a.id)),
+        newId,
       ],
     }));
+
     this.isFormDirty.set(true);
   }
 
   removeVehicleApplication(id: string): void {
-    this.productForm.update((p) => ({
+    this.product.update((p) => ({
       ...p,
-      vehicleApplications: p.vehicleApplications.filter((v) => v.id !== id),
+      applications: p.applications.filter((v) => v.id !== id),
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      application_ids: (pf.application_ids || this.product().applications.map((a) => a.id)).filter(
+        (aId) => aId !== id,
+      ),
+    }));
+
     this.isFormDirty.set(true);
   }
 
   toggleVehicleStatus(id: string): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({
-      ...p,
-      vehicleApplications: p.vehicleApplications.map((v) =>
-        v.id === id ? { ...v, status: v.status === 'Ativo' ? 'Inativo' : 'Ativo' } : v,
-      ),
-    }));
+    console.log(id);
+    // No backend
   }
 
   onDragOver(e: DragEvent): void {
@@ -635,65 +663,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   handleFiles(files: File[]): void {
-    files.forEach((file) => {
-      if (file.size > 2 * 1024 * 1024) {
-        this.toastService.error(
-          'Arquivo Excede Limite',
-          `O arquivo ${file.name} possui mais de 2 MB.`,
-        );
-        return;
-      }
-
-      const currentImages = this.productForm().mediaImages;
-      const newImg: MediaImageItem = {
-        id: 'img-' + Date.now() + Math.random().toString(36).substring(2, 5),
-        url: URL.createObjectURL(file),
-        name: file.name,
-        size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
-        isPrimary: currentImages.length === 0,
-        order: currentImages.length + 1,
-        status: 'uploading',
-        progress: 0,
-      };
-
-      this.productForm.update((p) => ({
-        ...p,
-        mediaImages: [...p.mediaImages, newImg],
-      }));
-      this.simulateAsyncUpload(newImg.id);
-    });
-    this.isFormDirty.set(true);
-  }
-
-  simulateAsyncUpload(imgId: string): void {
-    let prog = 0;
-    const interval = setInterval(() => {
-      prog += 25;
-      this.productForm.update((p) => ({
-        ...p,
-        mediaImages: p.mediaImages.map((img) =>
-          img.id === imgId ? { ...img, progress: prog } : img,
-        ),
-      }));
-
-      if (prog >= 100) {
-        clearInterval(interval);
-        this.productForm.update((p) => ({
-          ...p,
-          mediaImages: p.mediaImages.map((img) =>
-            img.id === imgId ? { ...img, status: 'completed' } : img,
-          ),
-        }));
-      }
-    }, 200);
-  }
-
-  setPrimaryImage(id: string): void {
-    this.productForm.update((p) => ({
-      ...p,
-      mediaImages: p.mediaImages.map((img) => ({ ...img, isPrimary: img.id === id })),
-    }));
-    this.isFormDirty.set(true);
+    // Media handling
   }
 
   confirmDeleteImage(img: MediaImageItem): void {
@@ -702,17 +672,6 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   executeDeleteImage(): void {
-    const img = this.selectedImageForDelete();
-    if (img) {
-      this.productForm.update((p) => {
-        const filtered = p.mediaImages.filter((i) => i.id !== img.id);
-        if (img.isPrimary && filtered.length > 0) {
-          filtered[0] = { ...filtered[0], isPrimary: true };
-        }
-        return { ...p, mediaImages: filtered };
-      });
-      this.toastService.success('Imagem Removida', `${img.name} foi removida da galeria.`);
-    }
     this.deleteImageDialogOpen.set(false);
   }
 
@@ -720,102 +679,93 @@ export class ProductWorkspaceComponent implements OnInit {
     const name = prompt('Nome do Fornecedor:');
     if (!name) return;
     const code = prompt('Código no Fornecedor:', 'SUP-01') || 'SUP-01';
-    this.productForm.update((p) => ({
+
+    const newId = 'sup-' + Date.now();
+    const newSupplier = {
+      id: newId,
+      supplier_name: name,
+      supplier_code: code,
+      pivot: {
+        purchase_price: '100.00',
+        lead_time_days: 5,
+        is_preferential: this.product().suppliers.length === 0,
+      },
+    } as any;
+
+    this.product.update((p) => ({
       ...p,
-      suppliers: [
-        ...p.suppliers,
-        {
-          id: 'sup-' + Date.now(),
-          supplierName: name,
-          supplierCode: code,
-          purchasePrice: 100.0,
-          leadTimeDays: 5,
-          isPreferential: p.suppliers.length === 0,
-        },
-      ],
+      suppliers: [...p.suppliers, newSupplier],
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      supplier_ids: [...(pf.supplier_ids || this.product().suppliers.map((s) => s.id)), newId],
+    }));
+
     this.isFormDirty.set(true);
   }
 
   removeSupplier(id: string): void {
-    this.productForm.update((p) => ({
+    this.product.update((p) => ({
       ...p,
       suppliers: p.suppliers.filter((s) => s.id !== id),
     }));
+
+    this.productForm.update((pf) => ({
+      ...pf,
+      supplier_ids: (pf.supplier_ids || this.product().suppliers.map((s) => s.id)).filter(
+        (sId) => sId !== id,
+      ),
+    }));
+
     this.isFormDirty.set(true);
   }
 
   setPreferentialSupplier(id: string): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({
+    this.product.update((p) => ({
       ...p,
-      suppliers: p.suppliers.map((s) => ({ ...s, isPreferential: s.id === id })),
+      suppliers: p.suppliers.map((s) => ({
+        ...s,
+        preferred: s.id === id,
+      })),
     }));
+    this.isFormDirty.set(true);
   }
 
   toggleSupplierStatus(id: string): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({
-      ...p,
-      suppliers: p.suppliers.map((s) =>
-        s.id === id ? { ...s, status: s.status === 'Ativo' ? 'Inativo' : 'Ativo' } : s,
-      ),
-    }));
+    console.log(id);
+    // No backend
   }
 
   toggleTag(tagId: string): void {
     if (this.isReadOnly()) return;
     this.isFormDirty.set(true);
-    this.productForm.update((p) => {
-      const exists = p.selectedTagIds.includes(tagId);
+
+    this.product.update((p) => {
+      const exists = p.tags.some((t) => t.id === tagId);
       return {
         ...p,
-        selectedTagIds: exists
-          ? p.selectedTagIds.filter((id) => id !== tagId)
-          : [...p.selectedTagIds, tagId],
+        tags: exists
+          ? p.tags.filter((t) => t.id !== tagId)
+          : [...p.tags, { id: tagId, name: '' } as any],
+      };
+    });
+
+    this.productForm.update((pf) => {
+      const currentTags = pf.tag_ids || this.product().tags.map((t) => t.id);
+      const exists = currentTags.includes(tagId);
+      return {
+        ...pf,
+        tag_ids: exists ? currentTags.filter((id) => id !== tagId) : [...currentTags, tagId],
       };
     });
   }
 
-  openAddNoteModal(): void {
-    const desc = prompt('Descrição da Nota/Observação:');
-    if (!desc) return;
-    this.productForm.update((p) => ({
-      ...p,
-      productNotes: [
-        ...p.productNotes,
-        {
-          id: 'note-' + Date.now(),
-          type: 'Geral',
-          description: desc,
-          date: new Date().toLocaleDateString('pt-BR'),
-          author: 'Usuário do Sistema',
-        },
-      ],
-    }));
-    this.isFormDirty.set(true);
-  }
+  openAddNoteModal(): void {}
 
-  removeNote(id: string): void {
-    this.productForm.update((p) => ({
-      ...p,
-      productNotes: p.productNotes.filter((n) => n.id !== id),
-    }));
-    this.isFormDirty.set(true);
-  }
+  removeNote(id: string): void {}
 
-  toggleNoteStatus(id: string): void {
-    if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
-    this.productForm.update((p) => ({
-      ...p,
-      productNotes: p.productNotes.map((n) =>
-        n.id === id ? { ...n, status: n.status === 'Ativo' ? 'Inativo' : 'Ativo' } : n,
-      ),
-    }));
-  }
+  toggleNoteStatus(id: string): void {}
 
   onCategorySearch(query: GeneralOptionQuery): void {
     this.categoryLoading.set(true);
@@ -854,10 +804,10 @@ export class ProductWorkspaceComponent implements OnInit {
     const errs: Record<string, string> = {};
     const p = this.productForm();
 
-    if (!p.name.trim()) {
+    if (!p.name?.trim()) {
       errs['name'] = 'O nome do produto é obrigatório.';
     }
-    if (!p.internal_code.trim()) {
+    if (!p.internal_code?.trim()) {
       errs['internal_code'] = 'O código interno é obrigatório.';
     }
     if (!p.category_id) {
@@ -869,19 +819,12 @@ export class ProductWorkspaceComponent implements OnInit {
     if (!p.unit_id) {
       errs['unit_id'] = 'Selecione a unidade de medida.';
     }
-    if (p.price <= 0) {
-      errs['price'] = 'O preço base deve ser maior que zero.';
-    }
 
     this.errors.set(errs);
 
     if (Object.keys(errs).length > 0) {
       if (this.hasTabError('geral')) {
         this.activeTab.set('geral');
-      } else if (this.hasTabError('comercial')) {
-        this.activeTab.set('comercial');
-      } else if (this.hasTabError('inventario')) {
-        this.activeTab.set('inventario');
       }
       return false;
     }
@@ -899,58 +842,24 @@ export class ProductWorkspaceComponent implements OnInit {
     }
 
     this.isSaving.set(true);
-
     const id = this.route.snapshot.paramMap.get('id');
-    const p = this.productForm();
+    const payload = this.productForm();
 
-    const payload: UpdateProductPayload = {
-      category_id: p.category_id,
-      manufacturer_id: p.manufacturer_id,
-      part_origin_id: p.part_origin_id,
-      unit_id: p.status_id,
+    console.log('[SAVE PRODUCT UPDATE]', payload);
+    return;
 
-      internal_code: p.internal_code,
-      barcode: p.barcode,
-
-      name: p.name,
-      slug: p.slug,
-
-      short_description: p.short_description,
-      description: p.description,
-
-      weight: p.weight,
-      height: p.height,
-      width: p.width,
-      length: p.length,
-
-      unit: p.unit_id,
-
-      featured: p.featured,
-
-      price: {
-        price: p.price,
-        promotional_price: p.promotionalPrice,
-        promotion_start: p.promotionStartDate,
-        promotion_end: p.promotionEndDate,
-      },
-
-      inventory: {
-        warehouse_id: p.warehouseId,
-        quantity: p.quantity,
-        minimum_quantity: p.minQuantity,
-        maximum_quantity: p.maxQuantity,
-        allow_backorder: p.allowBackorder,
-      },
-    };
-
-    this.productService.update(id!, payload as UpdateProductPayload).subscribe({
-      next: () => {
+    this.productService.update(id!, payload).subscribe({
+      next: (response) => {
         this.isSaving.set(false);
         this.isFormDirty.set(false);
         this.toastService.success(
           'Produto salvo com sucesso.',
           'Informações atualizadas no sistema.',
         );
+
+        const prodData = response.data || response;
+        this.product.set(prodData);
+        this.productForm.set(mapResponseToPayload(prodData));
 
         if (!continueEditing) {
           this.router.navigate(['/catalog/products']);

@@ -2,7 +2,9 @@ import { Component, ChangeDetectionStrategy, computed, input, output, signal } f
 import { ButtonComponent } from '../../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
 import { PaginationComponent } from '../../../../../design-system/pagination/pagination';
-import { FormTab, ProductNoteItem, SupplierItem } from '../../../models/product-workspace.model';
+import { FormTab } from '../../../models/product-workspace.model';
+import { ProductSupplier } from '../../../../../core/models/suppliers/suppliers-product.model';
+import { ProductNote } from '../../../../../core/models/notes/notes.model';
 
 export interface TagItem {
   id: string;
@@ -18,10 +20,10 @@ export interface TagItem {
 })
 export class ProductAdministrationTabComponent {
   readonly activeTab = input.required<FormTab>();
-  readonly suppliers = input<SupplierItem[]>([]);
+  readonly suppliers = input<ProductSupplier[]>([]);
   readonly availableTags = input<TagItem[]>([]);
   readonly selectedTagIds = input<string[]>([]);
-  readonly productNotes = input<ProductNoteItem[]>([]);
+  readonly productNotes = input<ProductNote[]>([]);
   readonly isReadOnly = input<boolean>(false);
 
   readonly addSupplier = output<void>();

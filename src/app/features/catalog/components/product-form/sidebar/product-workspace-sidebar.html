@@ -46,7 +46,6 @@
           <option value="inventario">Estoque & Logística</option>
         </optgroup>
         <optgroup label="Enriquecimento">
-          <option value="midia">Imagens ({{ mediaImagesCount() }})</option>
           <option value="oem">OEM Codes ({{ oemCodesCount() }})</option>
           <option value="codigos">Product Codes ({{ productCodesCount() }})</option>
           <option value="compatibilidade">Aplicações ({{ vehicleApplicationsCount() }})</option>
@@ -182,7 +181,7 @@
       </button> -->
 
       <!-- Tab 5: OEM Codes -->
-      <!-- <button
+      <button
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab() === 'oem'"
@@ -192,10 +191,10 @@
         <app-icon name="hash" size="w-4 h-4" />
         <span>OEM Codes</span>
         <span [class]="badgeClasses('oem')">{{ oemCodesCount() }}</span>
-      </button> -->
+      </button>
 
       <!-- Tab 6: Product Codes -->
-      <!-- <button
+      <button
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab() === 'codigos'"
@@ -205,10 +204,10 @@
         <app-icon name="barcode" size="w-4 h-4" />
         <span>Product Codes</span>
         <span [class]="badgeClasses('codigos')">{{ productCodesCount() }}</span>
-      </button> -->
+      </button>
 
       <!-- Tab 7: Aplicações -->
-      <!-- <button
+      <button
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab() === 'compatibilidade'"
@@ -218,10 +217,10 @@
         <app-icon name="layers" size="w-4 h-4" />
         <span>Aplicações</span>
         <span [class]="badgeClasses('compatibilidade')">{{ vehicleApplicationsCount() }}</span>
-      </button> -->
+      </button>
 
       <!-- Tab 8: Equivalentes -->
-      <!-- <button
+      <button
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab() === 'equivalentes'"
@@ -231,10 +230,10 @@
         <app-icon name="copy" size="w-4 h-4" />
         <span>Equivalentes</span>
         <span [class]="badgeClasses('equivalentes')">{{ equivalentProductsCount() }}</span>
-      </button> -->
+      </button>
 
       <!-- Tab 9: Fornecedores -->
-      <!-- <button
+      <button
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab() === 'fornecimento'"
@@ -244,10 +243,10 @@
         <app-icon name="truck" size="w-4 h-4" />
         <span>Fornecedores</span>
         <span [class]="badgeClasses('fornecimento')">{{ suppliersCount() }}</span>
-      </button> -->
+      </button>
 
       <!-- Tab 10: Tags -->
-      <!-- <button
+      <button
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab() === 'tags'"
@@ -257,10 +256,10 @@
         <app-icon name="tag" size="w-4 h-4" />
         <span>Tags</span>
         <span [class]="badgeClasses('tags')">{{ tagsCount() }}</span>
-      </button> -->
+      </button>
 
       <!-- Tab 11: Notas & Alertas -->
-      <!-- <button
+      <button
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab() === 'observacoes'"
@@ -270,7 +269,7 @@
         <app-icon name="file-text" size="w-4 h-4" />
         <span>Notas & Alertas</span>
         <span [class]="badgeClasses('observacoes')">{{ notesCount() }}</span>
-      </button> -->
+      </button>
     </div>
 
     <!-- Right Scroll Button & Edge Fade -->

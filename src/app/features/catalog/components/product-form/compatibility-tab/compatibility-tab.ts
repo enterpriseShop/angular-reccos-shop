@@ -3,13 +3,11 @@ import { ButtonComponent } from '../../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
 import { PaginationComponent } from '../../../../../design-system/pagination/pagination';
 import { getCompatibilityModuleByTab } from '../../../../../core/config/compatibility-modules.config';
-import {
-  EquivalentProductItem,
-  FormTab,
-  OemCodeItem,
-  ProductCodeItem,
-  VehicleApplicationItem,
-} from '../../../models/product-workspace.model';
+import { FormTab } from '../../../models/product-workspace.model';
+import { ProductOemCode } from '../../../../../core/models/oem-codes/oem-codes-product.model';
+import { ProductAdditionalCodeSummary } from '../../../../../core/models/additional-codes/additional-codes-product.model';
+import { ProductEquivalent } from '../../../../../core/models/equivalent/equivalent-products.model';
+import { ProductVehicleApplication } from '../../../../../core/models/vehicle-application/vehicle-application-product.model';
 
 @Component({
   selector: 'app-product-compatibility-tab',
@@ -20,10 +18,10 @@ import {
 })
 export class ProductCompatibilityTabComponent {
   readonly activeTab = input.required<FormTab>();
-  readonly oemCodes = input<OemCodeItem[]>([]);
-  readonly productCodes = input<ProductCodeItem[]>([]);
-  readonly equivalentProducts = input<EquivalentProductItem[]>([]);
-  readonly vehicleApplications = input<VehicleApplicationItem[]>([]);
+  readonly oemCodes = input<ProductOemCode[]>([]);
+  readonly productCodes = input<ProductAdditionalCodeSummary[]>([]);
+  readonly equivalentProducts = input<ProductEquivalent[]>([]);
+  readonly vehicleApplications = input<ProductVehicleApplication[]>([]);
   readonly isReadOnly = input<boolean>(false);
 
   readonly addOemCode = output<void>();
@@ -117,7 +115,6 @@ export class ProductCompatibilityTabComponent {
   }
 
   private paginate<T>(items: T[], page: number, pageSize: number): T[] {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
+    return items.slice((page - 1) * pageSize, page * pageSize);
   }
 }

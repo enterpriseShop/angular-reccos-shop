@@ -55,69 +55,188 @@ export interface ProductStatus {
 
 export type CommercialStatus = 'pending' | 'approved' | 'rejected';
 
-// PARA REMOVER FUTURAMENTE APÓS UPDATE
-
-export interface ProductPricePayload {
-  price: number;
-  promotional_price?: number | null;
-  promotion_start?: string | null;
-  promotion_end?: string | null;
-}
-
-export interface ProductInventoryPayload {
-  warehouse_id: string | null;
-
-  quantity: number;
-
-  minimum_quantity?: number;
-  maximum_quantity?: number | null;
-
-  allow_backorder?: boolean;
-}
-
+/**
+ * Payload utilizado para atualização parcial de um produto.
+ *
+ * Os campos são opcionais porque o backend utiliza a regra
+ * `sometimes` no UpdateProductRequest.
+ *
+ * Importante:
+ * - `undefined` significa que o campo não será enviado.
+ * - `null` é utilizado somente nos campos em que o backend
+ *   permite explicitamente valor nulo.
+ * - Arrays vazios devem ser enviados quando a intenção for
+ *   persistir uma coleção vazia.
+ */
 export interface UpdateProductPayload {
-  category_id?: string | null;
-  manufacturer_id?: string | null;
+  category_id?: string;
+  manufacturer_id?: string;
   part_origin_id?: string | null;
   unit_id?: string | null;
+  status_id?: string;
 
-  internal_code?: string | null;
-  barcode?: string | null;
-  name?: string | null;
-  slug?: string | null;
-
+  oem_code_ids?: string[];
+  product_code_ids?: string[];
+  equivalent_product_ids?: string[];
+  application_ids?: string[];
+  supplier_ids?: string[];
+  tag_ids?: string[];
   icon?: string | null;
-  image?: string | null;
+
+  internal_code?: string;
+  barcode?: string | null;
+
+  name?: string;
+  slug?: string;
 
   short_description?: string | null;
-  description?: string | null;
+  description?: string;
 
-  weight?: number | null;
-  height?: number | null;
-  width?: number | null;
-  length?: number | null;
+  weight?: number;
+  height?: number;
+  width?: number;
+  length?: number;
 
-  unit?: string | null;
-
-  active?: boolean;
   featured?: boolean;
+  active?: boolean;
 
   price?: UpdateProductPricePayload;
 
-  inventory?: UpdateProductInventoryPayload;
+  inventories?: UpdateProductInventoryPayload[];
 }
 
+/**
+ * Dados comerciais utilizados na atualização do produto.
+ */
 export interface UpdateProductPricePayload {
-  price?: number | null;
+  price?: number;
   promotional_price?: number | null;
   promotion_start?: string | null;
   promotion_end?: string | null;
 }
 
+/**
+ * Estoque de um produto por depósito.
+ *
+ * O backend aceita múltiplos registros em `inventories`.
+ */
 export interface UpdateProductInventoryPayload {
-  warehouse_id?: string | null;
-  quantity?: number | null;
+  id?: string | null;
+  warehouse_id: string;
+  quantity: number;
   minimum_quantity?: number | null;
   maximum_quantity?: number | null;
-  allow_backorder?: boolean;
+  allow_backorder?: boolean | null;
+  active?: boolean | null;
+}
+
+/**
+ * Payload vazio para inicializar o sinal `productForm` antes de carregar um produto.
+ */
+export function defaultUpdatePayload(): UpdateProductPayload {
+  return {};
+}
+
+/**
+ * Converte a resposta da API (ProductResponse) no payload de atualização (UpdateProductPayload).
+ *
+ * Campos escalares são sempre mapeados.
+ * Campos relacionais (oem_code_ids, tag_ids, etc.) são mantidos como `undefined`:
+ * o backend ignora chaves ausentes (regra `array_key_exists`), portanto não haverá
+ * alteração acidental nos relacionamentos ao salvar sem editar as abas correspondentes.
+ * Cada aba de edição relacional é responsável por incluir o array correto no payload.
+ */
+export function mapResponseToPayload(prod: {
+  category?: { id: string } | null;
+  manufacturer?: { id: string } | null;
+  part_origin?: { id: string } | null;
+  unit?: { id: string } | null;
+  status?: { id: string } | null;
+  internal_code: string;
+  barcode?: string | null;
+  name: string;
+  slug: string;
+  short_description?: string | null;
+  description: string;
+  weight: string | number;
+  height: string | number;
+  width: string | number;
+  length: string | number;
+  featured: boolean;
+  active?: boolean | null;
+  pricing?: {
+    regular_price?: number;
+    promotional_price?: number | null;
+    promotion_start?: string | null;
+    promotion_end?: string | null;
+  } | null;
+  inventories?: {
+    id?: string;
+    warehouse: { id: string };
+    quantity: number;
+    minimum_quantity?: number | null;
+    maximum_quantity?: number | null;
+    allow_backorder?: boolean;
+    active?: boolean;
+  }[];
+}): UpdateProductPayload {
+  const firstInventory = prod.inventories?.[0];
+
+  return {
+    // Referências (IDs de entidades relacionadas)
+    category_id: prod.category?.id,
+    manufacturer_id: prod.manufacturer?.id,
+    part_origin_id: prod.part_origin?.id ?? null,
+    unit_id: prod.unit?.id ?? null,
+    status_id: prod.status?.id,
+
+    // Campos escalares
+    internal_code: prod.internal_code,
+    barcode: prod.barcode ?? null,
+    name: prod.name,
+    slug: prod.slug,
+    short_description: prod.short_description ?? null,
+    description: prod.description,
+
+    // Dimensões (API retorna como string, payload espera number)
+    weight: parseFloat(String(prod.weight)) || 0,
+    height: parseFloat(String(prod.height)) || 0,
+    width: parseFloat(String(prod.width)) || 0,
+    length: parseFloat(String(prod.length)) || 0,
+
+    featured: prod.featured,
+    active: prod.active ?? false,
+
+    // Preço: incluído apenas se existir no produto
+    price: prod.pricing
+      ? {
+          price: prod.pricing.regular_price,
+          promotional_price: prod.pricing.promotional_price ?? null,
+          promotion_start: prod.pricing.promotion_start ?? null,
+          promotion_end: prod.pricing.promotion_end ?? null,
+        }
+      : undefined,
+
+    // Inventário: incluído apenas se o produto já tiver estoque cadastrado
+    inventories: firstInventory
+      ? [
+          {
+            warehouse_id: firstInventory.warehouse.id,
+            quantity: firstInventory.quantity,
+            minimum_quantity: firstInventory.minimum_quantity ?? null,
+            maximum_quantity: firstInventory.maximum_quantity ?? null,
+            allow_backorder: firstInventory.allow_backorder ?? false,
+            active: firstInventory.active ?? true,
+          },
+        ]
+      : undefined,
+
+    // Relacionamentos: undefined (não enviados) até o usuário editar a aba correspondente.
+    // oem_code_ids: undefined,
+    // product_code_ids: undefined,
+    // equivalent_product_ids: undefined,
+    // application_ids: undefined,
+    // supplier_ids: undefined,
+    // tag_ids: undefined,
+  };
 }

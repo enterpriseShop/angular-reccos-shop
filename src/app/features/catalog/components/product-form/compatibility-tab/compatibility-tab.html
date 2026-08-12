@@ -42,12 +42,12 @@
         >
           @for (oem of oemPaginated(); track oem.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
-            <td class="px-4 py-3 font-medium">{{ oem.manufacturer }}</td>
+            <td class="px-4 py-3 font-medium">{{ oem.manufacturer?.name }}</td>
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300 font-bold">
-              {{ oem.oemCode }}
+              {{ oem.oem_code }}
             </td>
             <td class="px-4 py-3 text-center">
-              @if (oem.isPrimary) {
+              @if (oem.is_primary) {
               <span
                 class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A]"
               >
@@ -67,15 +67,11 @@
               }
             </td>
             <td class="px-4 py-3 text-center">
-              <button
-                type="button"
-                [disabled]="isReadOnly()"
-                (click)="onToggleOemStatus(oem.id)"
-                [class]="(oem.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
               >
-                {{ oem.status || 'Ativo' }}
-              </button>
+                Ativo
+              </span>
             </td>
             <td class="px-4 py-3 text-right space-x-2">
               @if (!isReadOnly()) {
@@ -157,21 +153,17 @@
           @for (codeItem of productCodesPaginated(); track codeItem.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
-              {{ codeItem.type }}
+              {{ codeItem.code }}
             </td>
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300 font-bold">
               {{ codeItem.code }}
             </td>
             <td class="px-4 py-3 text-center">
-              <button
-                type="button"
-                [disabled]="isReadOnly()"
-                (click)="onToggleProductCodeStatus(codeItem.id)"
-                [class]="(codeItem.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
               >
-                {{ codeItem.status || 'Ativo' }}
-              </button>
+                Ativo
+              </span>
             </td>
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
@@ -253,21 +245,17 @@
           @for (eq of equivalentPaginated(); track eq.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-semibold text-gray-900 dark:text-slate-100">
-              {{ eq.productName }}
+              {{ eq.equivalent_product.name }}
             </td>
             <td class="px-4 py-3 text-gray-600 dark:text-slate-400">
-              {{ eq.notes || 'Sem observações' }}
+              {{ eq.observation || 'Sem observações' }}
             </td>
             <td class="px-4 py-3 text-center">
-              <button
-                type="button"
-                [disabled]="isReadOnly()"
-                (click)="onToggleEquivalentStatus(eq.id)"
-                [class]="(eq.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
               >
-                {{ eq.status || 'Ativo' }}
-              </button>
+                Ativo
+              </span>
             </td>
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
@@ -356,24 +344,20 @@
           @for (veh of vehiclePaginated(); track veh.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-semibold">
-              {{ veh.brand }} {{ veh.model }}
-              <span class="text-gray-500 font-normal">({{ veh.version }})</span>
+              {{ veh.manufacturer.name }} {{ veh.model }}
+              <span class="text-gray-500 font-normal">({{ veh.details }})</span>
             </td>
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">{{ veh.engine }}</td>
             <td class="px-4 py-3 text-center font-medium">
-              {{ veh.startYear }} - {{ veh.endYear || 'Atual' }}
+              {{ veh.year_from }} - {{ veh.year_to || 'Atual' }}
             </td>
-            <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ veh.notes || '-' }}</td>
+            <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ veh.details || '-' }}</td>
             <td class="px-4 py-3 text-center">
-              <button
-                type="button"
-                [disabled]="isReadOnly()"
-                (click)="onToggleVehicleStatus(veh.id)"
-                [class]="(veh.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
               >
-                {{ veh.status || 'Ativo' }}
-              </button>
+                Ativo
+              </span>
             </td>
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {

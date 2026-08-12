@@ -67,18 +67,18 @@
     <!-- Left Sidebar Menu (Internal Workspace Nav) -->
     <app-product-workspace-sidebar
       class="block w-full"
-      [productName]="productForm().name"
-      [internal_code]="productForm().internal_code"
+      [productName]="productForm().name || ''"
+      [internal_code]="productForm().internal_code || ''"
       [status]="currentStatus()"
       [activeTab]="activeTab()"
-      [mediaImagesCount]="productForm().mediaImages.length"
-      [oemCodesCount]="productForm().oemCodes.length"
-      [productCodesCount]="productForm().productCodes.length"
-      [vehicleApplicationsCount]="productForm().vehicleApplications.length"
-      [equivalentProductsCount]="productForm().equivalentProducts.length"
-      [suppliersCount]="productForm().suppliers.length"
-      [tagsCount]="productForm().selectedTagIds.length"
-      [notesCount]="productForm().productNotes.length"
+      [mediaImagesCount]="product().image ? 1 : 0"
+      [oemCodesCount]="product().oem_codes.length"
+      [productCodesCount]="product().codes.length"
+      [vehicleApplicationsCount]="product().applications.length"
+      [equivalentProductsCount]="product().equivalents.length"
+      [suppliersCount]="product().suppliers.length"
+      [tagsCount]="product().tags.length"
+      [notesCount]="0"
       [errors]="errors()"
       (tabChange)="setActiveTab($event)"
     />
@@ -102,11 +102,11 @@
       />
       } @if (activeTab() === 'comercial') {
       <app-product-commercial-tab
-        [formPrice]="productForm().price"
-        [formPromotionalPrice]="productForm().promotionalPrice"
-        [formPromotionStartDate]="productForm().promotionStartDate"
-        [formPromotionEndDate]="productForm().promotionEndDate"
-        [formIsInvoiced]="productForm().isInvoiced"
+        [formPrice]="productForm().price?.price || 0"
+        [formPromotionalPrice]="productForm().price?.promotional_price || null"
+        [formPromotionStartDate]="productForm().price?.promotion_start || null"
+        [formPromotionEndDate]="productForm().price?.promotion_end || null"
+        [formIsInvoiced]="true"
         [isReadOnly]="isReadOnly()"
         [errors]="errors()"
         (fieldChange)="updateField($event.field, $event.value)"
@@ -116,11 +116,11 @@
       />
       } @if (activeTab() === 'inventario') {
       <app-product-inventory-tab
-        [formWarehouseId]="productForm().warehouseId"
-        [formQuantity]="productForm().quantity"
-        [formMinQuantity]="productForm().minQuantity"
-        [formMaxQuantity]="productForm().maxQuantity"
-        [formAllowBackorder]="productForm().allowBackorder"
+        [formWarehouseId]="productForm().inventories?.[0]?.warehouse_id || ''"
+        [formQuantity]="productForm().inventories?.[0]?.quantity || 0"
+        [formMinQuantity]="productForm().inventories?.[0]?.minimum_quantity || 0"
+        [formMaxQuantity]="productForm().inventories?.[0]?.maximum_quantity || null"
+        [formAllowBackorder]="!!productForm().inventories?.[0]?.allow_backorder"
         [warehouseOptions]="generalFormOptions().warehouseOptions"
         [isReadOnly]="isReadOnly()"
         [errors]="errors()"
@@ -132,10 +132,10 @@
       } @if (isCompatibilityTab()) {
       <app-product-compatibility-tab
         [activeTab]="activeTab()"
-        [oemCodes]="productForm().oemCodes"
-        [productCodes]="productForm().productCodes"
-        [equivalentProducts]="productForm().equivalentProducts"
-        [vehicleApplications]="productForm().vehicleApplications"
+        [oemCodes]="product().oem_codes"
+        [productCodes]="product().codes"
+        [equivalentProducts]="product().equivalents"
+        [vehicleApplications]="product().applications"
         [isReadOnly]="isReadOnly()"
         (addOemCode)="openAddOemModal()"
         (setPrimaryOem)="setPrimaryOem($event)"
@@ -152,37 +152,6 @@
         (removeVehicleApplication)="removeVehicleApplication($event)"
       />
       }
-      <!-- @if (activeTab() === 'midia') {
-      <app-product-media-tab
-        [mediaImages]="productForm().mediaImages"
-        [isReadOnly]="isReadOnly()"
-        [isDragging]="isDragging()"
-        (dragOver)="onDragOver($event)"
-        (dragLeave)="onDragLeave($event)"
-        (fileDrop)="onFileDrop($event)"
-        (fileSelected)="onFileSelected($event)"
-        (setPrimaryImage)="setPrimaryImage($event)"
-        (confirmDeleteImage)="confirmDeleteImage($event)"
-      />
-      } @if (activeTab() === 'fornecimento' || activeTab() === 'tags' || activeTab() ===
-      'observacoes') {
-      <app-product-administration-tab
-        [activeTab]="activeTab()"
-        [suppliers]="productForm().suppliers"
-        [availableTags]="availableTags"
-        [selectedTagIds]="productForm().selectedTagIds"
-        [productNotes]="productForm().productNotes"
-        [isReadOnly]="isReadOnly()"
-        (addSupplier)="openAddSupplierModal()"
-        (removeSupplier)="removeSupplier($event)"
-        (setPreferentialSupplier)="setPreferentialSupplier($event)"
-        (toggleSupplierStatus)="toggleSupplierStatus($event)"
-        (toggleTag)="toggleTag($event)"
-        (addNote)="openAddNoteModal()"
-        (removeNote)="removeNote($event)"
-        (toggleNoteStatus)="toggleNoteStatus($event)"
-      />
-      } -->
     </main>
   </div>
 

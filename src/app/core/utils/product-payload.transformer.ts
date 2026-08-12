@@ -1,8 +1,5 @@
 import { ProductFormState } from '../models/products/product-form-state.model';
-import {
-  CreateProductPayload,
-  UpdateProductPayload,
-} from '../models/products/product-request.model';
+import { CreateProductPayload } from '../models/products/product-request.model';
 
 export function toBoolean(val: unknown): boolean {
   if (val === true || val === 1 || val === 'true' || val === '1') {
@@ -60,48 +57,48 @@ function hasPromotionalPrice(promotionalPrice: number | null): boolean {
   );
 }
 
-function buildPriceBlock(state: ProductFormState) {
-  const hasPromotion = hasPromotionalPrice(state.promotional_price);
+// function buildPriceBlock(state: ProductFormState) {
+//   const hasPromotion = hasPromotionalPrice(state.promotional_price);
 
-  return {
-    price: toNumber(state.price),
-    promotional_price: hasPromotion ? toNullableNumber(state.promotional_price) : null,
-    promotion_start: hasPromotion ? toNullableDate(state.promotion_start_date) : null,
-    promotion_end: hasPromotion ? toNullableDate(state.promotion_end_date) : null,
-  };
-}
+//   return {
+//     price: toNumber(state.price),
+//     promotional_price: hasPromotion ? toNullableNumber(state.promotional_price) : null,
+//     promotion_start: hasPromotion ? toNullableDate(state.promotion_start_date) : null,
+//     promotion_end: hasPromotion ? toNullableDate(state.promotion_end_date) : null,
+//   };
+// }
 
-function buildInventoryBlock(state: ProductFormState) {
-  return {
-    warehouse_id: toNullableString(state.warehouse_id),
-    quantity: toInteger(state.quantity),
-    minimum_quantity: toInteger(state.minimum_quantity),
-    maximum_quantity: toNullableNumber(state.maximum_quantity),
-    allow_backorder: toBoolean(state.allow_backorder),
-  };
-}
+// function buildInventoryBlock(state: ProductFormState) {
+//   return {
+//     warehouse_id: toNullableString(state.warehouse_id),
+//     quantity: toInteger(state.quantity),
+//     minimum_quantity: toInteger(state.minimum_quantity),
+//     maximum_quantity: toNullableNumber(state.maximum_quantity),
+//     allow_backorder: toBoolean(state.allow_backorder),
+//   };
+// }
 
-function buildProductRoot(state: ProductFormState) {
-  return {
-    category_id: toNullableString(state.category_id),
-    manufacturer_id: toNullableString(state.manufacturer_id),
-    unit_id: toNullableString(state.unit_id),
-    internal_code: toNullableString(state.internal_code),
-    name: toNullableString(state.name),
-    slug: toNullableString(state.slug),
-    icon: null,
-    image: null,
-    short_description: null,
-    description: toNullableString(state.description),
-    weight: toNumber(state.weight),
-    height: toNumber(state.height),
-    width: toNumber(state.width),
-    length: toNumber(state.length),
-    active: true,
-    featured: false,
-    unit: toNullableString(state.unit),
-  };
-}
+// function buildProductRoot(state: ProductFormState) {
+//   return {
+//     category_id: toNullableString(state.category_id),
+//     manufacturer_id: toNullableString(state.manufacturer_id),
+//     unit_id: toNullableString(state.unit_id),
+//     internal_code: toNullableString(state.internal_code),
+//     name: toNullableString(state.name),
+//     slug: toNullableString(state.slug),
+//     icon: null,
+//     image: null,
+//     short_description: null,
+//     description: toNullableString(state.description),
+//     weight: toNumber(state.weight),
+//     height: toNumber(state.height),
+//     width: toNumber(state.width),
+//     length: toNumber(state.length),
+//     active: true,
+//     featured: false,
+//     unit: toNullableString(state.unit),
+//   };
+// }
 
 export function transformToCreatePayload(state: ProductFormState): CreateProductPayload {
   const extended = state as ProductFormState & {
@@ -129,9 +126,9 @@ export function transformToCreatePayload(state: ProductFormState): CreateProduct
   };
 }
 
-export function transformToUpdatePayload(state: ProductFormState): UpdateProductPayload {
-  return buildProductRoot(state);
-}
+// export function transformToUpdatePayload(state: ProductFormState): UpdateProductPayload {
+//   return buildProductRoot(state);
+// }
 
 export function validateProductForm(
   state: ProductFormState,

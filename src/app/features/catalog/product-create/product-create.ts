@@ -14,7 +14,7 @@ import { ProductGeneralTabComponent } from '../components/product-form/general-t
 import { ProductCreateStepperComponent } from '../components/product-form/stepper/product-create-stepper';
 import { CategoryService } from '../../../core/services/category-service';
 import { ManufacturerService } from '../../../core/services/manufacture-service';
-import { PartOriginService } from '../../../core/services/part-origins-service';
+import { WarehouseService } from '../../../core/services/warehouse-service';
 import { ProductService } from '../../../core/services/product-service';
 import { ToastService } from '../../../core/services/toast';
 import { AutocompleteOption } from '../../../design-system/autocomplete-select/autocomplete-select';
@@ -27,6 +27,8 @@ import {
   toCreateProductPayload,
   toProductGeneralFormData,
 } from '../../../core/models/products/product-create.model';
+import { PartOriginService } from '../../../core/services/part-origins-service';
+import { WarehouseOption } from '../../../core/models/warehouses/warehouse-options.model';
 
 @Component({
   selector: 'app-product-create',
@@ -45,8 +47,9 @@ export class ProductCreateComponent implements OnInit {
   private router = inject(Router);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
-  private manufacturerService = inject(ManufacturerService);
+  private warehouseService = inject(WarehouseService);
   private partOriginService = inject(PartOriginService);
+  private manufacturerService = inject(ManufacturerService);
   private toastService = inject(ToastService);
 
   readonly createStep = signal<number>(1);
@@ -74,6 +77,7 @@ export class ProductCreateComponent implements OnInit {
     manufacturerLoading: this.manufacturerLoading(),
     partOriginOptions: this.fetchedPartOrigins(),
     unitOptions: this.unitOptions,
+    warehouseOptions: [],
     statusOptions: [],
   }));
 
@@ -142,6 +146,15 @@ export class ProductCreateComponent implements OnInit {
           value: p.id,
         }));
         this.fetchedPartOrigins.set(opts);
+      },
+    });
+
+    this.warehouseService.getAll(this.queries).subscribe({
+      next: (res) => {
+        console.log('[Warehouses] ', res);
+      },
+      error: (err) => {
+        console.log('[Error] ', err);
       },
     });
   }

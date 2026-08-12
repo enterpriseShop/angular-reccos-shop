@@ -1,4 +1,11 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { InputComponent } from '../../../../../design-system/input/input';
 import { SelectComponent } from '../../../../../design-system/select/select';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
@@ -11,7 +18,10 @@ import { DSelectOption } from '../../../../../core/models/design-system/select-o
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inventory-tab.html',
 })
-export class ProductInventoryTabComponent {
+export class ProductInventoryTabComponent implements OnChanges {
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log('[INVENTORY TAB - CHANGES]', changes);
+  }
   readonly formWarehouseId = input<string>('');
   readonly formQuantity = input<number>(0);
   readonly formMinQuantity = input<number>(0);
@@ -28,6 +38,7 @@ export class ProductInventoryTabComponent {
   readonly toggleBackorder = output<void>();
 
   onFieldChange(field: string, value: string): void {
+    console.log('onFieldChange', field, value);
     this.fieldChange.emit({ field, value });
   }
 
