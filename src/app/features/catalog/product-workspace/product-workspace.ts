@@ -32,6 +32,7 @@ import {
   UpdateProductPayload,
   mapResponseToPayload,
   defaultUpdatePayload,
+  UpdateProductInventoryPayload,
 } from '../../../core/models/products/product-request.model';
 import { isCompatibilityWorkspaceTab } from '../../../core/config/compatibility-modules.config';
 import { ProductGeneralFormData } from '../../../core/models/products/product-create.model';
@@ -403,6 +404,7 @@ export class ProductWorkspaceComponent implements OnInit {
         ],
       };
     });
+    console.log('[this.productForm()] ', this.productForm());
   }
 
   updateDescription(val: string): void {
@@ -412,6 +414,18 @@ export class ProductWorkspaceComponent implements OnInit {
 
   toggleIsInvoiced(): void {
     // Não suportado diretamente no payload, mas mantido se necessário localmente.
+  }
+
+  onInventoriesChange(inventories: UpdateProductInventoryPayload[]): void {
+    this.isFormDirty.set(true);
+    this.productForm.update((p) => ({ ...p, inventories }));
+    if (this.errors()['inventories']) {
+      this.errors.update((e) => {
+        const copy = { ...e };
+        delete copy['inventories'];
+        return copy;
+      });
+    }
   }
 
   toggleBackorder(): void {
@@ -845,17 +859,14 @@ export class ProductWorkspaceComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     const payload = this.productForm();
 
-    console.log('[SAVE PRODUCT UPDATE]', payload);
-    return;
+    // console.log('[SAVE PRODUCT UPDATE]', payload);
+    // return;
 
     this.productService.update(id!, payload).subscribe({
       next: (response) => {
         this.isSaving.set(false);
         this.isFormDirty.set(false);
-        this.toastService.success(
-          'Produto salvo com sucesso.',
-          'Informações atualizadas no sistema.',
-        );
+        this.toastService.success(response.message, 'Informações atualizadas no sistema.');
 
         const prodData = response.data || response;
         this.product.set(prodData);

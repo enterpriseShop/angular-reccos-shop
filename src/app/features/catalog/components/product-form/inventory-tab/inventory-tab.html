@@ -1,117 +1,402 @@
-<div class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs space-y-6">
-  <div class="border-b border-gray-100 dark:border-slate-700/60 pb-3">
-    <h3 class="text-sm font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-      <app-icon name="archive" size="w-4 h-4" class="text-[#4F8A6B]" />
-      Configuração de Estoque Inicial e Inventário
-    </h3>
-    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
-      As informações abaixo serão utilizadas para criar automaticamente o registro correspondente na tabela de inventário, vinculando o produto ao depósito selecionado.
-    </p>
+<div class="space-y-6">
+  <!-- Top Bar & Header -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[16px] border border-gray-200/80 dark:border-slate-700/80 p-5 sm:p-6 shadow-2xs space-y-5"
+  >
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-700/60 pb-4"
+    >
+      <div>
+        <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+          <app-icon name="archive" size="w-5 h-5" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+          Estoque & Logística por Múltiplos Depósitos
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+          Edição direta e simplificada na tabela: ajuste saldos, limites e regras sem sair da
+          página.
+        </p>
+      </div>
+
+      @if (!isReadOnly()) {
+      <app-button
+        variant="primary"
+        size="sm"
+        iconStart="plus"
+        [disabled]="availableWarehouseOptions().length === 0"
+        (btnClick)="addWarehouseDirect()"
+      >
+        Adicionar Depósito
+      </app-button>
+      }
+    </div>
+
+    <!-- Summary Metrics Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <!-- Total Physical Stock -->
+      <div
+        class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-slate-900/60 border border-gray-200/60 dark:border-slate-700/60 space-y-1"
+      >
+        <div class="flex items-center justify-between text-gray-500 dark:text-slate-400">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Saldo Físico Total</span>
+          <app-icon name="package" size="w-4 h-4" class="text-gray-400" />
+        </div>
+        <div class="text-xl font-bold text-gray-900 dark:text-slate-100">
+          {{ totalPhysical() }}
+          <span class="text-xs font-normal text-gray-500">un.</span>
+        </div>
+      </div>
+
+      <!-- Total Reserved Stock -->
+      <div
+        class="p-3.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 space-y-1"
+      >
+        <div class="flex items-center justify-between text-amber-700 dark:text-amber-400">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Reservado</span>
+          <app-icon name="clock" size="w-4 h-4" />
+        </div>
+        <div class="text-xl font-bold text-amber-900 dark:text-amber-200">
+          {{ totalReserved() }}
+          <span class="text-xs font-normal text-amber-600/80 dark:text-amber-400/80">un.</span>
+        </div>
+      </div>
+
+      <!-- Consolidated Available Stock -->
+      <div
+        class="p-3.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 space-y-1"
+      >
+        <div class="flex items-center justify-between text-emerald-700 dark:text-emerald-400">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Disponível</span>
+          <app-icon name="check-circle" size="w-4 h-4" />
+        </div>
+        <div class="text-xl font-bold text-emerald-900 dark:text-emerald-200">
+          {{ totalAvailable() }}
+          <span class="text-xs font-normal text-emerald-600/80 dark:text-emerald-400/80">un.</span>
+        </div>
+      </div>
+
+      <!-- Linked Warehouses Count -->
+      <div
+        class="p-3.5 rounded-xl bg-gray-50/80 dark:bg-slate-900/60 border border-gray-200/60 dark:border-slate-700/60 space-y-1"
+      >
+        <div class="flex items-center justify-between text-gray-500 dark:text-slate-400">
+          <span class="text-[11px] font-semibold uppercase tracking-wider">Depósitos</span>
+          <app-icon name="layers" size="w-4 h-4" class="text-gray-400" />
+        </div>
+        <div class="text-xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-1.5">
+          <span>{{ activeWarehousesCount() }}</span>
+          <span class="text-xs font-normal text-gray-500">
+            de {{ localInventories().length }} ativos
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commercial Readiness & Backorder Info Pill -->
+    <div
+      class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/70 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-3 text-xs"
+    >
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-slate-700 dark:text-slate-300">
+          Regra Comercial do Produto:
+        </span>
+        @if (anyBackorderAllowed()) {
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/60"
+        >
+          <app-icon name="shopping-cart" size="w-3 h-3" />
+          Venda sem estoque (Backorder) permitida em ao menos 1 depósito
+        </span>
+        } @else {
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-300"
+        >
+          Venda condicional ao estoque disponível
+        </span>
+        }
+      </div>
+
+      @if (errors()['inventories']) {
+      <span class="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+        <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+        {{ errors()['inventories'] }}
+      </span>
+      }
+    </div>
   </div>
 
-  <!-- Campos Editáveis do Usuário -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- Depósito (warehouse_id) -->
-    <app-select
-      label="Depósito"
-      [required]="true"
-      placeholder="Selecione o depósito"
-      [value]="formWarehouseId()"
-      [options]="warehouseOptions()"
-      [disabled]="isReadOnly()"
-      [error]="errors()['warehouse_id']"
-      (valueChange)="onFieldChange('warehouse_id', $event)"
-    />
+  <!-- Warehouse Inventories Table (100% Inline Direct Editing) -->
+  @if (localInventories().length > 0) {
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[16px] border border-gray-200/80 dark:border-slate-700/80 overflow-hidden shadow-2xs"
+  >
+    <div
+      class="px-5 py-3.5 bg-gray-50/70 dark:bg-slate-800/80 border-b border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between"
+    >
+      <span class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300">
+        Depósitos & Saldo Físico Inline ({{ localInventories().length }})
+      </span>
+      <span
+        class="text-[11px] text-[#4F8A6B] dark:text-[#5BAE6A] font-medium flex items-center gap-1"
+      >
+        <app-icon name="edit-2" size="w-3.5 h-3.5" />
+        Edição instantânea na própria linha
+      </span>
+    </div>
 
-    <!-- Quantidade Inicial (quantity) -->
-    <app-input
-      label="Quantidade Inicial em Estoque"
-      type="number"
-      [required]="true"
-      placeholder="0"
-      [value]="formQuantity().toString()"
-      [disabled]="isReadOnly()"
-      [error]="errors()['quantity']"
-      (valueChange)="onNumberFieldChange('quantity', $event)"
-    />
+    <!-- Responsive Inline Table -->
+    <div class="overflow-x-auto max-h-[580px] overflow-y-auto">
+      <table class="w-full text-left text-xs">
+        <thead>
+          <tr
+            class="border-b border-gray-200/70 dark:border-slate-700/70 bg-gray-50/50 dark:bg-slate-900/40 text-gray-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider"
+          >
+            @for (header of tableHeaders; track header.key) { @if (!isReadOnly() ||
+            header.showInReadOnly) {
+            <th
+              [class]="'sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 ' +
+                      (header.align === 'center' ? 'text-center ' : 'text-left ') +
+                      (header.minWidth ? header.minWidth + ' ' : '') +
+                      (header.width ? header.width : '')"
+            >
+              {{ header.label }}
+            </th>
+            } }
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60">
+          @for (item of localInventories(); track item.id || $index; let idx = $index) { @let
+          levelBadge = getStockLevelBadge(item);
+          <tr
+            class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30 transition-colors border-l-4 border-l-transparent focus-within:border-l-[#4F8A6B] focus-within:bg-[#4F8A6B]/5"
+          >
+            <!-- Depósito Selector / Information Display -->
+            <td class="py-3.5 px-4 font-medium text-gray-900 dark:text-slate-100">
+              @let itemWhOptions = getWarehouseOptionsForItem(item); @if (!isReadOnly() &&
+              itemWhOptions.length > 0) {
+              <div class="space-y-1.5">
+                <!-- Select Dropdown with Icon -->
+                <div class="relative flex items-center">
+                  <div
+                    class="absolute left-2.5 pointer-events-none text-[#4F8A6B] dark:text-[#5BAE6A]"
+                  >
+                    <app-icon name="archive" size="w-3.5 h-3.5" />
+                  </div>
+                  <select
+                    [value]="item.warehouse_id"
+                    (change)="changeWarehouse(idx, $any($event.target).value)"
+                    class="w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs font-semibold text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] shadow-2xs transition-all"
+                  >
+                    @for (opt of itemWhOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <!-- Sub-row: Code Badge & Stock Level Health Badge -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span
+                    class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
+                  >
+                    {{ getWarehouseCode(item.warehouse_id) }}
+                  </span>
+                  <span
+                    [class]="'px-2 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ' + levelBadge.class"
+                  >
+                    <app-icon [name]="levelBadge.icon" size="w-3 h-3" />
+                    <span>{{ levelBadge.label }}</span>
+                  </span>
+                </div>
+              </div>
+              } @else {
+              <!-- Read-Only Card Display -->
+              <div class="flex items-start gap-2.5">
+                <div
+                  class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#4F8A6B] dark:text-[#5BAE6A] border border-emerald-200/50 dark:border-emerald-800/40 shrink-0 mt-0.5"
+                >
+                  <app-icon name="archive" size="w-4 h-4" />
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-bold text-xs text-gray-900 dark:text-slate-100">
+                      {{ getWarehouseName(item.warehouse_id) }}
+                    </span>
+                    <span
+                      class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
+                    >
+                      {{ getWarehouseCode(item.warehouse_id) }}
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      [class]="'px-2 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ' + levelBadge.class"
+                    >
+                      <app-icon [name]="levelBadge.icon" size="w-3 h-3" />
+                      <span>{{ levelBadge.label }}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              }
+            </td>
+
+            <!-- Direct Inline Quantity (Keyboard-only clean input without spinners) -->
+            <td class="py-3.5 px-4 text-center">
+              @if (!isReadOnly()) {
+              <div class="flex items-center justify-center gap-1.5">
+                <input
+                  type="number"
+                  min="0"
+                  [value]="item.quantity"
+                  (input)="updateQuantity(idx, $any($event.target).value)"
+                  placeholder="0"
+                  class="w-20 text-center font-bold text-sm bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg py-1.5 text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-2xs"
+                />
+                <span class="text-xs text-gray-400 dark:text-slate-500 font-medium shrink-0">
+                  un.
+                </span>
+              </div>
+              } @else {
+              <span class="font-bold text-sm text-gray-900 dark:text-slate-100">
+                {{ item.quantity }} un.
+              </span>
+              }
+            </td>
+
+            <!-- Reserved Quantity -->
+            <td class="py-3.5 px-4 text-center">
+              <span class="font-bold text-amber-700 dark:text-amber-400">
+                {{ $any(item).reservedQuantity || 0 }}
+              </span>
+            </td>
+
+            <!-- Available Quantity -->
+            <td class="py-3.5 px-4 text-center">
+              <span class="font-bold text-emerald-700 dark:text-emerald-400">
+                {{ (item.quantity || 0) - ($any(item).reservedQuantity || 0) }}
+              </span>
+            </td>
+
+            <!-- Min Quantity Inline Input -->
+            <td class="py-3.5 px-4 text-center">
+              @if (!isReadOnly()) {
+              <div class="flex items-center justify-center gap-1.5">
+                <input
+                  type="number"
+                  min="0"
+                  [value]="item.minimum_quantity"
+                  (input)="updateMinQuantity(idx, $any($event.target).value)"
+                  placeholder="0"
+                  class="w-16 text-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg py-1.5 text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span class="text-xs text-gray-400 dark:text-slate-500 font-medium shrink-0">
+                  un.
+                </span>
+              </div>
+              } @else {
+              <span class="text-gray-700 dark:text-slate-300">
+                {{ item.minimum_quantity ?? 0 }} un.
+              </span>
+              }
+            </td>
+
+            <!-- Max Quantity Inline Input -->
+            <td class="py-3.5 px-4 text-center">
+              @if (!isReadOnly()) {
+              <div class="flex items-center justify-center gap-1.5">
+                <input
+                  type="number"
+                  min="0"
+                  [value]="item.maximum_quantity !== null && item.maximum_quantity !== undefined ? item.maximum_quantity : ''"
+                  (input)="updateMaxQuantity(idx, $any($event.target).value)"
+                  placeholder="Sem limite"
+                  class="w-24 text-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg py-1.5 text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span class="text-xs text-gray-400 dark:text-slate-500 font-medium shrink-0">
+                  un.
+                </span>
+              </div>
+              } @else {
+              <span class="text-gray-700 dark:text-slate-300">
+                {{ item.maximum_quantity !== null && item.maximum_quantity !== undefined ?
+                item.maximum_quantity + ' un.' : 'Sem limite' }}
+              </span>
+              }
+            </td>
+
+            <!-- Backorder Toggle -->
+            <td class="py-3.5 px-4 text-center">
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                (click)="toggleBackorder(idx)"
+                [title]="item.allow_backorder ? 'Desativar venda sem estoque' : 'Permitir venda sem estoque'"
+                [class]="item.allow_backorder ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-300/60' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400 border-gray-200 dark:border-slate-600'"
+                class="px-2 py-1 rounded-lg text-[11px] font-medium border inline-flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <app-icon [name]="item.allow_backorder ? 'check' : 'x'" size="w-3 h-3" />
+                <span>{{ item.allow_backorder ? 'Sim' : 'Não' }}</span>
+              </button>
+            </td>
+
+            <!-- Active Toggle -->
+            <td class="py-3.5 px-4 text-center">
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                (click)="toggleActive(idx)"
+                [title]="item.active !== false ? 'Desativar depósito' : 'Ativar depósito'"
+                [class]="item.active !== false ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-300/60' : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400 border-gray-200 dark:border-slate-600'"
+                class="px-2 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {{ item.active !== false ? 'Ativo' : 'Inativo' }}
+              </button>
+            </td>
+
+            <!-- Action Button -->
+            @if (!isReadOnly()) {
+            <td class="py-3.5 px-4 text-center">
+              <button
+                type="button"
+                (click)="removeItem(idx)"
+                title="Remover Depósito"
+                class="p-1.5 rounded-lg text-red-500 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                <app-icon name="trash-2" size="w-4 h-4" />
+              </button>
+            </td>
+            }
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
+  } @else {
+  <!-- Empty State -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[16px] border border-dashed border-gray-300 dark:border-slate-700 p-8 sm:p-12 text-center space-y-4"
+  >
+    <div
+      class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-300 flex items-center justify-center mx-auto"
+    >
+      <app-icon name="archive" size="w-6 h-6" />
+    </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <!-- Estoque Mínimo (minimum_quantity) -->
-    <app-input
-      label="Estoque Mínimo (Alerta de Reposição)"
-      type="number"
-      placeholder="Ex: 5"
-      [value]="formMinQuantity().toString()"
-      [disabled]="isReadOnly()"
-      (valueChange)="onNumberFieldChange('min_quantity', $event)"
-    />
-
-    <!-- Estoque Máximo (maximum_quantity) -->
-    <app-input
-      label="Estoque Máximo (Recomendado)"
-      type="number"
-      placeholder="Ex: 100"
-      [value]="formMaxQuantity() !== null ? formMaxQuantity()!.toString() : ''"
-      [disabled]="isReadOnly()"
-      (valueChange)="onNullableNumberFieldChange('max_quantity', $event)"
-    />
-  </div>
-
-  <!-- Permitir Backorder (allow_backorder) -->
-  <div class="pt-4 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between">
-    <div>
-      <p class="text-sm font-semibold text-gray-900 dark:text-slate-200">Permitir Backorder (Venda sem Estoque)</p>
-      <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-        Define se o produto poderá ser vendido mesmo quando não houver estoque disponível em saldo físico.
+    <div class="max-w-md mx-auto space-y-1">
+      <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100">
+        Nenhum depósito vinculado a este produto
+      </h4>
+      <p class="text-xs text-gray-500 dark:text-slate-400">
+        Adicione um depósito para registrar o saldo físico inicial e definir os limites de segurança
+        diretamente na tela.
       </p>
     </div>
 
-    <button
-      type="button"
-      [disabled]="isReadOnly()"
-      (click)="onToggleBackorder()"
-      [class]="formAllowBackorder() ? 'bg-[#4F8A6B]' : 'bg-gray-200 dark:bg-slate-700'"
-      class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      <span
-        [class]="formAllowBackorder() ? 'translate-x-5' : 'translate-x-0'"
-        class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-      ></span>
-    </button>
+    @if (!isReadOnly()) {
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="addWarehouseDirect()">
+      Adicionar Primeiro Depósito
+    </app-button>
+    }
   </div>
-
-  <!-- Painel Informativo: Campos Gerenciados Automaticamente pelo Sistema -->
-  <div class="p-4 bg-gray-50/90 dark:bg-slate-900/50 rounded-xl border border-gray-200/70 dark:border-slate-700/70 space-y-3">
-    <div class="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider">
-      <app-icon name="check-circle" size="w-4 h-4" class="text-[#4F8A6B]" />
-      <span>Campos Gerenciados Automaticamente pelo Sistema</span>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
-        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">ID (id)</span>
-        <span class="font-mono text-gray-800 dark:text-slate-200 text-[11px] bg-gray-100 dark:bg-slate-700/60 px-1.5 py-0.5 rounded">
-          Gerado Auto (UUID)
-        </span>
-      </div>
-
-      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
-        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">Produto (product_id)</span>
-        <span class="font-medium text-gray-800 dark:text-slate-200">Vínculo Automático</span>
-      </div>
-
-      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
-        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">Qtd. Reservada (reserved)</span>
-        <span class="font-medium text-emerald-600 dark:text-emerald-400">0 (Inicial)</span>
-      </div>
-
-      <div class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60 shadow-2xs">
-        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">Status (active)</span>
-        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-300/50">
-          Ativo (true)
-        </span>
-      </div>
-    </div>
-  </div>
+  }
 </div>
