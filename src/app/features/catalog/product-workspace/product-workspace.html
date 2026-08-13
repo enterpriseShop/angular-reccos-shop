@@ -116,11 +116,7 @@
       />
       } @if (activeTab() === 'inventario') {
       <app-product-inventory-tab
-        [formWarehouseId]="productForm().inventories?.[0]?.warehouse_id || ''"
-        [formQuantity]="productForm().inventories?.[0]?.quantity || 0"
-        [formMinQuantity]="productForm().inventories?.[0]?.minimum_quantity || 0"
-        [formMaxQuantity]="productForm().inventories?.[0]?.maximum_quantity || null"
-        [formAllowBackorder]="!!productForm().inventories?.[0]?.allow_backorder"
+        [inventories]="productForm().inventories || []"
         [warehouseOptions]="generalFormOptions().warehouseOptions"
         [isReadOnly]="isReadOnly()"
         [errors]="errors()"
@@ -128,6 +124,7 @@
         (numberFieldChange)="updateNumberField($event.field, $event.value)"
         (nullableNumberFieldChange)="updateNullableNumberField($event.field, $event.value)"
         (toggleBackorder)="toggleBackorder()"
+        (inventoriesChange)="onInventoriesChange($event)"
       />
       } @if (isCompatibilityTab()) {
       <app-product-compatibility-tab

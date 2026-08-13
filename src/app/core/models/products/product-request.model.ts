@@ -128,6 +128,7 @@ export interface UpdateProductInventoryPayload {
   maximum_quantity?: number | null;
   allow_backorder?: boolean | null;
   active?: boolean | null;
+  reserved_quantity?: number;
 }
 
 /**
@@ -174,14 +175,13 @@ export function mapResponseToPayload(prod: {
     id?: string;
     warehouse: { id: string };
     quantity: number;
+    reserved_quantity?: number;
     minimum_quantity?: number | null;
     maximum_quantity?: number | null;
     allow_backorder?: boolean;
     active?: boolean;
   }[];
 }): UpdateProductPayload {
-  const firstInventory = prod.inventories?.[0];
-
   return {
     // Referências (IDs de entidades relacionadas)
     category_id: prod.category?.id,
@@ -218,17 +218,17 @@ export function mapResponseToPayload(prod: {
       : undefined,
 
     // Inventário: incluído apenas se o produto já tiver estoque cadastrado
-    inventories: firstInventory
-      ? [
-          {
-            warehouse_id: firstInventory.warehouse.id,
-            quantity: firstInventory.quantity,
-            minimum_quantity: firstInventory.minimum_quantity ?? null,
-            maximum_quantity: firstInventory.maximum_quantity ?? null,
-            allow_backorder: firstInventory.allow_backorder ?? false,
-            active: firstInventory.active ?? true,
-          },
-        ]
+    inventories: prod.inventories
+      ? prod.inventories.map((inv) => ({
+          id: inv.id,
+          warehouse_id: inv.warehouse.id,
+          quantity: inv.quantity,
+          reserved_quantity: inv.reserved_quantity || 0,
+          minimum_quantity: inv.minimum_quantity ?? null,
+          maximum_quantity: inv.maximum_quantity ?? null,
+          allow_backorder: inv.allow_backorder ?? false,
+          active: inv.active ?? true,
+        }))
       : undefined,
 
     // Relacionamentos: undefined (não enviados) até o usuário editar a aba correspondente.
