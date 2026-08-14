@@ -40,6 +40,10 @@ import { FormTab, MediaImageItem, ProductWorkspaceMode } from '../models/product
 import { WarehousesService } from '../../../core/services/warehouses-service';
 import { initialProductPayload } from '../../../core/utils/product-initial-payload';
 import { UnitSaleService } from '../../../core/services/unit-sale-service';
+import { OemCodeService } from '../../../core/services/code-oem-service';
+import { ManufacturerOption } from '../../../core/models/manufactureres/manufaturer-options.model';
+import { OemCode } from '../../../core/models/oem-codes/oem-codes.model';
+import { ManufacturerOptionsQuery } from '../../../core/models/manufactureres/mnufacturer-options-query.model';
 
 @Component({
   selector: 'app-product-workspace',
@@ -67,6 +71,7 @@ export class ProductWorkspaceComponent implements OnInit {
   private statusService = inject(StatusService);
   readonly shellState = inject(ShellStateService);
   private productService = inject(ProductService);
+  private oemCodeService = inject(OemCodeService);
   private unitSaleService = inject(UnitSaleService);
   private categoryService = inject(CategoryService);
   private partOriginService = inject(PartOriginService);
@@ -81,27 +86,31 @@ export class ProductWorkspaceComponent implements OnInit {
   readonly isFormDirty = signal<boolean>(false);
   readonly categoryLoading = signal<boolean>(false);
   readonly manufacturerLoading = signal<boolean>(false);
+  readonly deleteImageDialogOpen = signal<boolean>(false);
+  readonly deleteProductDialogOpen = signal<boolean>(false);
+  readonly unsavedChangesDialogOpen = signal<boolean>(false);
   readonly productCreatedSuccessBanner = signal<boolean>(false);
 
+  readonly productId = signal<string>('');
+  readonly oemCodeIds = signal<string[]>([]);
+  readonly errors = signal<Record<string, string>>({});
+
   readonly fetchedStatuses = signal<DSelectOption[]>([]);
+  readonly manufacturersByProduct = signal<OemCode[]>([]);
   readonly fetchedWarehouses = signal<DSelectOption[]>([]);
   readonly fetchedPartOrigins = signal<DSelectOption[]>([]);
   readonly fetchedCategories = signal<AutocompleteOption[]>([]);
   readonly fetchedManufacturers = signal<AutocompleteOption[]>([]);
-
-  readonly deleteProductDialogOpen = signal<boolean>(false);
-  readonly unsavedChangesDialogOpen = signal<boolean>(false);
-  readonly deleteImageDialogOpen = signal<boolean>(false);
   readonly selectedImageForDelete = signal<MediaImageItem | null>(null);
-  readonly errors = signal<Record<string, string>>({});
+  readonly manufacturerByProductFilter = signal<ManufacturerOption[]>([]);
 
   // Dual Signal: product armazena dados brutos da API; productForm armazena o payload mutável para envio.
   readonly product = signal<ProductResponse>(initialProductPayload);
   readonly productForm = signal<UpdateProductPayload>(defaultUpdatePayload());
 
+  readonly statusOptions = computed<DSelectOption[]>(() => this.fetchedStatuses());
   readonly categoryOptions = computed<AutocompleteOption[]>(() => this.fetchedCategories());
   readonly manufacturerOptions = computed<AutocompleteOption[]>(() => this.fetchedManufacturers());
-  readonly statusOptions = computed<DSelectOption[]>(() => this.fetchedStatuses());
 
   readonly currentStatus = computed(() => this.product()?.status ?? null);
 
@@ -159,6 +168,13 @@ export class ProductWorkspaceComponent implements OnInit {
     limit: null,
   };
 
+  private manufacturerQuery: ManufacturerOptionsQuery = {
+    search: null,
+    page: null,
+    per_page: null,
+    manufacturer_id: null,
+  };
+
   readonly unitOptions = signal<DSelectOption[]>([]);
 
   readonly availableTags = [];
@@ -170,15 +186,16 @@ export class ProductWorkspaceComponent implements OnInit {
 
     this.productCreatedSuccessBanner.set(!!state?.['productJustCreated']);
 
-    this.loadInitialOptions(this.queries);
+    this.loadInitialOptions(this.queries, String(id));
 
     if (id) {
+      this.productId.set(id);
       this.mode.set(url.includes('/view') ? 'view' : 'edit');
       this.productById(id);
     }
   }
 
-  loadInitialOptions(query: GeneralOptionQuery): void {
+  loadInitialOptions(query: GeneralOptionQuery, productId: string): void {
     this.categoryLoading.set(true);
     this.categoryService.getOptions(query).subscribe({
       next: (res) => {
@@ -247,12 +264,43 @@ export class ProductWorkspaceComponent implements OnInit {
         this.unitOptions.set(opts);
       },
     });
+
+    setTimeout(() => {
+      this.getOemCodeByProduct(productId, this.manufacturerQuery);
+      this.getAllManufacturerByProduct(productId);
+    }, 100);
+  }
+
+  getAllManufacturerByProduct(productId: string) {
+    this.manufacturerService.getManufacturerByProduct(String(productId)).subscribe({
+      next: (res) => {
+        this.manufacturerByProductFilter.set(res.data || []);
+      },
+      error: (err) => {
+        this.manufacturerByProductFilter.set([]);
+        this.toastService.error('Erro', err.error.data.messsage);
+      },
+    });
+  }
+
+  getOemCodeByProduct(productId: string, query: ManufacturerOptionsQuery) {
+    this.oemCodeService.getByProduct(productId, query).subscribe({
+      next: (response) => {
+        const codes = response.data || [];
+        this.manufacturersByProduct.set(codes);
+      },
+      error: (err) => {
+        this.manufacturersByProduct.set([]);
+        this.toastService.error('Erro', err.error.data.messsage);
+      },
+    });
   }
 
   productById(productId: string): void {
     this.productService.getById(productId).subscribe({
       next: (response) => {
         const prodData = response.data || response;
+        this.oemCodeIds.set(prodData.oem_codes.map((o) => o.id));
         this.product.set(prodData);
         this.productForm.set(mapResponseToPayload(prodData));
       },
@@ -447,29 +495,16 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   openAddOemModal(): void {
-    const code = prompt('Digite o Código OEM:');
-    if (!code) return;
-    const manufacturer = prompt('Digite o Fabricante/Montadora:', 'Volkswagen') || 'Montadora';
-
-    // Simula a adição relacional: adiciona ao sinal product (UI) e adiciona o ID ao productForm
     const newId = 'oem-' + Date.now();
-    const newOem = {
-      id: newId,
-      oem_code: code.toUpperCase(),
-      manufacturer: { id: '', name: manufacturer, slug: '' },
-      is_primary: this.product().oem_codes.length === 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
 
     this.product.update((p) => ({
       ...p,
-      oem_codes: [...p.oem_codes, newOem],
+      oem_codes: p.oem_codes,
     }));
 
     this.productForm.update((pf) => ({
       ...pf,
-      oem_code_ids: [...(pf.oem_code_ids || this.product().oem_codes.map((o) => o.id)), newId],
+      oem_code_ids: [newId, ...(pf.oem_code_ids || this.product().oem_codes.map((o) => o.id))],
     }));
 
     this.isFormDirty.set(true);
@@ -677,6 +712,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   handleFiles(files: File[]): void {
+    console.log(files);
     // Media handling
   }
 
@@ -912,6 +948,10 @@ export class ProductWorkspaceComponent implements OnInit {
 
   confirmDeleteProduct(): void {
     this.deleteProductDialogOpen.set(true);
+  }
+
+  onOemFiltersChange(filters: ManufacturerOptionsQuery): void {
+    this.getOemCodeByProduct(this.productId(), filters);
   }
 
   executeDeleteProduct(): void {

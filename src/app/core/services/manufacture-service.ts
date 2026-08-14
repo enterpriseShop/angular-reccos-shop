@@ -29,4 +29,10 @@ export class ManufacturerService {
   getById(id: string) {
     return this.http.get<ManufacturerResponse>(`${this.api}/${this.flag}/${id}`);
   }
+
+  getManufacturerByProduct(productId: string) {
+    return this.http.get<ManufacturerOptionsResponse>(
+      `${this.api}/${this.flag}/product/${productId}`,
+    );
+  }
 }

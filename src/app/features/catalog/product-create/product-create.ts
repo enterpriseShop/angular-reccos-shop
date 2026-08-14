@@ -29,6 +29,7 @@ import {
 } from '../../../core/models/products/product-create.model';
 import { PartOriginService } from '../../../core/services/part-origins-service';
 import { WarehouseOption } from '../../../core/models/warehouses/warehouse-options.model';
+import { UnitSaleService } from '../../../core/services/unit-sale-service';
 
 @Component({
   selector: 'app-product-create',
@@ -46,6 +47,7 @@ import { WarehouseOption } from '../../../core/models/warehouses/warehouse-optio
 export class ProductCreateComponent implements OnInit {
   private router = inject(Router);
   private productService = inject(ProductService);
+  private unitSaleService = inject(UnitSaleService);
   private categoryService = inject(CategoryService);
   private warehouseService = inject(WarehouseService);
   private partOriginService = inject(PartOriginService);
@@ -76,7 +78,7 @@ export class ProductCreateComponent implements OnInit {
     manufacturerOptions: this.fetchedManufacturers(),
     manufacturerLoading: this.manufacturerLoading(),
     partOriginOptions: this.fetchedPartOrigins(),
-    unitOptions: this.unitOptions,
+    unitOptions: this.unitOptions(),
     warehouseOptions: [],
     statusOptions: [],
   }));
@@ -93,17 +95,7 @@ export class ProductCreateComponent implements OnInit {
     limit: null,
   };
 
-  readonly unitOptions: DSelectOption[] = [
-    { label: 'Jogo', value: 'jogo' },
-    { label: 'Peça', value: 'peça' },
-    { label: 'Par', value: 'par' },
-    { label: 'Kit', value: 'kit' },
-    { label: 'Litro', value: 'litro' },
-    { label: 'Metro', value: 'metro' },
-    { label: 'Rolo', value: 'rolo' },
-    { label: 'Caixa', value: 'caixa' },
-    { label: 'Conjunto', value: 'conjunto' },
-  ];
+  readonly unitOptions = signal<DSelectOption[]>([]);
 
   ngOnInit(): void {
     this.loadInitialOptions(this.queries);
@@ -155,6 +147,16 @@ export class ProductCreateComponent implements OnInit {
       },
       error: (err) => {
         console.log('[Error] ', err);
+      },
+    });
+
+    this.unitSaleService.getOptions(query).subscribe({
+      next: (res) => {
+        const opts: DSelectOption[] = (res.data || []).map((u) => ({
+          label: u.label,
+          value: u.id,
+        }));
+        this.unitOptions.set(opts);
       },
     });
   }

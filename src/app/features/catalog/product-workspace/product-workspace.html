@@ -129,11 +129,15 @@
       } @if (isCompatibilityTab()) {
       <app-product-compatibility-tab
         [activeTab]="activeTab()"
-        [oemCodes]="product().oem_codes"
+        [manufacturerByProductFilter]="manufacturerByProductFilter()"
+        [selectedOemCodeIds]="oemCodeIds()"
+        [oemCodes]="manufacturersByProduct()"
         [productCodes]="product().codes"
         [equivalentProducts]="product().equivalents"
         [vehicleApplications]="product().applications"
         [isReadOnly]="isReadOnly()"
+        [totalItensOemCodes]="10"
+        (oemFiltersChange)="onOemFiltersChange($event)"
         (addOemCode)="openAddOemModal()"
         (setPrimaryOem)="setPrimaryOem($event)"
         (toggleOemStatus)="toggleOemStatus($event)"

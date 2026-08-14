@@ -140,6 +140,7 @@ export function toProductGeneralFormData(source: ProductGeneralFormSource): Prod
 }
 
 export function toCreateProductPayload(source: ProductGeneralFormSource): CreateProductPayload {
+  console.log('[CHEGAMOS AQUI PAYLOAD]', source);
   return {
     category_id: source.category_id,
     manufacturer_id: source.manufacturer_id,

@@ -1,94 +1,243 @@
 <div class="space-y-6">
-  @switch (activeTab()) { @case ('oem') {
-  <!-- Card OEM Codes -->
+  <!-- Card OEM Codes (Seleção de Códigos OEM Registrados) -->
+  @if (activeTab() === 'oem') {
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
   >
-    <div class="flex items-center justify-between mb-4">
+    <!-- Header -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100 dark:border-slate-700/60"
+    >
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon
-            [name]="getModule('oem').headerIcon"
-            size="w-5 h-5"
-            [class]="getModule('oem').headerIconClass"
-          />
-          {{ getModule('oem').label }}
+          <app-icon name="box" size="w-5 h-5" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+          Códigos OEM Registrados
         </h3>
-        <p class="text-xs text-gray-500 dark:text-slate-400">{{ getModule('oem').description }}</p>
+
+        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+          Selecione um ou mais códigos de montadoras de referência para vincular a este produto
+        </p>
       </div>
 
-      @if (!isReadOnly()) {
-      <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="onAddOemCode()">
-        Adicionar Código OEM
-      </app-button>
+      <div class="flex items-center gap-2 shrink-0">
+        <span
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A] border border-[#4F8A6B]/20"
+        >
+          <app-icon name="check-circle" size="w-3.5 h-3.5" />
+          {{ selectedOemCodeIds().length }} de {{ oemTotalItens() }} selecionados
+        </span>
+      </div>
+    </div>
+
+    <!-- Filters & Selection Toolbar -->
+    <div class="space-y-3 mb-5">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Search input -->
+        <div class="relative flex-1 max-w-md">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"
+          >
+            <app-icon name="search" size="w-4 h-4" />
+          </div>
+
+          <input
+            type="text"
+            [value]="oemSearchQuery()"
+            (input)="onOemSearchInput($event)"
+            placeholder="Buscar por código OEM ou montadora..."
+            class="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B] dark:focus:ring-[#5BAE6A]"
+          />
+
+          @if (oemSearchQuery()) {
+          <button
+            type="button"
+            (click)="clearOemSearch()"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-slate-200"
+          >
+            <app-icon name="x" size="w-3.5 h-3.5" />
+          </button>
+          }
+        </div>
+
+        <!-- Selection Action Buttons -->
+        @if (!isReadOnly()) {
+        <div class="flex items-center gap-2 self-end md:self-auto">
+          <button
+            type="button"
+            (click)="selectAllVisibleOem()"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 transition-colors"
+          >
+            <app-icon name="check-square" size="w-3.5 h-3.5" />
+            Selecionar Visíveis
+          </button>
+
+          <button
+            type="button"
+            (click)="deselectAllOem()"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 transition-colors"
+          >
+            <app-icon name="square" size="w-3.5 h-3.5" />
+            Limpar Seleção
+          </button>
+        </div>
+        }
+      </div>
+
+      <!-- Manufacturer Chips Filter -->
+      @if (manufacturerByProductFilter().length > 0) {
+      <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pt-1 pb-1">
+        <span class="text-[11px] font-semibold text-gray-500 dark:text-slate-400 shrink-0 mr-1">
+          Filtrar por:
+        </span>
+
+        <button
+          type="button"
+          (click)="setMfrFilter(null)"
+          [class]="
+            selectedMfrFilter() === null
+              ? 'bg-[#4F8A6B] text-white dark:bg-[#5BAE6A] dark:text-slate-950 font-bold'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700'
+          "
+          class="px-2.5 py-1 rounded-lg text-[11px] transition-colors whitespace-nowrap cursor-pointer shrink-0"
+        >
+          Todas Montadoras
+        </button>
+
+        @for (mfr of manufacturerByProductFilter(); track mfr.id) {
+        <button
+          type="button"
+          (click)="setMfrFilter(mfr.id)"
+          [class]="
+            selectedMfrFilter() === mfr.id
+              ? 'bg-[#4F8A6B] text-white dark:bg-[#5BAE6A] dark:text-slate-950 font-bold'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700'
+          "
+          class="px-2.5 py-1 rounded-lg text-[11px] transition-colors whitespace-nowrap cursor-pointer shrink-0"
+        >
+          {{ mfr.label }}
+        </button>
+        }
+      </div>
       }
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+    <!-- OEM Registered Table -->
+    <div
+      class="overflow-x-auto custom-scrollbar rounded-xl border border-gray-200 dark:border-slate-700/80"
+    >
       <table class="w-full text-left text-xs">
         <thead
           class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80"
         >
           <tr>
-            <th class="px-4 py-2.5">Fabricante de Referência</th>
-            <th class="px-4 py-2.5">Código OEM</th>
-            <th class="px-4 py-2.5 text-center">Principal</th>
-            <th class="px-4 py-2.5 text-center">Situação</th>
-            <th class="px-4 py-2.5 text-right">Ações</th>
+            <th class="px-4 py-3 w-10 text-center">
+              <span class="sr-only">Seleção</span>
+            </th>
+
+            <th class="px-4 py-3">Código OEM</th>
+            <th class="px-4 py-3">Fabricante / Montadora</th>
+            <th class="px-4 py-3 text-center">Data Registro</th>
+            <th class="px-4 py-3 text-center">Status do Vínculo</th>
           </tr>
         </thead>
+
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
-          @for (oem of oemPaginated(); track oem.id) {
-          <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
-            <td class="px-4 py-3 font-medium">{{ oem.manufacturer?.name }}</td>
-            <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300 font-bold">
-              {{ oem.oem_code }}
+          @for (oem of oemCodes(); track oem.id) { @let selected = isOemSelected(oem.id);
+
+          <tr
+            (click)="toggleOemSelection(oem.id)"
+            [class]="
+              selected
+                ? 'bg-[#EAF4EE]/60 dark:bg-[#4F8A6B]/15 hover:bg-[#EAF4EE]/90 dark:hover:bg-[#4F8A6B]/25'
+                : 'hover:bg-gray-50/80 dark:hover:bg-slate-700/40'
+            "
+            class="transition-colors cursor-pointer select-none"
+          >
+            <!-- Checkbox -->
+            <td class="px-4 py-3 text-center" (click)="$event.stopPropagation()">
+              <input
+                type="checkbox"
+                [checked]="selected"
+                [disabled]="isReadOnly()"
+                (change)="toggleOemSelection(oem.id)"
+                class="w-4 h-4 rounded text-[#4F8A6B] focus:ring-[#4F8A6B] border-gray-300 dark:border-slate-600 dark:bg-slate-700 cursor-pointer disabled:cursor-not-allowed"
+              />
             </td>
-            <td class="px-4 py-3 text-center">
-              @if (oem.is_primary) {
+
+            <!-- Code OEM -->
+            <td class="px-4 py-3 font-mono font-bold text-gray-900 dark:text-slate-100">
+              <div class="flex items-center gap-2">
+                <span
+                  class="px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-200"
+                >
+                  {{ oem.label }}
+                </span>
+
+                @if (selected) {
+                <span
+                  class="text-[10px] font-semibold text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center gap-0.5"
+                >
+                  <app-icon name="check" size="w-3 h-3" />
+                  Selecionado
+                </span>
+                }
+              </div>
+            </td>
+
+            <!-- Manufacturer -->
+            <td class="px-4 py-3 font-medium">
               <span
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A]"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold"
               >
-                <app-icon name="star" size="w-3 h-3" />
-                Principal
+                {{ oem.manufacturer.name || 'Montadora' }}
               </span>
-              } @else if (!isReadOnly()) {
-              <button
-                type="button"
-                (click)="onSetPrimaryOem(oem.id)"
-                class="text-gray-400 hover:text-[#4F8A6B] text-[11px] underline"
+            </td>
+
+            <!-- Creation Date -->
+            <td
+              class="px-4 py-3 text-center text-gray-500 dark:text-slate-400 font-mono text-[11px]"
+            >
+              {{ oem.created_at ? (oem.created_at | date: 'dd/MM/yyyy') : '01/08/2026' }}
+            </td>
+
+            <!-- Status Badge -->
+            <td class="px-4 py-3 text-center">
+              @if (selected) {
+              <span
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"
               >
-                Marcar Principal
-              </button>
+                <app-icon name="check" size="w-3 h-3" />
+                Vinculado ao Produto
+              </span>
               } @else {
-              <span class="text-gray-400">-</span>
-              }
-            </td>
-            <td class="px-4 py-3 text-center">
               <span
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400"
               >
-                Ativo
+                Não Vinculado
               </span>
-            </td>
-            <td class="px-4 py-3 text-right space-x-2">
-              @if (!isReadOnly()) {
-              <button
-                type="button"
-                (click)="onRemoveOemCode(oem.id)"
-                class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40"
-              >
-                <app-icon name="trash-2" size="w-4 h-4" />
-              </button>
               }
             </td>
           </tr>
           } @empty {
           <tr>
-            <td colspan="5" class="px-4 py-6 text-center text-gray-400">
-              Nenhum código OEM cadastrado.
+            <td colspan="5" class="px-4 py-8 text-center text-gray-400 dark:text-slate-500">
+              <div class="flex flex-col items-center justify-center gap-2">
+                <app-icon name="search" size="w-8 h-8" class="text-gray-300 dark:text-slate-600" />
+
+                <p class="text-xs font-semibold">
+                  Nenhum código OEM encontrado para o filtro aplicado.
+                </p>
+
+                <button
+                  type="button"
+                  (click)="clearOemSearch(); setMfrFilter(null)"
+                  class="text-xs text-[#4F8A6B] hover:underline font-bold mt-1"
+                >
+                  Limpar Filtros de Busca
+                </button>
+              </div>
             </td>
           </tr>
           }
@@ -96,35 +245,35 @@
       </table>
     </div>
 
-    @if (oemCodes().length > 0) {
+    <!-- Pagination -->
+    @if (oemTotalItens() > 0) {
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
       <app-pagination
-        [currentPage]="oemPage()"
-        [pageSize]="oemPageSize()"
-        [totalItems]="oemCodes().length"
-        (pageChange)="oemPage.set($event)"
-        (pageSizeChange)="oemPageSize.set($event)"
+        [currentPage]="oemPagination().page"
+        [pageSize]="oemPagination().per_page"
+        [totalItems]="oemTotalItens()"
+        (pageChange)="onOemPageChange($event)"
+        (pageSizeChange)="onOemPageSizeChange($event)"
       />
     </div>
     }
   </div>
-  } @case ('codigos') {
+  }
+
   <!-- Card Product Codes -->
+  @if (activeTab() === 'codigos') {
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
   >
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon
-            [name]="getModule('codigos').headerIcon"
-            size="w-5 h-5"
-            [class]="getModule('codigos').headerIconClass"
-          />
-          {{ getModule('codigos').label }}
+          <app-icon name="tag" size="w-5 h-5 text-[#5A8DEE]" />
+          Códigos do Produto (Product Codes)
         </h3>
+
         <p class="text-xs text-gray-500 dark:text-slate-400">
-          {{ getModule('codigos').description }}
+          EAN, DUN, Código do fabricante, Código paralelo e Código interno auxiliar
         </p>
       </div>
 
@@ -135,7 +284,9 @@
       }
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+    <div
+      class="overflow-x-auto custom-scrollbar rounded-lg border border-gray-200 dark:border-slate-700/80"
+    >
       <table class="w-full text-left text-xs">
         <thead
           class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80"
@@ -147,24 +298,20 @@
             <th class="px-4 py-2.5 text-right">Ações</th>
           </tr>
         </thead>
+
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
           @for (codeItem of productCodesPaginated(); track codeItem.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
-              {{ codeItem.code }}
+              {{ codeItem.type }}
             </td>
+
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300 font-bold">
               {{ codeItem.code }}
             </td>
-            <td class="px-4 py-3 text-center">
-              <span
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-              >
-                Ativo
-              </span>
-            </td>
+
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
               <button
@@ -200,23 +347,22 @@
     </div>
     }
   </div>
-  } @case ('equivalentes') {
+  }
+
   <!-- Card Produtos Equivalentes -->
+  @if (activeTab() === 'equivalentes') {
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
   >
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon
-            [name]="getModule('equivalentes').headerIcon"
-            size="w-5 h-5"
-            [class]="getModule('equivalentes').headerIconClass"
-          />
-          {{ getModule('equivalentes').label }}
+          <app-icon name="copy" size="w-5 h-5 text-purple-500" />
+          Produtos Equivalentes
         </h3>
+
         <p class="text-xs text-gray-500 dark:text-slate-400">
-          {{ getModule('equivalentes').description }}
+          Relacionamento entre produtos equivalentes e marcas cruzadas
         </p>
       </div>
 
@@ -227,7 +373,9 @@
       }
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+    <div
+      class="overflow-x-auto custom-scrollbar rounded-lg border border-gray-200 dark:border-slate-700/80"
+    >
       <table class="w-full text-left text-xs">
         <thead
           class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80"
@@ -239,24 +387,36 @@
             <th class="px-4 py-2.5 text-right">Ações</th>
           </tr>
         </thead>
+
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
           @for (eq of equivalentPaginated(); track eq.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-semibold text-gray-900 dark:text-slate-100">
-              {{ eq.equivalent_product.name }}
+              {{ eq.product.name }}
             </td>
+
             <td class="px-4 py-3 text-gray-600 dark:text-slate-400">
               {{ eq.observation || 'Sem observações' }}
             </td>
+
             <td class="px-4 py-3 text-center">
-              <span
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                (click)="onToggleEquivalentStatus(eq.id)"
+                [class]="
+                  (eq.status || 'Ativo') === 'Ativo'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
+                "
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
               >
-                Ativo
-              </span>
+                {{ eq.status || 'Ativo' }}
+              </button>
             </td>
+
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
               <button
@@ -292,23 +452,22 @@
     </div>
     }
   </div>
-  } @case ('compatibilidade') {
+  }
+
   <!-- Card Aplicações Veiculares -->
+  @if (activeTab() === 'compatibilidade') {
   <div
     class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
   >
     <div class="flex items-center justify-between mb-4">
       <div>
         <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-          <app-icon
-            [name]="getModule('compatibilidade').headerIcon"
-            size="w-5 h-5"
-            [class]="getModule('compatibilidade').headerIconClass"
-          />
-          {{ getModule('compatibilidade').label }}
+          <app-icon name="car" size="w-5 h-5 text-amber-500" />
+          Compatibilidade Veicular
         </h3>
+
         <p class="text-xs text-gray-500 dark:text-slate-400">
-          {{ getModule('compatibilidade').description }}
+          Relacionamento entre o produto e suas aplicações veiculares
         </p>
       </div>
 
@@ -324,7 +483,9 @@
       }
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+    <div
+      class="overflow-x-auto custom-scrollbar rounded-lg border border-gray-200 dark:border-slate-700/80"
+    >
       <table class="w-full text-left text-xs">
         <thead
           class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80"
@@ -338,6 +499,7 @@
             <th class="px-4 py-2.5 text-right">Ações</th>
           </tr>
         </thead>
+
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
@@ -345,20 +507,33 @@
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-semibold">
               {{ veh.manufacturer.name }} {{ veh.model }}
-              <span class="text-gray-500 font-normal">({{ veh.details }})</span>
+              <span class="text-gray-500 font-normal">({{ veh.model }})</span>
             </td>
+
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">{{ veh.engine }}</td>
+
             <td class="px-4 py-3 text-center font-medium">
               {{ veh.year_from }} - {{ veh.year_to || 'Atual' }}
             </td>
+
             <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ veh.details || '-' }}</td>
+
             <td class="px-4 py-3 text-center">
-              <span
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                (click)="onToggleVehicleStatus(veh.id)"
+                [class]="
+                  (veh.status || 'Ativo') === 'Ativo'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
+                "
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
               >
-                Ativo
-              </span>
+                {{ veh.status || 'Ativo' }}
+              </button>
             </td>
+
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
               <button
@@ -394,5 +569,5 @@
     </div>
     }
   </div>
-  } }
+  }
 </div>
