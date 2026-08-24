@@ -17,8 +17,7 @@ import { ManufacturerService } from '../../../core/services/manufacture-service'
 import { WarehouseService } from '../../../core/services/warehouse-service';
 import { ProductService } from '../../../core/services/product-service';
 import { ToastService } from '../../../core/services/toast';
-import { AutocompleteOption } from '../../../design-system/autocomplete-select/autocomplete-select';
-import { DSelectOption } from '../../../core/models/design-system/select-option.model';
+import { SelectOption } from '../../../core/models/design-system/select-option.model';
 import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
 import {
   createFormToGeneralSource,
@@ -28,8 +27,14 @@ import {
   toProductGeneralFormData,
 } from '../../../core/models/products/product-create.model';
 import { PartOriginService } from '../../../core/services/part-origins-service';
-import { WarehouseOption } from '../../../core/models/warehouses/warehouse-options.model';
 import { UnitSaleService } from '../../../core/services/unit-sale-service';
+import { AutocompleteOption } from '../../../core/models/design-system/auto-complete.model';
+import { StatusStore } from '../../../core/store/status-store/status-store';
+import { CategoryStore } from '../../../core/store/category-store/category-store';
+import { UnitSaleStore } from '../../../core/store/unit-sale/unit-sale-store';
+import { WarehouseStore } from '../../../core/store/warehouse/warehouse-store';
+import { PartOriginStore } from '../../../core/store/part-origin/part-origin-store';
+import { ManufacturerStore } from '../../../core/store/manufacturer-store/manufacturer-store';
 
 @Component({
   selector: 'app-product-create',
@@ -65,23 +70,37 @@ export class ProductCreateComponent implements OnInit {
   readonly categoryLoading = signal<boolean>(false);
   readonly fetchedCategories = signal<AutocompleteOption[]>([]);
   readonly manufacturerLoading = signal<boolean>(false);
-  readonly fetchedManufacturers = signal<AutocompleteOption[]>([]);
-  readonly fetchedPartOrigins = signal<DSelectOption[]>([]);
+  readonly fetchedManufacturers = signal<Partial<AutocompleteOption>[]>([]);
+  readonly fetchedPartOrigins = signal<SelectOption[]>([]);
+
+  readonly statusStore = inject(StatusStore);
+  readonly categoryStore = inject(CategoryStore);
+  readonly unitSaleStore = inject(UnitSaleStore);
+  readonly warehouseStore = inject(WarehouseStore);
+  readonly partOriginStore = inject(PartOriginStore);
+  readonly manufacturerStore = inject(ManufacturerStore);
 
   readonly generalForm = computed(() =>
     toProductGeneralFormData(createFormToGeneralSource(this.createForm())),
   );
 
   readonly generalFormOptions = computed(() => ({
-    categoryOptions: this.fetchedCategories(),
-    categoryLoading: this.categoryLoading(),
-    manufacturerOptions: this.fetchedManufacturers(),
-    manufacturerLoading: this.manufacturerLoading(),
-    partOriginOptions: this.fetchedPartOrigins(),
-    unitOptions: this.unitOptions(),
-    warehouseOptions: [],
-    statusOptions: [],
+    unitOptions: this.unitSaleStore.optionList(),
+    statusOptions: this.statusStore.optionList(),
+    categoryOptions: this.categoryStore.optionList(),
+    warehouseOptions: this.warehouseStore.optionList(),
+    partOriginOptions: this.partOriginStore.optionList(),
+    manufacturerOptions: this.manufacturerStore.optionList(),
   }));
+
+  // readonly generalFormOptions = computed(() => ({
+  //   categoryOptions: this.fetchedCategories(),
+  //   manufacturerOptions: this.fetchedManufacturers(),
+  //   partOriginOptions: this.fetchedPartOrigins(),
+  //   unitOptions: this.unitOptions(),
+  //   warehouseOptions: [],
+  //   statusOptions: [],
+  // }));
 
   readonly breadcrumbs = [
     { label: 'Catálogo', route: '/catalog/products' },
@@ -92,10 +111,12 @@ export class ProductCreateComponent implements OnInit {
   private queries: GeneralOptionQuery = {
     search: null,
     active: null,
-    limit: null,
+    per_page: null,
+    page: null,
+    manufacturer_id: null,
   };
 
-  readonly unitOptions = signal<DSelectOption[]>([]);
+  readonly unitOptions = signal<SelectOption[]>([]);
 
   ngOnInit(): void {
     this.loadInitialOptions(this.queries);
@@ -107,9 +128,11 @@ export class ProductCreateComponent implements OnInit {
       next: (res) => {
         const opts: AutocompleteOption[] = (res.data || []).map((c) => ({
           label: c.label,
-          value: c.id,
-          sublabel: c.description,
+          value: c.value,
+          sublabel: c.sublabel,
           icon: c.icon || 'folder',
+          description: c.description,
+          disabled: false,
         }));
         this.fetchedCategories.set(opts);
         this.categoryLoading.set(false);
@@ -120,10 +143,10 @@ export class ProductCreateComponent implements OnInit {
     this.manufacturerLoading.set(true);
     this.manufacturerService.getOptions(query).subscribe({
       next: (res) => {
-        const opts: AutocompleteOption[] = (res.data || []).map((m) => ({
+        const opts: Partial<AutocompleteOption>[] = (res.data || []).map((m) => ({
           label: m.label,
-          value: m.id,
-          sublabel: m.description,
+          value: m.value,
+          sublabel: m.sublabel,
         }));
         this.fetchedManufacturers.set(opts);
         this.manufacturerLoading.set(false);
@@ -133,9 +156,11 @@ export class ProductCreateComponent implements OnInit {
 
     this.partOriginService.getAll(this.queries).subscribe({
       next: (res) => {
-        const opts: DSelectOption[] = (res.data || []).map((p) => ({
+        const opts: SelectOption[] = (res.data || []).map((p) => ({
           label: p.name,
           value: p.id,
+          sublabel: p.description,
+          disabled: false,
         }));
         this.fetchedPartOrigins.set(opts);
       },
@@ -152,9 +177,11 @@ export class ProductCreateComponent implements OnInit {
 
     this.unitSaleService.getOptions(query).subscribe({
       next: (res) => {
-        const opts: DSelectOption[] = (res.data || []).map((u) => ({
+        const opts: SelectOption[] = (res.data || []).map((u) => ({
           label: u.label,
-          value: u.id,
+          value: u.value,
+          sublabel: u.sublabel,
+          disabled: false,
         }));
         this.unitOptions.set(opts);
       },
@@ -237,9 +264,11 @@ export class ProductCreateComponent implements OnInit {
       next: (res) => {
         const opts: AutocompleteOption[] = (res.data || []).map((c) => ({
           label: c.label,
-          value: c.id,
-          sublabel: c.description,
+          value: c.value,
+          disabled: false,
+          sublabel: c.sublabel,
           icon: c.icon || 'folder',
+          description: c.description,
         }));
         this.fetchedCategories.set(opts);
         this.categoryLoading.set(false);
@@ -254,8 +283,11 @@ export class ProductCreateComponent implements OnInit {
       next: (res) => {
         const opts: AutocompleteOption[] = (res.data || []).map((m) => ({
           label: m.label,
-          value: m.id,
-          sublabel: m.description,
+          value: m.value,
+          disabled: false,
+          sublabel: m.sublabel,
+          icon: 'folder',
+          description: '',
         }));
         this.fetchedManufacturers.set(opts);
         this.manufacturerLoading.set(false);

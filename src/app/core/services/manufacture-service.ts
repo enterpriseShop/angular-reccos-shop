@@ -5,7 +5,9 @@ import { environment } from '../../../environments/environment';
 import { buildHttpParams } from './build-http-params';
 import { ManufacturerResponse } from '../models/manufactureres/manufacturer-response.model';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
-import { ManufacturerOptionsResponse } from '../models/manufactureres/manufaturer-options.model';
+import { ManufacturerOption } from '../models/manufactureres/manufaturer-options.model';
+import { getAllResponse } from '../models/generals/general-responses-list.model';
+import { GeneralOption } from '../models/generals/general-options-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -21,7 +23,7 @@ export class ManufacturerService {
 
   getOptions(filters: GeneralOptionQuery) {
     const params = buildHttpParams(filters);
-    return this.http.get<ManufacturerOptionsResponse>(`${this.api}/${this.flag}/options`, {
+    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
     });
   }
@@ -31,7 +33,7 @@ export class ManufacturerService {
   }
 
   getManufacturerByProduct(productId: string) {
-    return this.http.get<ManufacturerOptionsResponse>(
+    return this.http.get<getAllResponse<ManufacturerOption[]>>(
       `${this.api}/${this.flag}/product/${productId}`,
     );
   }

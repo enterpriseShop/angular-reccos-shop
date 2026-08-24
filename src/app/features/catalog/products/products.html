@@ -88,25 +88,14 @@
     <app-select
       [value]="selectedCategory()"
       (valueChange)="onCategoryChange($event)"
-      [options]="[
-        { label: 'Todas as Categorias', value: '' },
-        { label: 'Sistemas de Freios', value: 'Freios' },
-        { label: 'Motor & Transmissão', value: 'Motor' },
-        { label: 'Suspensão & Direção', value: 'Suspensao' },
-        { label: 'Sistema Elétrico', value: 'Eletrico' }
-      ]"
+      [options]="[]"
       placeholder="Todas as Categorias"
     />
 
     <app-select
       [value]="selectedStatus()"
       (valueChange)="onStatusChange($event)"
-      [options]="[
-        { label: 'Todos os Status', value: '' },
-        { label: 'Ativo', value: 'Ativo' },
-        { label: 'Baixo Estoque', value: 'Baixo Estoque' },
-        { label: 'Inativo', value: 'Inativo' }
-      ]"
+      [options]="[]"
       placeholder="Todos os Status"
     />
   </div>

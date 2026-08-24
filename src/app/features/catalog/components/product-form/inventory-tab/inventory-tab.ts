@@ -9,7 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
-import { DSelectOption } from '../../../../../core/models/design-system/select-option.model';
+import { SelectOption } from '../../../../../core/models/design-system/select-option.model';
 import { ButtonComponent } from '../../../../../design-system/button/button';
 import { TableHeaderOption } from '../../../../../core/models/generals/table-inventory.model';
 import { tableHeaders } from './utils/table-values';
@@ -32,7 +32,7 @@ export class ProductInventoryTabComponent {
   readonly nullableNumberFieldChange = output<{ field: string; value: string }>();
 
   readonly inventories = input<UpdateProductInventoryPayload[]>([]);
-  readonly warehouseOptions = input<DSelectOption[]>([]);
+  readonly warehouseOptions = input<SelectOption[]>([]);
   readonly isReadOnly = input<boolean>(false);
   readonly errors = input<Record<string, string>>({});
 
@@ -87,7 +87,7 @@ export class ProductInventoryTabComponent {
     });
   }
 
-  getWarehouseOptionsForItem(item: UpdateProductInventoryPayload): DSelectOption[] {
+  getWarehouseOptionsForItem(item: UpdateProductInventoryPayload): SelectOption[] {
     const currentItems = this.localInventories() || [];
     const otherUsedWhIds = new Set(
       currentItems

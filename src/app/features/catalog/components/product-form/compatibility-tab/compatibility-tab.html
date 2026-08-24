@@ -84,7 +84,7 @@
       </div>
 
       <!-- Manufacturer Chips Filter -->
-      @if (manufacturerByProductFilter().length > 0) {
+      @if (oemCodes().length > 0) {
       <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pt-1 pb-1">
         <span class="text-[11px] font-semibold text-gray-500 dark:text-slate-400 shrink-0 mr-1">
           Filtrar por:
@@ -103,7 +103,7 @@
           Todas Montadoras
         </button>
 
-        @for (mfr of manufacturerByProductFilter(); track mfr.id) {
+        @for (mfr of manufacturers(); track mfr.id) {
         <button
           type="button"
           (click)="setMfrFilter(mfr.id)"
@@ -172,7 +172,7 @@
                 <span
                   class="px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-200"
                 >
-                  {{ oem.label }}
+                  {{ oem.oem_code }}
                 </span>
 
                 @if (selected) {

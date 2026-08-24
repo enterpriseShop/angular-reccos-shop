@@ -1,5 +1,5 @@
-import { AutocompleteOption } from '../../../design-system/autocomplete-select/autocomplete-select';
-import { DSelectOption } from '../design-system/select-option.model';
+import { AutocompleteOption } from '../design-system/auto-complete.model';
+import { SelectOption } from '../design-system/select-option.model';
 
 /** Estado interno do formulário de criação (campos do POST) */
 export interface ProductCreateFormState {
@@ -87,14 +87,12 @@ export interface ProductGeneralFormData {
 }
 
 export interface ProductGeneralFormOptions {
+  unitOptions: SelectOption[];
+  statusOptions: SelectOption[];
+  warehouseOptions: SelectOption[];
+  partOriginOptions: SelectOption[];
   categoryOptions: AutocompleteOption[];
-  categoryLoading: boolean;
   manufacturerOptions: AutocompleteOption[];
-  manufacturerLoading: boolean;
-  partOriginOptions: DSelectOption[];
-  unitOptions: DSelectOption[];
-  statusOptions: DSelectOption[];
-  warehouseOptions: DSelectOption[];
 }
 
 export interface ProductGeneralFormSource {

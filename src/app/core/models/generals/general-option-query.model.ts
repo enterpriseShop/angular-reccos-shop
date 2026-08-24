@@ -1,7 +1,9 @@
 export interface GeneralOptionQuery {
   search: string | null;
   active: boolean | null;
-  limit: number | null;
+  per_page: number | null;
+  page: number | null;
+  manufacturer_id: string | null;
 }
 
 // ALTERNATIVA PRA PAGINAÇÃO

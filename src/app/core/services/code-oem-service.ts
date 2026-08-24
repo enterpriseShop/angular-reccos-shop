@@ -37,6 +37,13 @@ export class OemCodeService {
     );
   }
 
+  getByManufacturer(filters: GeneralOptionQuery) {
+    const params = buildHttpParams(filters);
+    return this.http.get<PaginatedResponse<OemCode>>(`${this.api}/${this.flag}/by-manufacturer`, {
+      params,
+    });
+  }
+
   getById(id: string) {
     return this.http.get<getAllResponse<OemCode>>(`${this.api}/${this.flag}/${id}`);
   }

@@ -19,13 +19,7 @@ import { ProductWorkspaceSidebarComponent } from '../components/product-form/sid
 import { ShellStateService } from '../../../core/services/shell-state';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../../core/services/product-service';
-import { CategoryService } from '../../../core/services/category-service';
-import { ManufacturerService } from '../../../core/services/manufacture-service';
-import { StatusService } from '../../../core/services/status-service';
 import { ToastService } from '../../../core/services/toast';
-import { PartOriginService } from '../../../core/services/part-origins-service';
-import { AutocompleteOption } from '../../../design-system/autocomplete-select/autocomplete-select';
-import { DSelectOption } from '../../../core/models/design-system/select-option.model';
 import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
 import { ProductResponse } from '../../../core/models/products/product-response.model';
 import {
@@ -37,13 +31,17 @@ import {
 import { isCompatibilityWorkspaceTab } from '../../../core/config/compatibility-modules.config';
 import { ProductGeneralFormData } from '../../../core/models/products/product-create.model';
 import { FormTab, MediaImageItem, ProductWorkspaceMode } from '../models/product-workspace.model';
-import { WarehousesService } from '../../../core/services/warehouses-service';
 import { initialProductPayload } from '../../../core/utils/product-initial-payload';
-import { UnitSaleService } from '../../../core/services/unit-sale-service';
 import { OemCodeService } from '../../../core/services/code-oem-service';
 import { ManufacturerOption } from '../../../core/models/manufactureres/manufaturer-options.model';
 import { OemCode } from '../../../core/models/oem-codes/oem-codes.model';
-import { ManufacturerOptionsQuery } from '../../../core/models/manufactureres/mnufacturer-options-query.model';
+import { ProductByIdService } from '../../../core/services/product-by-id-service';
+import { StatusStore } from '../../../core/store/status-store/status-store';
+import { CategoryStore } from '../../../core/store/category-store/category-store';
+import { UnitSaleStore } from '../../../core/store/unit-sale/unit-sale-store';
+import { WarehouseStore } from '../../../core/store/warehouse/warehouse-store';
+import { ManufacturerStore } from '../../../core/store/manufacturer-store/manufacturer-store';
+import { PartOriginStore } from '../../../core/store/part-origin/part-origin-store';
 
 @Component({
   selector: 'app-product-workspace',
@@ -68,15 +66,17 @@ export class ProductWorkspaceComponent implements OnInit {
   private location = inject(Location);
   private route = inject(ActivatedRoute);
   private toastService = inject(ToastService);
-  private statusService = inject(StatusService);
   readonly shellState = inject(ShellStateService);
   private productService = inject(ProductService);
   private oemCodeService = inject(OemCodeService);
-  private unitSaleService = inject(UnitSaleService);
-  private categoryService = inject(CategoryService);
-  private partOriginService = inject(PartOriginService);
-  private warehouseService = inject(WarehousesService);
-  private manufacturerService = inject(ManufacturerService);
+  private productByIdService = inject(ProductByIdService);
+
+  readonly statusStore = inject(StatusStore);
+  readonly categoryStore = inject(CategoryStore);
+  readonly unitSaleStore = inject(UnitSaleStore);
+  readonly warehouseStore = inject(WarehouseStore);
+  readonly partOriginStore = inject(PartOriginStore);
+  readonly manufacturerStore = inject(ManufacturerStore);
 
   readonly activeTab = signal<FormTab>('geral');
   readonly mode = signal<ProductWorkspaceMode>('edit');
@@ -84,33 +84,20 @@ export class ProductWorkspaceComponent implements OnInit {
   readonly isSaving = signal<boolean>(false);
   readonly isDragging = signal<boolean>(false);
   readonly isFormDirty = signal<boolean>(false);
-  readonly categoryLoading = signal<boolean>(false);
-  readonly manufacturerLoading = signal<boolean>(false);
   readonly deleteImageDialogOpen = signal<boolean>(false);
   readonly deleteProductDialogOpen = signal<boolean>(false);
   readonly unsavedChangesDialogOpen = signal<boolean>(false);
   readonly productCreatedSuccessBanner = signal<boolean>(false);
 
-  readonly productId = signal<string>('');
   readonly oemCodeIds = signal<string[]>([]);
   readonly errors = signal<Record<string, string>>({});
 
-  readonly fetchedStatuses = signal<DSelectOption[]>([]);
+  readonly manufacturers = signal<ManufacturerOption[]>([]);
   readonly manufacturersByProduct = signal<OemCode[]>([]);
-  readonly fetchedWarehouses = signal<DSelectOption[]>([]);
-  readonly fetchedPartOrigins = signal<DSelectOption[]>([]);
-  readonly fetchedCategories = signal<AutocompleteOption[]>([]);
-  readonly fetchedManufacturers = signal<AutocompleteOption[]>([]);
   readonly selectedImageForDelete = signal<MediaImageItem | null>(null);
-  readonly manufacturerByProductFilter = signal<ManufacturerOption[]>([]);
 
-  // Dual Signal: product armazena dados brutos da API; productForm armazena o payload mutável para envio.
   readonly product = signal<ProductResponse>(initialProductPayload);
   readonly productForm = signal<UpdateProductPayload>(defaultUpdatePayload());
-
-  readonly statusOptions = computed<DSelectOption[]>(() => this.fetchedStatuses());
-  readonly categoryOptions = computed<AutocompleteOption[]>(() => this.fetchedCategories());
-  readonly manufacturerOptions = computed<AutocompleteOption[]>(() => this.fetchedManufacturers());
 
   readonly currentStatus = computed(() => this.product()?.status ?? null);
 
@@ -138,14 +125,12 @@ export class ProductWorkspaceComponent implements OnInit {
   });
 
   readonly generalFormOptions = computed(() => ({
-    unitOptions: this.unitOptions(),
-    statusOptions: this.statusOptions(),
-    categoryOptions: this.categoryOptions(),
-    categoryLoading: this.categoryLoading(),
-    warehouseOptions: this.fetchedWarehouses(),
-    partOriginOptions: this.fetchedPartOrigins(),
-    manufacturerOptions: this.manufacturerOptions(),
-    manufacturerLoading: this.manufacturerLoading(),
+    unitOptions: this.unitSaleStore.optionList(),
+    statusOptions: this.statusStore.optionList(),
+    categoryOptions: this.categoryStore.optionList(),
+    warehouseOptions: this.warehouseStore.optionList(),
+    partOriginOptions: this.partOriginStore.optionList(),
+    manufacturerOptions: this.manufacturerStore.optionList(),
   }));
 
   readonly isReadOnly = computed(() => this.mode() === 'view');
@@ -165,17 +150,10 @@ export class ProductWorkspaceComponent implements OnInit {
   private queries: GeneralOptionQuery = {
     search: null,
     active: null,
-    limit: null,
-  };
-
-  private manufacturerQuery: ManufacturerOptionsQuery = {
-    search: null,
-    page: null,
     per_page: null,
+    page: null,
     manufacturer_id: null,
   };
-
-  readonly unitOptions = signal<DSelectOption[]>([]);
 
   readonly availableTags = [];
 
@@ -186,105 +164,20 @@ export class ProductWorkspaceComponent implements OnInit {
 
     this.productCreatedSuccessBanner.set(!!state?.['productJustCreated']);
 
-    this.loadInitialOptions(this.queries, String(id));
+    setTimeout(() => {
+      this.queries.per_page = 10;
+      this.queries.page = 1;
+      this.getOemCodeByManufacturer(this.queries);
+    }, 100);
 
     if (id) {
-      this.productId.set(id);
       this.mode.set(url.includes('/view') ? 'view' : 'edit');
       this.productById(id);
     }
   }
 
-  loadInitialOptions(query: GeneralOptionQuery, productId: string): void {
-    this.categoryLoading.set(true);
-    this.categoryService.getOptions(query).subscribe({
-      next: (res) => {
-        const opts: AutocompleteOption[] = (res.data || []).map((c) => ({
-          label: c.label,
-          value: c.id,
-          sublabel: c.description,
-          icon: c.icon || 'folder',
-        }));
-        this.fetchedCategories.set(opts);
-        this.categoryLoading.set(false);
-      },
-      error: () => this.categoryLoading.set(false),
-    });
-
-    this.manufacturerLoading.set(true);
-    this.manufacturerService.getOptions(query).subscribe({
-      next: (res) => {
-        const opts: AutocompleteOption[] = (res.data || []).map((m) => ({
-          label: m.label,
-          value: m.id,
-          sublabel: m.description,
-        }));
-        this.fetchedManufacturers.set(opts);
-        this.manufacturerLoading.set(false);
-      },
-      error: () => this.manufacturerLoading.set(false),
-    });
-
-    this.statusService.getOptions('PRODUCT').subscribe({
-      next: (res) => {
-        const opts: DSelectOption[] = (res.data || []).map((s) => ({
-          label: s.label,
-          value: s.id,
-        }));
-        this.fetchedStatuses.set(opts);
-      },
-    });
-
-    this.partOriginService.getAll(this.queries).subscribe({
-      next: (res) => {
-        const opts: DSelectOption[] = (res.data || []).map((p) => ({
-          label: p.name,
-          value: p.id,
-        }));
-        this.fetchedPartOrigins.set(opts);
-      },
-    });
-
-    this.warehouseService.getOptions(query).subscribe({
-      next: (res) => {
-        const opts: DSelectOption[] = (res.data || []).map((w) => ({
-          label: w.label,
-          value: w.id,
-        }));
-        this.fetchedWarehouses.set(opts);
-      },
-    });
-
-    this.unitSaleService.getOptions(query).subscribe({
-      next: (res) => {
-        const opts: DSelectOption[] = (res.data || []).map((u) => ({
-          label: u.label,
-          value: u.id,
-        }));
-        this.unitOptions.set(opts);
-      },
-    });
-
-    setTimeout(() => {
-      this.getOemCodeByProduct(productId, this.manufacturerQuery);
-      this.getAllManufacturerByProduct(productId);
-    }, 100);
-  }
-
-  getAllManufacturerByProduct(productId: string) {
-    this.manufacturerService.getManufacturerByProduct(String(productId)).subscribe({
-      next: (res) => {
-        this.manufacturerByProductFilter.set(res.data || []);
-      },
-      error: (err) => {
-        this.manufacturerByProductFilter.set([]);
-        this.toastService.error('Erro', err.error.data.messsage);
-      },
-    });
-  }
-
-  getOemCodeByProduct(productId: string, query: ManufacturerOptionsQuery) {
-    this.oemCodeService.getByProduct(productId, query).subscribe({
+  getOemCodeByManufacturer(query: GeneralOptionQuery) {
+    this.oemCodeService.getByManufacturer(query).subscribe({
       next: (response) => {
         const codes = response.data || [];
         this.manufacturersByProduct.set(codes);
@@ -297,9 +190,8 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   productById(productId: string): void {
-    this.productService.getById(productId).subscribe({
-      next: (response) => {
-        const prodData = response.data || response;
+    this.productByIdService.getProduct(productId).subscribe({
+      next: (prodData) => {
         this.oemCodeIds.set(prodData.oem_codes.map((o) => o.id));
         this.product.set(prodData);
         this.productForm.set(mapResponseToPayload(prodData));
@@ -811,44 +703,52 @@ export class ProductWorkspaceComponent implements OnInit {
     });
   }
 
-  openAddNoteModal(): void {}
+  // openAddNoteModal(): void {}
 
-  removeNote(id: string): void {}
+  // removeNote(id: string): void {}
 
-  toggleNoteStatus(id: string): void {}
+  // toggleNoteStatus(id: string): void {}
 
   onCategorySearch(query: GeneralOptionQuery): void {
-    this.categoryLoading.set(true);
-    this.categoryService.getOptions(query).subscribe({
-      next: (res) => {
-        const opts: AutocompleteOption[] = (res.data || []).map((c) => ({
-          label: c.label,
-          value: c.id,
-          sublabel: c.description,
-          icon: c.icon || 'folder',
-        }));
-        this.fetchedCategories.set(opts);
-        this.categoryLoading.set(false);
-      },
-      error: () => this.categoryLoading.set(false),
-    });
+    this.categoryStore.loadOptions(query);
   }
 
   onManufacturerSearch(query: GeneralOptionQuery): void {
-    this.manufacturerLoading.set(true);
-    this.manufacturerService.getOptions(query).subscribe({
-      next: (res) => {
-        const opts: AutocompleteOption[] = (res.data || []).map((m) => ({
-          label: m.label,
-          value: m.id,
-          sublabel: m.description,
-        }));
-        this.fetchedManufacturers.set(opts);
-        this.manufacturerLoading.set(false);
-      },
-      error: () => this.manufacturerLoading.set(false),
-    });
+    this.manufacturerStore.loadOptions(query);
   }
+
+  // onCategorySearch(query: GeneralOptionQuery): void {
+  //   this.categoryLoading.set(true);
+  //   this.categoryStore.loadOptions(query).subscribe({
+  //     next: (res) => {
+  //       const opts: AutocompleteOption[] = (res.data || []).map((c) => ({
+  //         label: c.label,
+  //         value: c.id,
+  //         sublabel: c.description,
+  //         icon: c.icon || 'folder',
+  //       }));
+  //       this.fetchedCategories.set(opts);
+  //       this.categoryLoading.set(false);
+  //     },
+  //     error: () => this.categoryLoading.set(false),
+  //   });
+  // }
+
+  // onManufacturerSearch(query: GeneralOptionQuery): void {
+  //   this.manufacturerLoading.set(true);
+  //   this.manufacturerService.getOptions(query).subscribe({
+  //     next: (res) => {
+  //       const opts: AutocompleteOption[] = (res.data || []).map((m) => ({
+  //         label: m.label,
+  //         value: m.id,
+  //         sublabel: m.description,
+  //       }));
+  //       this.fetchedManufacturers.set(opts);
+  //       this.manufacturerLoading.set(false);
+  //     },
+  //     error: () => this.manufacturerLoading.set(false),
+  //   });
+  // }
 
   validateForm(): boolean {
     const errs: Record<string, string> = {};
@@ -950,8 +850,9 @@ export class ProductWorkspaceComponent implements OnInit {
     this.deleteProductDialogOpen.set(true);
   }
 
-  onOemFiltersChange(filters: ManufacturerOptionsQuery): void {
-    this.getOemCodeByProduct(this.productId(), filters);
+  onOemFiltersChange(filters: GeneralOptionQuery): void {
+    console.log('filters', filters);
+    this.getOemCodeByManufacturer(filters);
   }
 
   executeDeleteProduct(): void {

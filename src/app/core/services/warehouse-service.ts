@@ -4,7 +4,9 @@ import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { buildHttpParams } from './build-http-params';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
-import { WarehouseOptionsResponse } from '../models/warehouses/warehouse-options.model';
+import { WarehouseOption } from '../models/warehouses/warehouse-options.model';
+import { getAllResponse } from '../models/generals/general-responses-list.model';
+import { GeneralOption } from '../models/generals/general-options-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +18,14 @@ export class WarehouseService {
 
   getAll(filters: GeneralOptionQuery) {
     const params = buildHttpParams(filters);
-    return this.http.get<PaginatedResponse<WarehouseOptionsResponse>>(`${this.api}/${this.flag}`, {
+    return this.http.get<PaginatedResponse<WarehouseOption[]>>(`${this.api}/${this.flag}`, {
+      params,
+    });
+  }
+
+  getOptions(filters: GeneralOptionQuery) {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
     });
   }

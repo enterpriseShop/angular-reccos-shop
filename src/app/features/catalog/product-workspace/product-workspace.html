@@ -129,12 +129,12 @@
       } @if (isCompatibilityTab()) {
       <app-product-compatibility-tab
         [activeTab]="activeTab()"
-        [manufacturerByProductFilter]="manufacturerByProductFilter()"
         [selectedOemCodeIds]="oemCodeIds()"
         [oemCodes]="manufacturersByProduct()"
         [productCodes]="product().codes"
         [equivalentProducts]="product().equivalents"
         [vehicleApplications]="product().applications"
+        [manufacturers]="manufacturers()"
         [isReadOnly]="isReadOnly()"
         [totalItensOemCodes]="10"
         (oemFiltersChange)="onOemFiltersChange($event)"

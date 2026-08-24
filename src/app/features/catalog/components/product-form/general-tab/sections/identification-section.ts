@@ -1,12 +1,10 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { InputComponent } from '../../../../../../design-system/input/input';
 import { SelectComponent } from '../../../../../../design-system/select/select';
-import {
-  AutocompleteSelectComponent,
-  AutocompleteOption,
-} from '../../../../../../design-system/autocomplete-select/autocomplete-select';
-import { DSelectOption } from '../../../../../../core/models/design-system/select-option.model';
+import { AutocompleteSelectComponent } from '../../../../../../design-system/autocomplete-select/autocomplete-select';
+import { SelectOption } from '../../../../../../core/models/design-system/select-option.model';
 import { GeneralOptionQuery } from '../../../../../../core/models/generals/general-option-query.model';
+import { AutocompleteOption } from '../../../../../../core/models/design-system/auto-complete.model';
 
 @Component({
   selector: 'app-product-identification-section',
@@ -35,7 +33,6 @@ import { GeneralOptionQuery } from '../../../../../../core/models/generals/gener
           [options]="categoryOptions()"
           [value]="formCategoryId()"
           [disabled]="isReadOnly()"
-          [loading]="categoryLoading()"
           [error]="errors()['category_id']"
           (valueChange)="fieldChange.emit({ field: 'category_id', value: $event })"
           (searchQueryChange)="categorySearch.emit($event)"
@@ -48,7 +45,6 @@ import { GeneralOptionQuery } from '../../../../../../core/models/generals/gener
           [options]="manufacturerOptions()"
           [value]="formManufacturerId()"
           [disabled]="isReadOnly()"
-          [loading]="manufacturerLoading()"
           (valueChange)="fieldChange.emit({ field: 'manufacturer_id', value: $event })"
           (searchQueryChange)="manufacturerSearch.emit($event)"
         />
@@ -111,11 +107,9 @@ export class ProductIdentificationSectionComponent {
   readonly errors = input<Record<string, string>>({});
 
   readonly categoryOptions = input<AutocompleteOption[]>([]);
-  readonly categoryLoading = input<boolean>(false);
   readonly manufacturerOptions = input<AutocompleteOption[]>([]);
-  readonly manufacturerLoading = input<boolean>(false);
-  readonly partOriginOptions = input<DSelectOption[]>([]);
-  readonly statusOptions = input<DSelectOption[]>([]);
+  readonly partOriginOptions = input<SelectOption[]>([]);
+  readonly statusOptions = input<SelectOption[]>([]);
 
   readonly fieldChange = output<{ field: string; value: string }>();
   readonly categorySearch = output<GeneralOptionQuery>();

@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { InputComponent } from '../../../../../../design-system/input/input';
 import { SelectComponent } from '../../../../../../design-system/select/select';
-import { DSelectOption } from '../../../../../../core/models/design-system/select-option.model';
+import { SelectOption } from '../../../../../../core/models/design-system/select-option.model';
 
 @Component({
   selector: 'app-product-dimensions-section',
@@ -91,8 +91,8 @@ export class ProductDimensionsSectionComponent {
   readonly formLength = input<number>(0);
 
   readonly isReadOnly = input<boolean>(false);
-  readonly unitOptions = input<DSelectOption[]>([]);
-  readonly warehouseOptions = input<DSelectOption[]>([]);
+  readonly unitOptions = input<SelectOption[]>([]);
+  readonly warehouseOptions = input<SelectOption[]>([]);
 
   readonly fieldChange = output<{ field: string; value: string }>();
   readonly numberFieldChange = output<{ field: string; value: string }>();

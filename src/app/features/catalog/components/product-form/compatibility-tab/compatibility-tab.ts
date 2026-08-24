@@ -18,6 +18,7 @@ import { ProductEquivalent } from '../../../../../core/models/equivalent/equival
 import { ProductVehicleApplication } from '../../../../../core/models/vehicle-application/vehicle-application-product.model';
 import { OemCode } from '../../../../../core/models/oem-codes/oem-codes.model';
 import { DatePipe } from '@angular/common';
+import { GeneralOptionQuery } from '../../../../../core/models/generals/general-option-query.model';
 import { ManufacturerOption } from '../../../../../core/models/manufactureres/manufaturer-options.model';
 
 @Component({
@@ -29,17 +30,17 @@ import { ManufacturerOption } from '../../../../../core/models/manufactureres/ma
 })
 export class ProductCompatibilityTabComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('[CHANGES ON COMPATIBILITY TAB]: ', changes);
+    console.log('[ProductCompatibilityTabComponent] ngOnChanges', changes);
   }
   readonly activeTab = input.required<FormTab>();
   readonly oemCodes = input<OemCode[]>([]);
-  readonly manufacturerByProductFilter = input<ManufacturerOption[]>([]);
   readonly selectedOemCodeIds = input<string[]>([]);
   readonly productCodes = input<ProductAdditionalCodeSummary[]>([]);
   readonly equivalentProducts = input<ProductEquivalent[]>([]);
   readonly vehicleApplications = input<ProductVehicleApplication[]>([]);
   readonly isReadOnly = input<boolean>(false);
   readonly totalItensOemCodes = input<number>(0);
+  readonly manufacturers = input<ManufacturerOption[]>([]);
 
   // Outputs for OEM selection
   readonly selectedOemCodeIdsChange = output<string[]>();
@@ -72,16 +73,12 @@ export class ProductCompatibilityTabComponent implements OnChanges {
       manufacturer_id: this.selectedMfrFilter(),
       page: this.oemPagination().page,
       per_page: this.oemPagination().per_page,
+      active: null,
     });
   }
 
   // OEM Outputs pagination
-  readonly oemFiltersChange = output<{
-    search: string;
-    manufacturer_id: string | null;
-    page: number;
-    per_page: number;
-  }>();
+  readonly oemFiltersChange = output<GeneralOptionQuery>();
 
   readonly addOemCode = output<void>();
   readonly setPrimaryOem = output<string>();

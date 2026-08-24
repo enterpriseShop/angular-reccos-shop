@@ -1,12 +1,5 @@
-export interface StatusOptionsResponse {
-  success: boolean;
-  message: string;
-  data: StatusOption[];
-}
+import { GeneralOption } from '../generals/general-options-response.model';
 
-export interface StatusOption {
-  id: string;
-  label: string;
-  description: string;
+export interface StatusOption extends GeneralOption {
   icon: string;
 }

@@ -1,5 +1,5 @@
-export interface DSelectOption {
-  label: string;
-  value: string | number;
-  disabled?: boolean;
+import { GeneralOption } from '../generals/general-options-response.model';
+
+export interface SelectOption extends GeneralOption {
+  disabled: boolean;
 }
