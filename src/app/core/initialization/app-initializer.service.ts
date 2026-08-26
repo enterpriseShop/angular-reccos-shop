@@ -22,12 +22,12 @@ export class AppInitializerService {
   async initialize(): Promise<void> {
     await Promise.all([
       this.oemCodeStore.loadInitial(),
-      this.statusStore.loadInitialOptions(),
-      this.unitSaleStore.loadInitialOptions(),
-      this.categoryStore.loadInitialOptions(),
-      this.warehouseStore.loadInitialOptions(),
-      this.partOriginStore.loadInitialOptions(),
-      this.manufacturerStore.loadInitialOptions(),
+      this.statusStore.hydrate(),
+      this.unitSaleStore.hydrate(),
+      this.categoryStore.hydrate(),
+      this.warehouseStore.hydrate(),
+      this.partOriginStore.hydrate(),
+      this.manufacturerStore.hydrate(),
     ]);
   }
 }

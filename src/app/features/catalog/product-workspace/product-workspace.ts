@@ -204,7 +204,6 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   setActiveTab(tab: FormTab): void {
-    console.log('tab', tab);
     this.activeTab.set(tab);
   }
 

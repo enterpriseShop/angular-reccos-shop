@@ -1,13 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  computed,
-  input,
-  output,
-  signal,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, input, output, signal } from '@angular/core';
 import { ButtonComponent } from '../../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
 import { PaginationComponent } from '../../../../../design-system/pagination/pagination';
@@ -28,10 +19,7 @@ import { ManufacturerOption } from '../../../../../core/models/manufactureres/ma
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './compatibility-tab.html',
 })
-export class ProductCompatibilityTabComponent implements OnChanges {
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log('[ProductCompatibilityTabComponent] ngOnChanges', changes);
-  }
+export class ProductCompatibilityTabComponent {
   readonly activeTab = input.required<FormTab>();
   readonly oemCodes = input<OemCode[]>([]);
   readonly selectedOemCodeIds = input<string[]>([]);

@@ -30,9 +30,17 @@ import { InputComponent } from '../../../../../../design-system/input/input';
           [error]="errors()['name']"
           (valueChange)="fieldChange.emit({ field: 'name', value: $event })"
         />
+        <!-- Descrição Curta -->
+        <app-input
+          label="Descrição Curta"
+          placeholder="Resumo comercial do produto em poucas palavras..."
+          [value]="formShortDescription()"
+          [disabled]="isReadOnly()"
+          (valueChange)="fieldChange.emit({ field: 'short_description', value: $event })"
+        />
 
         <!-- Slug -->
-        @if (!isCreateMode()) {
+        <!-- @if (!isCreateMode()) {
           <app-input
             label="Slug (URL amigável)"
             placeholder="Ex.: jogo-de-pastilhas-de-freio-dianteira"
@@ -41,17 +49,8 @@ import { InputComponent } from '../../../../../../design-system/input/input';
             helperText="Gerado automaticamente ou personalizável"
             (valueChange)="fieldChange.emit({ field: 'slug', value: $event })"
           />
-        }
+        } -->
       </div>
-
-      <!-- Descrição Curta -->
-      <app-input
-        label="Descrição Curta"
-        placeholder="Resumo comercial do produto em poucas palavras..."
-        [value]="formShortDescription()"
-        [disabled]="isReadOnly()"
-        (valueChange)="fieldChange.emit({ field: 'short_description', value: $event })"
-      />
 
       <!-- Descrição Detalhada -->
       <div>

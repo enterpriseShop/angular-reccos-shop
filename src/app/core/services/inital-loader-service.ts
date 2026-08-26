@@ -12,8 +12,7 @@ export class InitialDataLoader {
   // etc.
 
   load(): void {
-    this.manufacturerStore.loadInitialOptions();
-
+    // this.manufacturerStore.loadInitialOptions();
     // this.categoryStore.loadInitialOptions();
     // this.countryStore.loadInitialOptions();
     // ...

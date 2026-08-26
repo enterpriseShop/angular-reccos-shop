@@ -11,6 +11,7 @@
           <app-icon name="archive" size="w-5 h-5" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
           Estoque & Logística por Múltiplos Depósitos
         </h3>
+
         <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
           Edição direta e simplificada na tabela: ajuste saldos, limites e regras sem sair da
           página.
@@ -38,8 +39,10 @@
       >
         <div class="flex items-center justify-between text-gray-500 dark:text-slate-400">
           <span class="text-[11px] font-semibold uppercase tracking-wider">Saldo Físico Total</span>
+
           <app-icon name="package" size="w-4 h-4" class="text-gray-400" />
         </div>
+
         <div class="text-xl font-bold text-gray-900 dark:text-slate-100">
           {{ totalPhysical() }}
           <span class="text-xs font-normal text-gray-500">un.</span>
@@ -54,6 +57,7 @@
           <span class="text-[11px] font-semibold uppercase tracking-wider">Reservado</span>
           <app-icon name="clock" size="w-4 h-4" />
         </div>
+
         <div class="text-xl font-bold text-amber-900 dark:text-amber-200">
           {{ totalReserved() }}
           <span class="text-xs font-normal text-amber-600/80 dark:text-amber-400/80">un.</span>
@@ -68,6 +72,7 @@
           <span class="text-[11px] font-semibold uppercase tracking-wider">Disponível</span>
           <app-icon name="check-circle" size="w-4 h-4" />
         </div>
+
         <div class="text-xl font-bold text-emerald-900 dark:text-emerald-200">
           {{ totalAvailable() }}
           <span class="text-xs font-normal text-emerald-600/80 dark:text-emerald-400/80">un.</span>
@@ -82,8 +87,10 @@
           <span class="text-[11px] font-semibold uppercase tracking-wider">Depósitos</span>
           <app-icon name="layers" size="w-4 h-4" class="text-gray-400" />
         </div>
+
         <div class="text-xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-1.5">
           <span>{{ activeWarehousesCount() }}</span>
+
           <span class="text-xs font-normal text-gray-500">
             de {{ localInventories().length }} ativos
           </span>
@@ -91,7 +98,7 @@
       </div>
     </div>
 
-    <!-- Commercial Readiness & Backorder Info Pill -->
+    <!-- Commercial Readiness & Backorder Info -->
     <div
       class="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/70 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-3 text-xs"
     >
@@ -99,6 +106,7 @@
         <span class="font-semibold text-slate-700 dark:text-slate-300">
           Regra Comercial do Produto:
         </span>
+
         @if (anyBackorderAllowed()) {
         <span
           class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200/60"
@@ -124,17 +132,19 @@
     </div>
   </div>
 
-  <!-- Warehouse Inventories Table (100% Inline Direct Editing) -->
+  <!-- Warehouse Inventories Table -->
   @if (localInventories().length > 0) {
   <div
     class="bg-white dark:bg-slate-800 rounded-[16px] border border-gray-200/80 dark:border-slate-700/80 overflow-hidden shadow-2xs"
   >
+    <!-- Table Header -->
     <div
       class="px-5 py-3.5 bg-gray-50/70 dark:bg-slate-800/80 border-b border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between"
     >
       <span class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-slate-300">
         Depósitos & Saldo Físico Inline ({{ localInventories().length }})
       </span>
+
       <span
         class="text-[11px] text-[#4F8A6B] dark:text-[#5BAE6A] font-medium flex items-center gap-1"
       >
@@ -150,37 +160,95 @@
           <tr
             class="border-b border-gray-200/70 dark:border-slate-700/70 bg-gray-50/50 dark:bg-slate-900/40 text-gray-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider"
           >
-            @for (header of tableHeaders; track header.key) { @if (!isReadOnly() ||
-            header.showInReadOnly) {
+            <!-- Warehouse -->
             <th
-              [class]="'sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 ' +
-                      (header.align === 'center' ? 'text-center ' : 'text-left ') +
-                      (header.minWidth ? header.minWidth + ' ' : '') +
-                      (header.width ? header.width : '')"
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[240px]"
             >
-              {{ header.label }}
+              Depósito
             </th>
-            } }
+
+            <!-- Physical Stock -->
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[180px] text-center"
+            >
+              Saldo Físico (un)
+            </th>
+
+            <!-- Reserved -->
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[100px] text-center"
+            >
+              Reservado
+            </th>
+
+            <!-- Available -->
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[100px] text-center"
+            >
+              Disponível
+            </th>
+
+            <!-- Minimum -->
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[110px]"
+            >
+              Est. Mínimo
+            </th>
+
+            <!-- Maximum -->
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[110px]"
+            >
+              Est. Máximo
+            </th>
+
+            <!-- Backorder -->
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[110px] text-center"
+            >
+              Backorder
+            </th>
+
+            <!-- Status -->
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 min-w-[90px] text-center"
+            >
+              Status
+            </th>
+
+            <!-- Actions -->
+            @if (!isReadOnly()) {
+            <th
+              class="sticky top-0 z-20 bg-gray-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 py-3 px-4 w-[60px] text-center"
+            >
+              Ações
+            </th>
+            }
           </tr>
         </thead>
+
         <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60">
-          @for (item of localInventories(); track item.id || $index; let idx = $index) { @let
+          @for ( item of localInventories(); track item.id || $index; let idx = $index ) { @let
           levelBadge = getStockLevelBadge(item);
+
           <tr
             class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30 transition-colors border-l-4 border-l-transparent focus-within:border-l-[#4F8A6B] focus-within:bg-[#4F8A6B]/5"
           >
-            <!-- Depósito Selector / Information Display -->
+            <!-- ============================== -->
+            <!-- DEPÓSITO -->
+            <!-- ============================== -->
             <td class="py-3.5 px-4 font-medium text-gray-900 dark:text-slate-100">
               @let itemWhOptions = getWarehouseOptionsForItem(item); @if (!isReadOnly() &&
               itemWhOptions.length > 0) {
               <div class="space-y-1.5">
-                <!-- Select Dropdown with Icon -->
+                <!-- Warehouse Select -->
                 <div class="relative flex items-center">
                   <div
                     class="absolute left-2.5 pointer-events-none text-[#4F8A6B] dark:text-[#5BAE6A]"
                   >
                     <app-icon name="archive" size="w-3.5 h-3.5" />
                   </div>
+
                   <select
                     [value]="item.warehouse_id"
                     (change)="changeWarehouse(idx, $any($event.target).value)"
@@ -192,45 +260,57 @@
                   </select>
                 </div>
 
-                <!-- Sub-row: Code Badge & Stock Level Health Badge -->
+                <!-- Warehouse Code + Stock Badge -->
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
                   >
-                    {{ getWarehouseCode(item.warehouse_id) }}
+                    {{ localInventories()[idx].warehouse_id }}
                   </span>
+
                   <span
-                    [class]="'px-2 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ' + levelBadge.class"
+                    [class]="
+                      'px-2 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ' +
+                      levelBadge.class
+                    "
                   >
                     <app-icon [name]="levelBadge.icon" size="w-3 h-3" />
+
                     <span>{{ levelBadge.label }}</span>
                   </span>
                 </div>
               </div>
               } @else {
-              <!-- Read-Only Card Display -->
+              <!-- Read-only Warehouse -->
               <div class="flex items-start gap-2.5">
                 <div
                   class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-[#4F8A6B] dark:text-[#5BAE6A] border border-emerald-200/50 dark:border-emerald-800/40 shrink-0 mt-0.5"
                 >
                   <app-icon name="archive" size="w-4 h-4" />
                 </div>
+
                 <div class="space-y-1">
                   <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="font-bold text-xs text-gray-900 dark:text-slate-100">
                       {{ getWarehouseName(item.warehouse_id) }}
                     </span>
+
                     <span
                       class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
                     >
                       {{ getWarehouseCode(item.warehouse_id) }}
                     </span>
                   </div>
+
                   <div>
                     <span
-                      [class]="'px-2 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ' + levelBadge.class"
+                      [class]="
+                        'px-2 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1 ' +
+                        levelBadge.class
+                      "
                     >
                       <app-icon [name]="levelBadge.icon" size="w-3 h-3" />
+
                       <span>{{ levelBadge.label }}</span>
                     </span>
                   </div>
@@ -239,19 +319,24 @@
               }
             </td>
 
-            <!-- Direct Inline Quantity (Keyboard-only clean input without spinners) -->
+            <!-- ============================== -->
+            <!-- QUANTITY -->
+            <!-- ============================== -->
             <td class="py-3.5 px-4 text-center">
               @if (!isReadOnly()) {
-              <div class="flex items-center justify-center gap-1.5">
+              <div class="relative flex items-center justify-center">
                 <input
                   type="number"
                   min="0"
                   [value]="item.quantity"
                   (input)="updateQuantity(idx, $any($event.target).value)"
                   placeholder="0"
-                  class="w-20 text-center font-bold text-sm bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg py-1.5 text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-2xs"
+                  class="w-24 text-center font-bold text-sm bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg pl-2.5 pr-7 py-1.5 text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-2xs"
                 />
-                <span class="text-xs text-gray-400 dark:text-slate-500 font-medium shrink-0">
+
+                <span
+                  class="absolute right-2 text-xs text-gray-400 dark:text-slate-500 font-medium pointer-events-none"
+                >
                   un.
                 </span>
               </div>
@@ -262,33 +347,43 @@
               }
             </td>
 
-            <!-- Reserved Quantity -->
+            <!-- ============================== -->
+            <!-- RESERVED -->
+            <!-- ============================== -->
             <td class="py-3.5 px-4 text-center">
               <span class="font-bold text-amber-700 dark:text-amber-400">
-                {{ $any(item).reservedQuantity || 0 }}
+                {{ $any(item).reservedQuantity || item.reserved_quantity || 0 }}
               </span>
             </td>
 
-            <!-- Available Quantity -->
+            <!-- ============================== -->
+            <!-- AVAILABLE -->
+            <!-- ============================== -->
             <td class="py-3.5 px-4 text-center">
               <span class="font-bold text-emerald-700 dark:text-emerald-400">
-                {{ (item.quantity || 0) - ($any(item).reservedQuantity || 0) }}
+                {{ (item.quantity || 0) - ($any(item).reservedQuantity || item.reserved_quantity ||
+                0) }}
               </span>
             </td>
 
-            <!-- Min Quantity Inline Input -->
-            <td class="py-3.5 px-4 text-center">
+            <!-- ============================== -->
+            <!-- MINIMUM -->
+            <!-- ============================== -->
+            <td class="py-3.5 px-4">
               @if (!isReadOnly()) {
-              <div class="flex items-center justify-center gap-1.5">
+              <div class="relative flex items-center">
                 <input
                   type="number"
                   min="0"
                   [value]="item.minimum_quantity"
                   (input)="updateMinQuantity(idx, $any($event.target).value)"
                   placeholder="0"
-                  class="w-16 text-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg py-1.5 text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  class="w-20 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg pl-2.5 pr-7 py-1.5 text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
-                <span class="text-xs text-gray-400 dark:text-slate-500 font-medium shrink-0">
+
+                <span
+                  class="absolute right-2 text-[11px] text-gray-400 dark:text-slate-500 font-medium pointer-events-none"
+                >
                   un.
                 </span>
               </div>
@@ -299,19 +394,29 @@
               }
             </td>
 
-            <!-- Max Quantity Inline Input -->
-            <td class="py-3.5 px-4 text-center">
+            <!-- ============================== -->
+            <!-- MAXIMUM -->
+            <!-- ============================== -->
+            <td class="py-3.5 px-4">
               @if (!isReadOnly()) {
-              <div class="flex items-center justify-center gap-1.5">
+              <div class="relative flex items-center">
                 <input
                   type="number"
                   min="0"
-                  [value]="item.maximum_quantity !== null && item.maximum_quantity !== undefined ? item.maximum_quantity : ''"
+                  [value]="
+                    item.maximum_quantity !== null &&
+                    item.maximum_quantity !== undefined
+                      ? item.maximum_quantity
+                      : ''
+                  "
                   (input)="updateMaxQuantity(idx, $any($event.target).value)"
                   placeholder="Sem limite"
-                  class="w-24 text-center bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg py-1.5 text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  class="w-24 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg pl-2.5 pr-7 py-1.5 text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#4F8A6B] focus:ring-1 focus:ring-[#4F8A6B] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
-                <span class="text-xs text-gray-400 dark:text-slate-500 font-medium shrink-0">
+
+                <span
+                  class="absolute right-2 text-[11px] text-gray-400 dark:text-slate-500 font-medium pointer-events-none"
+                >
                   un.
                 </span>
               </div>
@@ -323,36 +428,59 @@
               }
             </td>
 
-            <!-- Backorder Toggle -->
+            <!-- ============================== -->
+            <!-- BACKORDER -->
+            <!-- ============================== -->
             <td class="py-3.5 px-4 text-center">
               <button
                 type="button"
                 [disabled]="isReadOnly()"
                 (click)="toggleBackorder(idx)"
-                [title]="item.allow_backorder ? 'Desativar venda sem estoque' : 'Permitir venda sem estoque'"
-                [class]="item.allow_backorder ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-300/60' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400 border-gray-200 dark:border-slate-600'"
+                [title]="
+                  item.allow_backorder
+                    ? 'Desativar venda sem estoque'
+                    : 'Permitir venda sem estoque'
+                "
+                [class]="
+                  item.allow_backorder
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-300/60'
+                    : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400 border-gray-200 dark:border-slate-600'
+                "
                 class="px-2 py-1 rounded-lg text-[11px] font-medium border inline-flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
               >
                 <app-icon [name]="item.allow_backorder ? 'check' : 'x'" size="w-3 h-3" />
+
                 <span>{{ item.allow_backorder ? 'Sim' : 'Não' }}</span>
               </button>
             </td>
 
-            <!-- Active Toggle -->
+            <!-- ============================== -->
+            <!-- STATUS / ACTIVE -->
+            <!-- ============================== -->
             <td class="py-3.5 px-4 text-center">
               <button
                 type="button"
                 [disabled]="isReadOnly()"
                 (click)="toggleActive(idx)"
-                [title]="item.active !== false ? 'Desativar depósito' : 'Ativar depósito'"
-                [class]="item.active !== false ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-300/60' : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400 border-gray-200 dark:border-slate-600'"
+                [title]="
+                  item.active !== false
+                    ? 'Desativar depósito'
+                    : 'Ativar depósito'
+                "
+                [class]="
+                  item.active !== false
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-300/60'
+                    : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400 border-gray-200 dark:border-slate-600'
+                "
                 class="px-2 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer disabled:opacity-50"
               >
                 {{ item.active !== false ? 'Ativo' : 'Inativo' }}
               </button>
             </td>
 
-            <!-- Action Button -->
+            <!-- ============================== -->
+            <!-- ACTION -->
+            <!-- ============================== -->
             @if (!isReadOnly()) {
             <td class="py-3.5 px-4 text-center">
               <button
@@ -386,6 +514,7 @@
       <h4 class="text-sm font-bold text-gray-900 dark:text-slate-100">
         Nenhum depósito vinculado a este produto
       </h4>
+
       <p class="text-xs text-gray-500 dark:text-slate-400">
         Adicione um depósito para registrar o saldo físico inicial e definir os limites de segurança
         diretamente na tela.
@@ -399,4 +528,63 @@
     }
   </div>
   }
+
+  <!-- ============================== -->
+  <!-- FOOTER TECHNICAL INFORMATION -->
+  <!-- ============================== -->
+
+  <div
+    class="p-4 bg-gray-50/90 dark:bg-slate-900/50 rounded-xl border border-gray-200/70 dark:border-slate-700/70 space-y-3"
+  >
+    <div
+      class="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wider"
+    >
+      <app-icon name="info" size="w-4 h-4" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+
+      <span>Regras e Estrutura de Estoque Multi-Depósito (tbl_inventory)</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+      <!-- Unique Key -->
+      <div
+        class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60"
+      >
+        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">
+          Chave Única
+        </span>
+
+        <span
+          class="font-mono text-gray-800 dark:text-slate-200 text-[11px] bg-gray-100 dark:bg-slate-700/60 px-1.5 py-0.5 rounded"
+        >
+          UNIQUE(product_id, warehouse_id)
+        </span>
+      </div>
+
+      <!-- Commercial Balance -->
+      <div
+        class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60"
+      >
+        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">
+          Cálculo de Saldo Comercial
+        </span>
+
+        <span class="font-medium text-gray-800 dark:text-slate-200">
+          Soma de (quantidade - reservado) dos depósitos ativos
+        </span>
+      </div>
+
+      <!-- Commercial Status -->
+      <div
+        class="p-3 rounded-lg bg-white dark:bg-slate-800 border border-gray-200/60 dark:border-slate-700/60"
+      >
+        <span class="block text-[11px] font-medium text-gray-400 dark:text-slate-400 mb-1">
+          Status Comercial
+        </span>
+
+        <span class="font-medium text-emerald-600 dark:text-emerald-400">
+          Avaliado globalmente para o produto
+        </span>
+      </div>
+    </div>
+  </div>
 </div>

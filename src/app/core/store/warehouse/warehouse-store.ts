@@ -25,8 +25,10 @@ export class WarehouseStore extends OptionCacheStore<SelectOption, WarehouseQuer
       map((response: getAllResponse<GeneralOption[]>) => {
         return {
           ...response,
-          data: response.data.map((option: GeneralOption) => ({
-            ...option,
+          data: response.data.map((option: any) => ({
+            value: option.id ?? option.value,
+            label: option.label,
+            sublabel: option.description ?? option.sublabel ?? '',
             disabled: false,
           })),
         };

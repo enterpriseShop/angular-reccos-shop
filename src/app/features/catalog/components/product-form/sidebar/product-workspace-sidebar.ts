@@ -66,7 +66,6 @@ export class ProductWorkspaceSidebarComponent implements AfterViewInit {
   }
 
   setActiveTab(tab: FormTab, event?: MouseEvent): void {
-    console.log('[setActiveTab]', tab);
     this.tabChange.emit(tab);
 
     if (event?.currentTarget) {
