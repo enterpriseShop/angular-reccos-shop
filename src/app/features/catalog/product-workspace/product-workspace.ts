@@ -96,6 +96,8 @@ export class ProductWorkspaceComponent implements OnInit {
   readonly manufacturersByProduct = signal<OemCode[]>([]);
   readonly selectedImageForDelete = signal<MediaImageItem | null>(null);
 
+  readonly modifiedTabs = signal<Set<FormTab>>(new Set<FormTab>());
+
   readonly product = signal<ProductResponse>(initialProductPayload);
   readonly productForm = signal<UpdateProductPayload>(defaultUpdatePayload());
 
@@ -241,8 +243,17 @@ export class ProductWorkspaceComponent implements OnInit {
     return false;
   }
 
-  updateField(field: string, val: string): void {
+  private markCurrentTabAsModified(): void {
     this.isFormDirty.set(true);
+    this.modifiedTabs.update((tabs) => {
+      const newTabs = new Set(tabs);
+      newTabs.add(this.activeTab());
+      return newTabs;
+    });
+  }
+
+  updateField(field: string, val: string): void {
+    this.markCurrentTabAsModified();
     const fieldMapping: Record<string, keyof UpdateProductPayload> = {
       name: 'name',
       internal_code: 'internal_code',
@@ -270,7 +281,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   updateBooleanField(field: string, val: boolean): void {
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
     if (field === 'active') {
       this.productForm.update((p) => ({ ...p, active: val }));
     } else if (field === 'featured') {
@@ -279,7 +290,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   updateNumberField(field: string, valStr: string): void {
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
     const num = parseFloat(valStr) || 0;
     const fieldMapping: Record<string, keyof UpdateProductPayload> = {
       weight: 'weight',
@@ -314,7 +325,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   updateNullableNumberField(field: string, valStr: string): void {
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
     const val = valStr.trim() === '' ? null : parseFloat(valStr);
     if (field === 'promotional_price') {
       this.productForm.update((p) => ({
@@ -347,7 +358,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   updateDescription(val: string): void {
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
     this.productForm.update((p) => ({ ...p, description: val }));
   }
 
@@ -356,7 +367,7 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   onInventoriesChange(inventories: UpdateProductInventoryPayload[]): void {
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
     this.productForm.update((p) => ({ ...p, inventories }));
     if (this.errors()['inventories']) {
       this.errors.update((e) => {
@@ -369,7 +380,7 @@ export class ProductWorkspaceComponent implements OnInit {
 
   toggleBackorder(): void {
     if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
     this.productForm.update((p) => {
       const invs = p.inventories || [];
       const first = invs[0] || { warehouse_id: '', quantity: 0 };
@@ -398,7 +409,7 @@ export class ProductWorkspaceComponent implements OnInit {
       oem_code_ids: [newId, ...(pf.oem_code_ids || this.product().oem_codes.map((o) => o.id))],
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   setPrimaryOem(id: string): void {
@@ -406,7 +417,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ...p,
       oem_codes: p.oem_codes.map((o) => ({ ...o, is_primary: o.id === id })),
     }));
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   removeOemCode(id: string): void {
@@ -422,7 +433,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ),
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   toggleOemStatus(id: string): void {
@@ -448,7 +459,7 @@ export class ProductWorkspaceComponent implements OnInit {
       product_code_ids: [...(pf.product_code_ids || this.product().codes.map((c) => c.id)), newId],
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   removeProductCode(id: string): void {
@@ -464,7 +475,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ),
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   toggleProductCodeStatus(id: string): void {
@@ -498,7 +509,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ],
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   removeEquivalent(id: string): void {
@@ -514,7 +525,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ).filter((eqId) => eqId !== id),
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   toggleEquivalentStatus(id: string): void {
@@ -553,7 +564,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ],
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   removeVehicleApplication(id: string): void {
@@ -569,7 +580,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ),
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   toggleVehicleStatus(id: string): void {
@@ -643,7 +654,7 @@ export class ProductWorkspaceComponent implements OnInit {
       supplier_ids: [...(pf.supplier_ids || this.product().suppliers.map((s) => s.id)), newId],
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   removeSupplier(id: string): void {
@@ -659,7 +670,7 @@ export class ProductWorkspaceComponent implements OnInit {
       ),
     }));
 
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   setPreferentialSupplier(id: string): void {
@@ -670,7 +681,7 @@ export class ProductWorkspaceComponent implements OnInit {
         preferred: s.id === id,
       })),
     }));
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
   }
 
   toggleSupplierStatus(id: string): void {
@@ -680,7 +691,7 @@ export class ProductWorkspaceComponent implements OnInit {
 
   toggleTag(tagId: string): void {
     if (this.isReadOnly()) return;
-    this.isFormDirty.set(true);
+    this.markCurrentTabAsModified();
 
     this.product.update((p) => {
       const exists = p.tags.some((t) => t.id === tagId);
@@ -792,15 +803,71 @@ export class ProductWorkspaceComponent implements OnInit {
 
     this.isSaving.set(true);
     const id = this.route.snapshot.paramMap.get('id');
-    const payload = this.productForm();
+    const fullPayload = this.productForm();
+    const modified = this.modifiedTabs();
+    
+    const payload: Partial<UpdateProductPayload> = {};
+
+    if (modified.has('geral') || modified.has('classification') || modified.has('logistics') || modified.has('visibility')) {
+      if (fullPayload.name !== undefined) payload.name = fullPayload.name;
+      if (fullPayload.slug !== undefined) payload.slug = fullPayload.slug;
+      if (fullPayload.short_description !== undefined) payload.short_description = fullPayload.short_description;
+      if (fullPayload.description !== undefined) payload.description = fullPayload.description;
+      if (fullPayload.category_id !== undefined) payload.category_id = fullPayload.category_id;
+      if (fullPayload.manufacturer_id !== undefined) payload.manufacturer_id = fullPayload.manufacturer_id;
+      if (fullPayload.part_origin_id !== undefined) payload.part_origin_id = fullPayload.part_origin_id;
+      if (fullPayload.status_id !== undefined) payload.status_id = fullPayload.status_id;
+      if (fullPayload.internal_code !== undefined) payload.internal_code = fullPayload.internal_code;
+      if (fullPayload.barcode !== undefined) payload.barcode = fullPayload.barcode;
+      if (fullPayload.unit_id !== undefined) payload.unit_id = fullPayload.unit_id;
+      if (fullPayload.weight !== undefined) payload.weight = fullPayload.weight;
+      if (fullPayload.height !== undefined) payload.height = fullPayload.height;
+      if (fullPayload.width !== undefined) payload.width = fullPayload.width;
+      if (fullPayload.length !== undefined) payload.length = fullPayload.length;
+      if (fullPayload.featured !== undefined) payload.featured = fullPayload.featured;
+      if (fullPayload.active !== undefined) payload.active = fullPayload.active;
+    }
+
+    if (modified.has('comercial')) {
+      if (fullPayload.price !== undefined) payload.price = fullPayload.price;
+    }
+
+    if (modified.has('inventario')) {
+      if (fullPayload.inventories !== undefined) payload.inventories = fullPayload.inventories;
+    }
+
+    if (modified.has('oem')) {
+      if (fullPayload.oem_code_ids !== undefined) payload.oem_code_ids = fullPayload.oem_code_ids;
+    }
+
+    if (modified.has('codigos')) {
+      if (fullPayload.product_code_ids !== undefined) payload.product_code_ids = fullPayload.product_code_ids;
+    }
+
+    if (modified.has('equivalentes')) {
+      if (fullPayload.equivalent_product_ids !== undefined) payload.equivalent_product_ids = fullPayload.equivalent_product_ids;
+    }
+
+    if (modified.has('compatibilidade')) { // Veículos/Aplicações
+      if (fullPayload.application_ids !== undefined) payload.application_ids = fullPayload.application_ids;
+    }
+
+    if (modified.has('fornecimento')) {
+      if (fullPayload.supplier_ids !== undefined) payload.supplier_ids = fullPayload.supplier_ids;
+    }
+
+    if (modified.has('tags')) {
+      if (fullPayload.tag_ids !== undefined) payload.tag_ids = fullPayload.tag_ids;
+    }
 
     // console.log('[SAVE PRODUCT UPDATE]', payload);
     // return;
 
-    this.productService.update(id!, payload).subscribe({
+    this.productService.update(id!, payload as UpdateProductPayload).subscribe({
       next: (response) => {
         this.isSaving.set(false);
         this.isFormDirty.set(false);
+        this.modifiedTabs.set(new Set<FormTab>());
         this.toastService.success(response.message, 'Informações atualizadas no sistema.');
 
         const prodData = response.data || response;
