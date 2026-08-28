@@ -28,7 +28,7 @@
           title="Itens por página"
         >
           @for (opt of pageSizeOptions(); track opt) {
-          <option [value]="opt">{{ opt }} por pág.</option>
+          <option [value]="opt" [selected]="opt === pageSize()">{{ opt }} por pág.</option>
           }
         </select>
         <div

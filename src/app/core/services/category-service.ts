@@ -30,4 +30,16 @@ export class CategoryService {
   getById(id: string) {
     return this.http.get<CategoryResponse>(`${this.api}/${this.flag}/${id}`);
   }
+
+  create(data: FormData) {
+    return this.http.post<CategoryResponse>(`${this.api}/${this.flag}`, data);
+  }
+
+  update(id: string, data: FormData) {
+    return this.http.post<CategoryResponse>(`${this.api}/${this.flag}/${id}`, data);
+  }
+
+  delete(id: string) {
+    return this.http.delete<void>(`${this.api}/${this.flag}/${id}`);
+  }
 }

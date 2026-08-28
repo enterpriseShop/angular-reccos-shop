@@ -1,0 +1,81 @@
+<!-- Page Header -->
+<app-page-header
+  title="Categorias de Produtos"
+  subtitle="Gerenciamento da hierarquia, slugs e ordem de exibição das categorias do catálogo."
+  [breadcrumbs]="[
+    { label: 'Catálogo', route: '/catalog/products' },
+    { label: 'Categorias' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newCategory()">
+      Nova Categoria
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por nome, slug ou descrição..."
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="[]"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="paginatedCategories()"
+    [actions]="actions"
+    [loading]="loading()"
+    [roundedBottom]="false"
+  />
+
+  <app-pagination
+    [currentPage]="currentPage()"
+    [pageSize]="pageSize()"
+    [totalItems]="filteredCategories().length"
+    [pageSizeOptions]="[5, 10, 25, 50]"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Categoria do Catálogo"
+  [message]="'Tem certeza de que deseja remover a categoria ' + (selectedCategoryForDelete()?.name || '') + '?'"
+  type="danger"
+  confirmText="Excluir Categoria"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- Category Create / Edit / View Drawer Form -->
+<app-category-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [category]="selectedCategory()"
+  [categoriesList]="allCategories()"
+  (closeForm)="closeForm()"
+  (categorySaved)="onCategorySaved()"
+/>

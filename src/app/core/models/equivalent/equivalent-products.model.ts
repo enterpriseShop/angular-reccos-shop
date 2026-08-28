@@ -5,4 +5,5 @@ export interface ProductEquivalent {
   observation: string | null;
   product: EntityReference;
   equivalent_product: EntityReference;
+  status?: boolean; // remover após produtos equivalentes
 }

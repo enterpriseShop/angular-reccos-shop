@@ -10,4 +10,5 @@ export interface ProductVehicleApplication {
   details: string | null;
   created_at?: string;
   updated_at?: string;
+  status?: boolean; // remover possivelmente
 }

@@ -12,13 +12,7 @@ import {
 } from '@angular/core';
 import { AppIconComponent } from '../icon/app-icon';
 import { GeneralOptionQuery } from '../../core/models/generals/general-option-query.model';
-import { DSelectOption } from '../../core/models/design-system/select-option.model';
-
-export interface AutocompleteOption extends DSelectOption {
-  sublabel?: string;
-  category?: string;
-  icon?: string;
-}
+import { AutocompleteOption } from '../../core/models/design-system/auto-complete.model';
 
 @Component({
   selector: 'app-autocomplete-select',
@@ -39,10 +33,12 @@ export class AutocompleteSelectComponent implements OnDestroy {
   readonly required = input<boolean>(false);
   readonly error = input<string | undefined>(undefined);
   readonly helperText = input<string | undefined>(undefined);
-  readonly loading = input<boolean>(false);
+  // readonly loading = input<boolean>(false);
   readonly remoteSearch = input<boolean>(false);
   readonly emptyText = input<string>('Nenhum resultado encontrado.');
   readonly selectId = input<string>('autocomplete-' + Math.random().toString(36).substring(2, 7));
+
+  readonly loading = signal<boolean>(false);
 
   readonly valueChange = output<string>();
   readonly optionSelect = output<AutocompleteOption>();
@@ -58,7 +54,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
   readonly selectedOption = computed(() => {
     const val = this.value();
     if (val === undefined || val === null || val === '') return null;
-    const found = this.options().find((opt) => String(opt.value) === String(val));
+    const found = this.options().find((opt) => String(opt.label) === String(val));
     if (found) return found;
 
     // Fallback: search by label if value was populated as label
@@ -94,7 +90,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     return opts.filter(
       (opt) =>
         opt.label.toLowerCase().includes(q) ||
-        String(opt.value).toLowerCase().includes(q) ||
+        String(opt.label).toLowerCase().includes(q) ||
         (opt.sublabel && opt.sublabel.toLowerCase().includes(q)),
     );
   });
@@ -136,9 +132,11 @@ export class AutocompleteSelectComponent implements OnDestroy {
     this.filterQuery.set(text);
 
     const result: GeneralOptionQuery = {
+      search: null,
       active: null,
-      search: text,
-      limit: 10,
+      per_page: null,
+      page: null,
+      manufacturer_id: null,
     };
 
     if (!this.isOpen()) {
@@ -160,7 +158,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     }
     if (opt.disabled) return;
 
-    this.valueChange.emit(String(opt.value));
+    this.valueChange.emit(String(opt.label));
     this.optionSelect.emit(opt);
     this.closeDropdown();
   }
@@ -174,9 +172,11 @@ export class AutocompleteSelectComponent implements OnDestroy {
     this.valueChange.emit('');
     this.filterQuery.set('');
     const result: GeneralOptionQuery = {
-      active: null,
       search: null,
-      limit: 10,
+      active: null,
+      per_page: null,
+      page: null,
+      manufacturer_id: null,
     };
     this.searchQueryChange.emit(result);
     if (this.isOpen()) {
