@@ -1,12 +1,6 @@
-export interface CategoryOptionsResponse {
-  success: boolean;
-  message: string;
-  data: CategoryOption[];
-}
+import { GeneralOption } from '../generals/general-options-response.model';
 
-export interface CategoryOption {
-  id: string;
-  label: string;
-  description: string;
+export interface CategoryOption extends GeneralOption {
   icon: string;
+  description: string;
 }

@@ -27,8 +27,15 @@ export class ProductService {
     return this.http.post<ProductResponse>(`${this.api}/${this.flag}`, payload);
   }
 
+  // update(id: string, payload: UpdateProductPayload) {
+  //   return this.http.patch<ProductResponse>(`${this.api}/${this.flag}/${id}`, payload);
+  // }
+
   update(id: string, payload: UpdateProductPayload) {
-    return this.http.put<ProductResponse>(`${this.api}/${this.flag}/${id}`, payload);
+    return this.http.patch<getAllResponse<ProductResponse>>(
+      `${this.api}/${this.flag}/${id}`,
+      payload,
+    );
   }
 
   delete(id: string) {

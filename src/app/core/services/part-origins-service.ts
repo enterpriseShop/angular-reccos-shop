@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
-import { PartOriginResponse } from '../models/PartOriginResponse.model';
+import { PartOriginResponse } from '../models/part-origin/part-origin-response';
 import { buildHttpParams } from './build-http-params';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
 

@@ -4,7 +4,9 @@ import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { environment } from '../../../environments/environment';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
 import { buildHttpParams } from './build-http-params';
-import { UnitSaleOptionsResponse } from '../models/unit-sale.model';
+import { UnitSaleOptionsResponse } from '../models/units-sale/unit-sale.model';
+import { getAllResponse } from '../models/generals/general-responses-list.model';
+import { GeneralOption } from '../models/generals/general-options-response.model';
 
 @Injectable({ providedIn: 'root' })
 export class UnitSaleService {
@@ -18,6 +20,8 @@ export class UnitSaleService {
 
   getOptions(filters: GeneralOptionQuery) {
     const params = buildHttpParams(filters);
-    return this.http.get<UnitSaleOptionsResponse>(`${this.api}/${this.flag}/options`, { params });
+    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
+      params,
+    });
   }
 }

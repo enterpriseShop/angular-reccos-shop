@@ -29,7 +29,7 @@ export const productTableColumns: TableColumn<ProductResponse>[] = [
     header: 'Estoque',
     width: '100px',
     align: 'center',
-    valueGetter: (p) => p.inventory?.available_quantity ?? 0,
+    valueGetter: (p) => p.inventories?.reduce((acc, inventory) => acc + inventory.quantity, 0) ?? 0,
   },
   {
     key: 'status',

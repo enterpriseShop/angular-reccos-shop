@@ -1,0 +1,267 @@
+<div class="space-y-6">
+  <!-- Fornecedores -->
+  @if (activeTab() === 'fornecimento') {
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
+  >
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+          <app-icon name="building" size="w-5 h-5" class="text-[#4F8A6B]" />
+          Fornecimento & Fornecedores Homologados
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-slate-400">
+          Fornecedor, código, preço de compra, prazo de entrega (lead time), quantidade mínima,
+          preferencial, observações e situação
+        </p>
+      </div>
+
+      @if (!isReadOnly()) {
+      <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="onAddSupplier()">
+        Adicionar Fornecedor
+      </app-button>
+      }
+    </div>
+
+    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+      <table class="w-full text-left text-xs">
+        <thead
+          class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80"
+        >
+          <tr>
+            <th class="px-4 py-2.5">Fornecedor</th>
+            <th class="px-4 py-2.5">Código no Fornecedor</th>
+            <th class="px-4 py-2.5 text-right">Preço Compra</th>
+            <th class="px-4 py-2.5 text-center">Lead Time</th>
+            <th class="px-4 py-2.5 text-center">Qtd. Mínima</th>
+            <th class="px-4 py-2.5 text-center">Preferencial</th>
+            <th class="px-4 py-2.5">Observações</th>
+            <th class="px-4 py-2.5 text-center">Situação</th>
+            <th class="px-4 py-2.5 text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody
+          class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
+        >
+          @for (sup of suppliersPaginated(); track sup.id) {
+          <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+            <td class="px-4 py-3 font-semibold text-gray-900 dark:text-slate-100">
+              {{ sup.supplier.name }}
+            </td>
+            <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300 font-bold">
+              {{ sup.supplier.id }}
+            </td>
+            <td class="px-4 py-3 text-right font-semibold text-emerald-700 dark:text-emerald-400">
+              R$ {{ sup.purchase_price.toFixed(2) }}
+            </td>
+            <td class="px-4 py-3 text-center">{{ sup.lead_time_days }} dias</td>
+            <td class="px-4 py-3 text-center font-mono">
+              {{ sup.minimum_order_quantity || 1 }} un
+            </td>
+            <td class="px-4 py-3 text-center">
+              @if (sup.active) {
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A]"
+              >
+                Sim (Preferencial)
+              </span>
+              } @else if (!isReadOnly()) {
+              <button
+                type="button"
+                (click)="onSetPreferentialSupplier(sup.id)"
+                class="text-gray-400 hover:text-[#4F8A6B] text-[11px] underline"
+              >
+                Tornar Preferencial
+              </button>
+              } @else {
+              <span class="text-gray-400">Não</span>
+              }
+            </td>
+            <td
+              class="px-4 py-3 text-gray-600 dark:text-slate-400 max-w-xs truncate"
+              [title]="sup.observation || ''"
+            >
+              {{ sup.observation || '-' }}
+            </td>
+            <td class="px-4 py-3 text-center">
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                (click)="onToggleSupplierStatus(sup.id)"
+                [class]="(sup.active || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+              >
+                {{ sup.active || 'Ativo' }}
+              </button>
+            </td>
+            <td class="px-4 py-3 text-right">
+              @if (!isReadOnly()) {
+              <button
+                type="button"
+                (click)="onRemoveSupplier(sup.id)"
+                class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40"
+              >
+                <app-icon name="trash-2" size="w-4 h-4" />
+              </button>
+              }
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="9" class="px-4 py-6 text-center text-gray-400">
+              Nenhum fornecedor cadastrado.
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (suppliers().length > 0) {
+    <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
+      <app-pagination
+        [currentPage]="suppliersPage()"
+        [pageSize]="suppliersPageSize()"
+        [totalItems]="suppliers().length"
+        (pageChange)="suppliersPage.set($event)"
+        (pageSizeChange)="suppliersPageSize.set($event)"
+      />
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Tags Multi Select -->
+  @if (activeTab() === 'tags') {
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
+  >
+    <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 mb-1 flex items-center gap-2">
+      <app-icon name="tag" size="w-5 h-5 text-indigo-500" />
+      Tags do Produto (Situação Ativa)
+    </h3>
+    <p class="text-xs text-gray-500 dark:text-slate-400 mb-3">
+      Marque as tags ativas para agrupamento e indexação de busca
+    </p>
+
+    <div class="flex flex-wrap gap-2">
+      @for (tag of availableTags(); track tag.id) {
+      <button
+        type="button"
+        [disabled]="isReadOnly()"
+        (click)="onToggleTag(tag.id)"
+        [class]="isTagSelected(tag.id) ? 'bg-[#4F8A6B] text-white border-[#4F8A6B]' : 'bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:bg-gray-100'"
+        class="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 disabled:opacity-60"
+      >
+        <span>{{ tag.label }}</span>
+        @if (isTagSelected(tag.id)) {
+        <app-icon name="check" size="w-3.5 h-3.5" />
+        }
+      </button>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Observações -->
+  @if (activeTab() === 'observacoes') {
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
+  >
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+          <app-icon name="info" size="w-5 h-5 text-amber-500" />
+          Observações & Notas Internas
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-slate-400">
+          Tipo de observação, descrição completa e situação da nota
+        </p>
+      </div>
+
+      @if (!isReadOnly()) {
+      <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="onAddNote()">
+        Nova Observação
+      </app-button>
+      }
+    </div>
+
+    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700/80">
+      <table class="w-full text-left text-xs">
+        <thead
+          class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80"
+        >
+          <tr>
+            <th class="px-4 py-2.5">Tipo da Observação</th>
+            <th class="px-4 py-2.5">Descrição</th>
+            <th class="px-4 py-2.5">Data Registro</th>
+            <th class="px-4 py-2.5">Autor</th>
+            <th class="px-4 py-2.5 text-center">Situação</th>
+            <th class="px-4 py-2.5 text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody
+          class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
+        >
+          @for (note of notesPaginated(); track note.id) {
+          <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+            <td class="px-4 py-3 font-semibold">
+              <span
+                class="px-2 py-0.5 rounded-md text-[10px] bg-gray-100 dark:bg-slate-700 font-medium"
+              >
+                {{ note.type }}
+              </span>
+            </td>
+            <td class="px-4 py-3 font-medium">{{ note.description }}</td>
+            <td class="px-4 py-3 text-gray-500 dark:text-slate-400">{{ note.date }}</td>
+            <td class="px-4 py-3 text-gray-600 dark:text-slate-300 font-medium">
+              {{ note.author }}
+            </td>
+            <td class="px-4 py-3 text-center">
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                (click)="onToggleNoteStatus(note.id)"
+                [class]="(note.status || 'Ativa') === 'Ativa' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+              >
+                {{ note.status || 'Ativa' }}
+              </button>
+            </td>
+            <td class="px-4 py-3 text-right">
+              @if (!isReadOnly()) {
+              <button
+                type="button"
+                (click)="onRemoveNote(note.id)"
+                class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40"
+              >
+                <app-icon name="trash-2" size="w-4 h-4" />
+              </button>
+              }
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="6" class="px-4 py-6 text-center text-gray-400">
+              Nenhuma observação cadastrada.
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (productNotes().length > 0) {
+    <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
+      <app-pagination
+        [currentPage]="notesPage()"
+        [pageSize]="notesPageSize()"
+        [totalItems]="productNotes().length"
+        (pageChange)="notesPage.set($event)"
+        (pageSizeChange)="notesPageSize.set($event)"
+      />
+    </div>
+    }
+  </div>
+  }
+</div>

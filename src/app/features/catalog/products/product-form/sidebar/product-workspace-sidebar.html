@@ -1,0 +1,291 @@
+<div
+  class="bg-white dark:bg-slate-800/90 border border-gray-200 dark:border-slate-700/80 rounded-2xl shadow-2xs overflow-hidden sticky top-[70px] z-20 backdrop-blur-md"
+>
+  <!-- Header Info Row: Product Title & Quick Jump Select for Mobile -->
+  <div
+    class="flex flex-wrap items-center justify-between gap-3 px-4 pt-3.5 pb-3 border-b border-gray-200/80 dark:border-slate-700/80 bg-gray-50/50 dark:bg-slate-900/40"
+  >
+    <div class="min-w-0 flex-1 space-y-0.5">
+      <div class="flex items-center gap-2">
+        <span
+          class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#4F8A6B] dark:text-[#5BAE6A]"
+        >
+          Abas do Catálogo
+        </span>
+        <span
+          class="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold rounded-full"
+          [style.backgroundColor]="status()?.color ? (status()?.color + '25') : ''"
+          [style.color]="status()?.color || ''"
+          [class]="status()?.color ? '' : 'bg-gray-200 text-gray-700 dark:bg-slate-700 dark:text-slate-300'"
+        >
+          {{ status()?.name || 'Sem Status' }}
+        </span>
+      </div>
+      <h3
+        class="font-bold text-xs sm:text-sm text-gray-900 dark:text-slate-100 truncate leading-tight"
+        [title]="productName()"
+      >
+        {{ productName() || 'Produto sem nome' }} @if (internal_code()) {
+        <span class="text-xs font-mono font-normal text-gray-500 dark:text-slate-400 ml-1.5">
+          (SKU: {{ internal_code() }})
+        </span>
+        }
+      </h3>
+    </div>
+
+    <!-- Dropdown Selector for small screens -->
+    <div class="relative shrink-0 sm:hidden w-36">
+      <select
+        [value]="activeTab()"
+        (change)="onSelectTab($event)"
+        class="w-full pl-2.5 pr-7 py-1 text-xs font-semibold bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-900 dark:text-slate-100 appearance-none focus:outline-none focus:border-[#4F8A6B] focus:ring-2 focus:ring-[#4F8A6B]/20 transition-colors cursor-pointer shadow-2xs"
+      >
+        <optgroup label="Dados Principais">
+          <option value="geral">Dados do Produto</option>
+          <option value="comercial">Preço Comercial</option>
+          <option value="inventario">Estoque & Logística</option>
+        </optgroup>
+        <optgroup label="Enriquecimento">
+          <option value="oem">OEM Codes ({{ oemCodesCount() }})</option>
+          <option value="codigos">Product Codes ({{ productCodesCount() }})</option>
+          <option value="compatibilidade">Aplicações ({{ vehicleApplicationsCount() }})</option>
+          <option value="equivalentes">Equivalentes ({{ equivalentProductsCount() }})</option>
+          <option value="fornecimento">Fornecedores ({{ suppliersCount() }})</option>
+          <option value="tags">Tags ({{ tagsCount() }})</option>
+          <option value="observacoes">Notas & Alertas ({{ notesCount() }})</option>
+        </optgroup>
+      </select>
+      <div
+        class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none text-gray-400 dark:text-slate-500"
+      >
+        <app-icon name="chevron-down" size="w-3.5 h-3.5" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Tab Navigation Bar (No visible scrollbar, edge fade hints, subtle arrows) -->
+  <div class="relative px-1 pt-1 bg-white dark:bg-slate-800 flex items-center">
+    <!-- Left Scroll Button & Edge Fade -->
+    @if (canScrollLeft()) {
+    <div
+      class="absolute left-0 top-0 bottom-0 z-20 flex items-center pl-1 bg-gradient-to-r from-white via-white/90 to-transparent dark:from-slate-800 dark:via-slate-800/90 dark:to-transparent pr-4 pointer-events-none"
+    >
+      <button
+        type="button"
+        (click)="scrollTabs('left')"
+        title="Rolar abas para a esquerda"
+        class="pointer-events-auto p-1.5 rounded-full bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-200 shadow-md border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+      >
+        <app-icon name="chevron-left" size="w-4 h-4" />
+      </button>
+    </div>
+    }
+
+    <!-- Scrollable Tab Container (hidden scrollbar, smooth scrolling) -->
+    <div
+      #navContainer
+      (scroll)="checkScrollState()"
+      role="tablist"
+      aria-label="Navegação em Abas do Produto"
+      class="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth px-3 py-2 -mb-px border-b border-gray-200 dark:border-slate-700/80 w-full"
+    >
+      <!-- Tab 1: Geral -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'geral'"
+        (click)="setActiveTab('geral', $event)"
+        [class]="tabClasses('geral')"
+      >
+        <app-icon name="box" size="w-4 h-4" />
+        <span>Informações Básicas</span>
+        @if (hasTabError('geral')) {
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        }
+      </button>
+
+      <!-- Tab 2: Classificação -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'classification'"
+        (click)="setActiveTab('classification', $event)"
+        [class]="tabClasses('classification')"
+      >
+        <app-icon name="box" size="w-4 h-4" />
+        <span>Classificação</span>
+        @if (hasTabError('classification')) {
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        }
+      </button>
+
+      <!-- Tab 3: Logística -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'logistics'"
+        (click)="setActiveTab('logistics', $event)"
+        [class]="tabClasses('logistics')"
+      >
+        <app-icon name="archive" size="w-4 h-4" />
+        <span>Informações Físicas</span>
+        @if (hasTabError('logistics')) {
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        }
+      </button>
+
+      <!-- Tab 4: Comercial -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'comercial'"
+        (click)="setActiveTab('comercial', $event)"
+        [class]="tabClasses('comercial')"
+      >
+        <app-icon name="dollar-sign" size="w-4 h-4" />
+        <span>Preço</span>
+        @if (hasTabError('comercial')) {
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        }
+      </button>
+
+      <!-- Tab 3: Estoque -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'inventario'"
+        (click)="setActiveTab('inventario', $event)"
+        [class]="tabClasses('inventario')"
+      >
+        <app-icon name="archive" size="w-4 h-4" />
+        <span>Estoque</span>
+        @if (hasTabError('inventario')) {
+        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+        }
+      </button>
+
+      <!-- Separator Divider -->
+      <div class="h-6 w-px bg-gray-200 dark:bg-slate-700 shrink-0 mx-1.5 self-center"></div>
+
+      <!-- Tab 4: Imagens -->
+      <!-- <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'midia'"
+        (click)="setActiveTab('midia', $event)"
+        [class]="tabClasses('midia')"
+      >
+        <app-icon name="image" size="w-4 h-4" />
+        <span>Imagens</span>
+        <span [class]="badgeClasses('midia')">{{ mediaImagesCount() }}</span>
+      </button> -->
+
+      <!-- Tab 5: OEM Codes -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'oem'"
+        (click)="setActiveTab('oem', $event)"
+        [class]="tabClasses('oem')"
+      >
+        <app-icon name="hash" size="w-4 h-4" />
+        <span>OEM Codes</span>
+        <span [class]="badgeClasses('oem')">{{ oemCodesCount() }}</span>
+      </button>
+
+      <!-- Tab 6: Product Codes -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'codigos'"
+        (click)="setActiveTab('codigos', $event)"
+        [class]="tabClasses('codigos')"
+      >
+        <app-icon name="barcode" size="w-4 h-4" />
+        <span>Product Codes</span>
+        <span [class]="badgeClasses('codigos')">{{ productCodesCount() }}</span>
+      </button>
+
+      <!-- Tab 7: Aplicações -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'compatibilidade'"
+        (click)="setActiveTab('compatibilidade', $event)"
+        [class]="tabClasses('compatibilidade')"
+      >
+        <app-icon name="layers" size="w-4 h-4" />
+        <span>Aplicações</span>
+        <span [class]="badgeClasses('compatibilidade')">{{ vehicleApplicationsCount() }}</span>
+      </button>
+
+      <!-- Tab 8: Equivalentes -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'equivalentes'"
+        (click)="setActiveTab('equivalentes', $event)"
+        [class]="tabClasses('equivalentes')"
+      >
+        <app-icon name="copy" size="w-4 h-4" />
+        <span>Equivalentes</span>
+        <span [class]="badgeClasses('equivalentes')">{{ equivalentProductsCount() }}</span>
+      </button>
+
+      <!-- Tab 9: Fornecedores -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'fornecimento'"
+        (click)="setActiveTab('fornecimento', $event)"
+        [class]="tabClasses('fornecimento')"
+      >
+        <app-icon name="truck" size="w-4 h-4" />
+        <span>Fornecedores</span>
+        <span [class]="badgeClasses('fornecimento')">{{ suppliersCount() }}</span>
+      </button>
+
+      <!-- Tab 10: Tags -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'tags'"
+        (click)="setActiveTab('tags', $event)"
+        [class]="tabClasses('tags')"
+      >
+        <app-icon name="tag" size="w-4 h-4" />
+        <span>Tags</span>
+        <span [class]="badgeClasses('tags')">{{ tagsCount() }}</span>
+      </button>
+
+      <!-- Tab 11: Notas & Alertas -->
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'observacoes'"
+        (click)="setActiveTab('observacoes', $event)"
+        [class]="tabClasses('observacoes')"
+      >
+        <app-icon name="file-text" size="w-4 h-4" />
+        <span>Notas & Alertas</span>
+        <span [class]="badgeClasses('observacoes')">{{ notesCount() }}</span>
+      </button>
+    </div>
+
+    <!-- Right Scroll Button & Edge Fade -->
+    @if (canScrollRight()) {
+    <div
+      class="absolute right-0 top-0 bottom-0 z-20 flex items-center pr-1 bg-gradient-to-l from-white via-white/90 to-transparent dark:from-slate-800 dark:via-slate-800/90 dark:to-transparent pl-4 pointer-events-none"
+    >
+      <button
+        type="button"
+        (click)="scrollTabs('right')"
+        title="Rolar abas para a direita"
+        class="pointer-events-auto p-1.5 rounded-full bg-white dark:bg-slate-700 text-gray-600 dark:text-slate-200 shadow-md border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+      >
+        <app-icon name="chevron-right" size="w-4 h-4" />
+      </button>
+    </div>
+    }
+  </div>
+</div>
