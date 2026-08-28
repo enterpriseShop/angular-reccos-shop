@@ -7,34 +7,34 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
-import { ButtonComponent } from '../../../design-system/button/button';
-import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
-import { ProductGeneralTabComponent } from '../components/product-form/general-tab/general-tab';
-import { ProductCreateStepperComponent } from '../components/product-form/stepper/product-create-stepper';
-import { CategoryService } from '../../../core/services/category-service';
-import { ManufacturerService } from '../../../core/services/manufacture-service';
-import { WarehouseService } from '../../../core/services/warehouse-service';
-import { ProductService } from '../../../core/services/product-service';
-import { ToastService } from '../../../core/services/toast';
-import { SelectOption } from '../../../core/models/design-system/select-option.model';
-import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
+import { PageHeaderComponent } from '../../../../design-system/page-header/page-header';
+import { ButtonComponent } from '../../../../design-system/button/button';
+import { ConfirmDialogComponent } from '../../../../design-system/dialog/confirm-dialog';
+import { ProductGeneralTabComponent } from '../product-form/general-tab/general-tab';
+import { ProductCreateStepperComponent } from '../product-form/stepper/product-create-stepper';
+import { CategoryService } from '../../../../core/services/category-service';
+import { ManufacturerService } from '../../../../core/services/manufacture-service';
+import { WarehouseService } from '../../../../core/services/warehouse-service';
+import { ProductService } from '../../../../core/services/product-service';
+import { ToastService } from '../../../../core/services/toast';
+import { SelectOption } from '../../../../core/models/design-system/select-option.model';
+import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
 import {
   createFormToGeneralSource,
   defaultProductCreateFormState,
   ProductCreateFormState,
   toCreateProductPayload,
   toProductGeneralFormData,
-} from '../../../core/models/products/product-create.model';
-import { PartOriginService } from '../../../core/services/part-origins-service';
-import { UnitSaleService } from '../../../core/services/unit-sale-service';
-import { AutocompleteOption } from '../../../core/models/design-system/auto-complete.model';
-import { StatusStore } from '../../../core/store/status-store/status-store';
-import { CategoryStore } from '../../../core/store/category-store/category-store';
-import { UnitSaleStore } from '../../../core/store/unit-sale/unit-sale-store';
-import { WarehouseStore } from '../../../core/store/warehouse/warehouse-store';
-import { PartOriginStore } from '../../../core/store/part-origin/part-origin-store';
-import { ManufacturerStore } from '../../../core/store/manufacturer-store/manufacturer-store';
+} from '../../../../core/models/products/product-create.model';
+import { PartOriginService } from '../../../../core/services/part-origins-service';
+import { UnitSaleService } from '../../../../core/services/unit-sale-service';
+import { AutocompleteOption } from '../../../../core/models/design-system/auto-complete.model';
+import { StatusStore } from '../../../../core/store/status-store/status-store';
+import { CategoryStore } from '../../../../core/store/category-store/category-store';
+import { UnitSaleStore } from '../../../../core/store/unit-sale/unit-sale-store';
+import { WarehouseStore } from '../../../../core/store/warehouse/warehouse-store';
+import { PartOriginStore } from '../../../../core/store/part-origin/part-origin-store';
+import { ManufacturerStore } from '../../../../core/store/manufacturer-store/manufacturer-store';
 
 @Component({
   selector: 'app-product-create',

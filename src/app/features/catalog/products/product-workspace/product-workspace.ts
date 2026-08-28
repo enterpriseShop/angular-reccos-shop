@@ -7,41 +7,45 @@ import {
   signal,
 } from '@angular/core';
 import { Location } from '@angular/common';
-import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
-import { ButtonComponent } from '../../../design-system/button/button';
-import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
-import { AppIconComponent } from '../../../design-system/icon/app-icon';
-import { ProductGeneralTabComponent } from '../components/product-form/general-tab/general-tab';
-import { ProductCommercialTabComponent } from '../components/product-form/commercial-tab/commercial-tab';
-import { ProductInventoryTabComponent } from '../components/product-form/inventory-tab/inventory-tab';
-import { ProductCompatibilityTabComponent } from '../components/product-form/compatibility-tab/compatibility-tab';
-import { ProductWorkspaceSidebarComponent } from '../components/product-form/sidebar/product-workspace-sidebar';
-import { ShellStateService } from '../../../core/services/shell-state';
+import { PageHeaderComponent } from '../../../../design-system/page-header/page-header';
+import { ButtonComponent } from '../../../../design-system/button/button';
+import { ConfirmDialogComponent } from '../../../../design-system/dialog/confirm-dialog';
+import { AppIconComponent } from '../../../../design-system/icon/app-icon';
+import { ProductGeneralTabComponent } from '../product-form/general-tab/general-tab';
+import { ProductCommercialTabComponent } from '../product-form/commercial-tab/commercial-tab';
+import { ProductInventoryTabComponent } from '../product-form/inventory-tab/inventory-tab';
+import { ProductCompatibilityTabComponent } from '../product-form/compatibility-tab/compatibility-tab';
+import { ProductWorkspaceSidebarComponent } from '../product-form/sidebar/product-workspace-sidebar';
+import { ShellStateService } from '../../../../core/services/shell-state';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProductService } from '../../../core/services/product-service';
-import { ToastService } from '../../../core/services/toast';
-import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
-import { ProductResponse } from '../../../core/models/products/product-response.model';
+import { ProductService } from '../../../../core/services/product-service';
+import { ToastService } from '../../../../core/services/toast';
+import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
+import { ProductResponse } from '../../../../core/models/products/product-response.model';
 import {
   UpdateProductPayload,
   mapResponseToPayload,
   defaultUpdatePayload,
   UpdateProductInventoryPayload,
-} from '../../../core/models/products/product-request.model';
-import { isCompatibilityWorkspaceTab } from '../../../core/config/compatibility-modules.config';
-import { ProductGeneralFormData } from '../../../core/models/products/product-create.model';
-import { FormTab, MediaImageItem, ProductWorkspaceMode } from '../models/product-workspace.model';
-import { initialProductPayload } from '../../../core/utils/product-initial-payload';
-import { OemCodeService } from '../../../core/services/code-oem-service';
-import { ManufacturerOption } from '../../../core/models/manufactureres/manufaturer-options.model';
-import { OemCode } from '../../../core/models/oem-codes/oem-codes.model';
-import { ProductByIdService } from '../../../core/services/product-by-id-service';
-import { StatusStore } from '../../../core/store/status-store/status-store';
-import { CategoryStore } from '../../../core/store/category-store/category-store';
-import { UnitSaleStore } from '../../../core/store/unit-sale/unit-sale-store';
-import { WarehouseStore } from '../../../core/store/warehouse/warehouse-store';
-import { ManufacturerStore } from '../../../core/store/manufacturer-store/manufacturer-store';
-import { PartOriginStore } from '../../../core/store/part-origin/part-origin-store';
+} from '../../../../core/models/products/product-request.model';
+import { isCompatibilityWorkspaceTab } from '../../../../core/config/compatibility-modules.config';
+import { ProductGeneralFormData } from '../../../../core/models/products/product-create.model';
+import {
+  FormTab,
+  MediaImageItem,
+  ProductWorkspaceMode,
+} from '../../models/product-workspace.model';
+import { initialProductPayload } from '../../../../core/utils/product-initial-payload';
+import { OemCodeService } from '../../../../core/services/code-oem-service';
+import { ManufacturerOption } from '../../../../core/models/manufactureres/manufaturer-options.model';
+import { OemCode } from '../../../../core/models/oem-codes/oem-codes.model';
+import { ProductByIdService } from '../../../../core/services/product-by-id-service';
+import { StatusStore } from '../../../../core/store/status-store/status-store';
+import { CategoryStore } from '../../../../core/store/category-store/category-store';
+import { UnitSaleStore } from '../../../../core/store/unit-sale/unit-sale-store';
+import { WarehouseStore } from '../../../../core/store/warehouse/warehouse-store';
+import { ManufacturerStore } from '../../../../core/store/manufacturer-store/manufacturer-store';
+import { PartOriginStore } from '../../../../core/store/part-origin/part-origin-store';
 
 @Component({
   selector: 'app-product-workspace',
@@ -805,19 +809,28 @@ export class ProductWorkspaceComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     const fullPayload = this.productForm();
     const modified = this.modifiedTabs();
-    
+
     const payload: Partial<UpdateProductPayload> = {};
 
-    if (modified.has('geral') || modified.has('classification') || modified.has('logistics') || modified.has('visibility')) {
+    if (
+      modified.has('geral') ||
+      modified.has('classification') ||
+      modified.has('logistics') ||
+      modified.has('visibility')
+    ) {
       if (fullPayload.name !== undefined) payload.name = fullPayload.name;
       if (fullPayload.slug !== undefined) payload.slug = fullPayload.slug;
-      if (fullPayload.short_description !== undefined) payload.short_description = fullPayload.short_description;
+      if (fullPayload.short_description !== undefined)
+        payload.short_description = fullPayload.short_description;
       if (fullPayload.description !== undefined) payload.description = fullPayload.description;
       if (fullPayload.category_id !== undefined) payload.category_id = fullPayload.category_id;
-      if (fullPayload.manufacturer_id !== undefined) payload.manufacturer_id = fullPayload.manufacturer_id;
-      if (fullPayload.part_origin_id !== undefined) payload.part_origin_id = fullPayload.part_origin_id;
+      if (fullPayload.manufacturer_id !== undefined)
+        payload.manufacturer_id = fullPayload.manufacturer_id;
+      if (fullPayload.part_origin_id !== undefined)
+        payload.part_origin_id = fullPayload.part_origin_id;
       if (fullPayload.status_id !== undefined) payload.status_id = fullPayload.status_id;
-      if (fullPayload.internal_code !== undefined) payload.internal_code = fullPayload.internal_code;
+      if (fullPayload.internal_code !== undefined)
+        payload.internal_code = fullPayload.internal_code;
       if (fullPayload.barcode !== undefined) payload.barcode = fullPayload.barcode;
       if (fullPayload.unit_id !== undefined) payload.unit_id = fullPayload.unit_id;
       if (fullPayload.weight !== undefined) payload.weight = fullPayload.weight;
@@ -841,15 +854,19 @@ export class ProductWorkspaceComponent implements OnInit {
     }
 
     if (modified.has('codigos')) {
-      if (fullPayload.product_code_ids !== undefined) payload.product_code_ids = fullPayload.product_code_ids;
+      if (fullPayload.product_code_ids !== undefined)
+        payload.product_code_ids = fullPayload.product_code_ids;
     }
 
     if (modified.has('equivalentes')) {
-      if (fullPayload.equivalent_product_ids !== undefined) payload.equivalent_product_ids = fullPayload.equivalent_product_ids;
+      if (fullPayload.equivalent_product_ids !== undefined)
+        payload.equivalent_product_ids = fullPayload.equivalent_product_ids;
     }
 
-    if (modified.has('compatibilidade')) { // Veículos/Aplicações
-      if (fullPayload.application_ids !== undefined) payload.application_ids = fullPayload.application_ids;
+    if (modified.has('compatibilidade')) {
+      // Veículos/Aplicações
+      if (fullPayload.application_ids !== undefined)
+        payload.application_ids = fullPayload.application_ids;
     }
 
     if (modified.has('fornecimento')) {
