@@ -20,6 +20,10 @@ import { ToastService } from '../../../core/services/toast';
 import { CategoryService } from '../../../core/services/category-service';
 import { CategoryResponse } from '../../../core/models/catetories/categories.model';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
+import { categoryTableActions, categoryTableColumns } from '../../../utils/category-table-collums';
+import { CategoryDefaultQuery } from '../../../core/models/catetories/categories-default-query';
+import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
+import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 
 @Component({
   selector: 'app-categories-page',
@@ -44,12 +48,12 @@ export class CategoriesPageComponent implements OnInit {
   private toastService = inject(ToastService);
   private readonly categoryService = inject(CategoryService);
 
+  private readonly perPage = signal<number>(25);
+  private readonly currentPage = signal<number>(1);
+
   readonly loading = signal<boolean>(false);
   readonly searchQuery = signal<string>('');
   readonly selectedStatus = signal<string>('');
-  readonly currentPage = signal<number>(1);
-  readonly pageSize = signal<number>(10);
-  readonly totalItems = signal<number>(0);
 
   // Category Form Drawer State
   readonly isFormOpen = signal<boolean>(false);
@@ -57,11 +61,12 @@ export class CategoriesPageComponent implements OnInit {
   readonly selectedCategory = signal<CategoryResponse | null>(null);
 
   // Delete Dialog State
+  readonly isDeleting = signal<boolean>(false);
   readonly deleteDialogOpen = signal<boolean>(false);
   readonly selectedCategoryForDelete = signal<CategoryResponse | null>(null);
-  readonly isDeleting = signal<boolean>(false);
 
   readonly allCategories = signal<CategoryResponse[]>([]);
+  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
   // Helper map to lookup category names by id for parent resolution
   readonly categoryMap = computed(() => {
@@ -72,91 +77,29 @@ export class CategoriesPageComponent implements OnInit {
     return map;
   });
 
-  readonly columns: TableColumn<CategoryResponse>[] = [
-    {
-      key: 'icon',
-      header: 'Ícone',
-      width: '70px',
-      align: 'center',
-      type: 'icon',
-      iconGetter: (c) => c.icon || 'folder',
-    },
-    { key: 'name', header: 'Nome da Categoria' },
-    {
-      key: 'parent_id',
-      header: 'Categoria Pai',
-      width: '180px',
-      valueGetter: (c) => {
-        if (!c.parent_id) return 'Categoria Raiz';
-        return this.categoryMap().get(c.parent_id) || 'Categoria Pai';
-      },
-    },
-    { key: 'slug', header: 'Slug / URL', width: '160px' },
-    { key: 'display_order', header: 'Ordem', width: '80px', align: 'center' },
-    {
-      key: 'active',
-      header: 'Status',
-      width: '120px',
-      align: 'center',
-      type: 'badge',
-      badgeConfig: (c) => ({
-        text: c.active ? 'Ativo' : 'Inativo',
-        variant: c.active ? 'success' : 'neutral',
-      }),
-    },
-    {
-      key: 'created_at',
-      header: 'Criado em',
-      width: '120px',
-      align: 'center',
-      type: 'date',
-    },
-  ];
+  readonly columns: TableColumn<CategoryResponse>[] = categoryTableColumns;
+  readonly actions: TableAction<CategoryResponse>[] = categoryTableActions;
 
-  readonly actions: TableAction<CategoryResponse>[] = [
-    {
-      id: 'view',
-      label: 'Visualizar',
-      icon: 'eye',
-      colorClass: 'text-gray-400 hover:text-[#5A8DEE] hover:bg-gray-100 dark:hover:bg-slate-700',
-      title: 'Visualizar Detalhes',
-      handler: (c) => this.viewCategory(c),
-    },
-    {
-      id: 'edit',
-      label: 'Editar',
-      icon: 'edit',
-      colorClass: 'text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700',
-      title: 'Editar Categoria',
-      handler: (c) => this.editCategory(c),
-    },
-    {
-      id: 'delete',
-      label: 'Excluir',
-      icon: 'trash-2',
-      colorClass: 'text-gray-400 hover:text-[#D66A6A] hover:bg-gray-100 dark:hover:bg-slate-700',
-      title: 'Excluir Categoria',
-      handler: (c) => this.confirmDelete(c),
-    },
-  ];
+  readonly totalItens = signal<number>(0);
+  query: CategoryDefaultQuery = {
+    name: null,
+    active: null,
+    parent_id: null,
+    page: this.currentPage(),
+    per_page: this.perPage(),
+  };
 
   ngOnInit(): void {
-    this.getPaginationAllCategories();
+    this.getPaginationAllCategories(this.query);
   }
 
-  getPaginationAllCategories(): void {
+  getPaginationAllCategories(filters: CategoryDefaultQuery): void {
     this.loading.set(true);
-    this.categoryService.getAll().subscribe({
+    this.categoryService.getAll(filters).subscribe({
       next: (response) => {
         this.allCategories.set(response.data);
-        if (response.meta) {
-          this.totalItems.set(response.meta.total);
-          this.currentPage.set(response.meta.current_page);
-          this.pageSize.set(response.meta.per_page);
-        } else {
-          this.totalItems.set(response.data.length);
-        }
         this.loading.set(false);
+        this.pagination.set(response.meta);
       },
       error: (error) => {
         this.loading.set(false);
@@ -183,37 +126,52 @@ export class CategoriesPageComponent implements OnInit {
     });
   });
 
-  readonly paginatedCategories = computed(() => {
-    const all = this.filteredCategories();
-    const page = this.currentPage();
-    const size = this.pageSize();
-    const start = (page - 1) * size;
-    return all.slice(start, start + size);
-  });
-
   onSearchChange(query: string): void {
+    this.query = { ...this.query, name: query };
     this.searchQuery.set(query);
-    this.currentPage.set(1);
+    this.getPaginationAllCategories(this.query);
   }
 
   onStatusChange(status: string): void {
+    this.query = { ...this.query, active: status === 'active' };
     this.selectedStatus.set(status);
-    this.currentPage.set(1);
+    this.getPaginationAllCategories(this.query);
   }
 
-  onPageChange(page: number): void {
-    this.currentPage.set(page);
+  onPaginationChange(meta: PaginationMeta): void {
+    this.pagination.set(meta);
+    this.query = {
+      ...this.query,
+      page: meta.current_page,
+      per_page: meta.per_page,
+    };
+    this.getPaginationAllCategories(this.query);
   }
 
-  onPageSizeChange(size: number): void {
-    this.pageSize.set(size);
-    this.currentPage.set(1);
+  onActionClick(event: { actionId: string; row: CategoryResponse }): void {
+    switch (event.actionId) {
+      case 'view':
+        this.viewCategory(event.row);
+        break;
+      case 'edit':
+        this.editCategory(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
   }
 
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedStatus.set('');
-    this.currentPage.set(1);
+    this.query = {
+      name: null,
+      active: null,
+      parent_id: null,
+      page: this.currentPage(),
+      per_page: this.perPage(),
+    };
     this.toastService.info('Filtros limpos', 'Todos os parâmetros de busca foram resetados.');
   }
 
@@ -241,7 +199,7 @@ export class CategoriesPageComponent implements OnInit {
   }
 
   onCategorySaved(): void {
-    this.getPaginationAllCategories();
+    this.getPaginationAllCategories(this.query);
   }
 
   confirmDelete(cat: CategoryResponse): void {
@@ -255,12 +213,12 @@ export class CategoriesPageComponent implements OnInit {
 
     this.isDeleting.set(true);
     this.categoryService.delete(cat.id).subscribe({
-      next: () => {
+      next: (response) => {
         this.isDeleting.set(false);
         this.deleteDialogOpen.set(false);
-        this.allCategories.update((list) => list.filter((c) => c.id !== cat.id));
+        this.getPaginationAllCategories(this.query);
         this.toastService.success(
-          'Categoria Excluída',
+          response.message,
           `A categoria "${cat.name}" foi removida com sucesso.`,
         );
       },

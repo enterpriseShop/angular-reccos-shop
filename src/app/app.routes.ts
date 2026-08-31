@@ -45,8 +45,9 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'catalog/:sub',
-    loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
+    path: 'catalog/categories',
+    loadComponent: () =>
+      import('./features/catalog/categories/categories').then((m) => m.CategoriesPageComponent),
   },
   {
     path: 'compatibility/:sub',

@@ -28,7 +28,7 @@ export interface TableAction<T = Record<string, unknown>> {
   colorClass?: string;
   title?: string;
   visible?: (row: T) => boolean;
-  handler: (row: T) => void;
+  handler?: (row: T) => void;
 }
 
 export interface TablePaginationConfig {

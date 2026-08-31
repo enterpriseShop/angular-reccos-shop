@@ -27,7 +27,7 @@
           class="appearance-none pl-2.5 pr-7 py-1 bg-gray-50 dark:bg-slate-700/80 border border-gray-200 dark:border-slate-600 rounded-lg text-xs font-semibold text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/30 hover:border-gray-300 dark:hover:border-slate-500 transition-all cursor-pointer"
           title="Itens por página"
         >
-          @for (opt of pageSizeOptions(); track opt) {
+          @for (opt of optionsSizes(); track opt) {
           <option [value]="opt" [selected]="opt === pageSize()">{{ opt }} por pág.</option>
           }
         </select>
@@ -46,7 +46,7 @@
     <!-- First Page Button -->
     <button
       type="button"
-      [disabled]="currentPage() <= 1"
+      [disabled]="pagination().current_page <= 1"
       (click)="goToPage(1)"
       class="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
       title="Primeira Página"
@@ -57,8 +57,8 @@
     <!-- Previous Page Button -->
     <button
       type="button"
-      [disabled]="currentPage() <= 1"
-      (click)="goToPage(currentPage() - 1)"
+      [disabled]="pagination().current_page <= 1"
+      (click)="goToPage(pagination().from || 0)"
       class="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
       title="Página Anterior"
     >
@@ -69,7 +69,7 @@
     <div
       class="sm:hidden px-3 py-1 bg-[#EAF4EE] dark:bg-slate-700 text-[#4F8A6B] dark:text-[#5BAE6A] font-semibold rounded-lg text-xs"
     >
-      {{ currentPage() }} / {{ totalPages() }}
+      {{ pagination().current_page }} / {{ pagination().total }}
     </div>
 
     <!-- Desktop Page Number Buttons -->
@@ -78,7 +78,7 @@
       <button
         type="button"
         (click)="goToPage(item.page!)"
-        [class]="item.page === currentPage()
+        [class]="item.page === pagination().current_page
               ? 'bg-[#4F8A6B] text-white font-bold border-[#4F8A6B] shadow-xs'
               : 'border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 font-medium'"
         class="min-w-[32px] h-[32px] px-2 rounded-lg flex items-center justify-center text-xs transition-all cursor-pointer"
@@ -93,8 +93,8 @@
     <!-- Next Page Button -->
     <button
       type="button"
-      [disabled]="currentPage() >= totalPages()"
-      (click)="goToPage(currentPage() + 1)"
+      [disabled]="pagination().current_page >= pagination().last_page"
+      (click)="goToPage(pagination().current_page + 1)"
       class="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
       title="Próxima Página"
     >
@@ -104,8 +104,8 @@
     <!-- Last Page Button -->
     <button
       type="button"
-      [disabled]="currentPage() >= totalPages()"
-      (click)="goToPage(totalPages())"
+      [disabled]="pagination().current_page >= pagination().last_page"
+      (click)="goToPage(pagination().last_page)"
       class="p-1.5 rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all"
       title="Última Página"
     >
@@ -113,7 +113,7 @@
     </button>
 
     <!-- Quick Jump to Page (Optional Input) -->
-    @if (totalPages() > 5) {
+    @if (pagination().last_page > 5) {
     <div
       class="hidden lg:flex items-center gap-1.5 ml-2 pl-2 border-l border-gray-200 dark:border-slate-700"
     >
@@ -121,8 +121,8 @@
       <input
         type="number"
         min="1"
-        [max]="totalPages()"
-        [value]="currentPage()"
+        [max]="pagination().last_page"
+        [value]="pagination().current_page"
         (keydown.enter)="onDirectJump($event)"
         (blur)="onDirectJump($event)"
         class="w-11 px-1.5 py-1 text-center bg-gray-50 dark:bg-slate-700/80 border border-gray-200 dark:border-slate-600 rounded-lg text-xs font-medium text-gray-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4F8A6B]"

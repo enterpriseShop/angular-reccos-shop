@@ -6,7 +6,7 @@
 >
   <div actions class="flex items-center gap-2">
     <app-button variant="outline" size="sm" iconStart="download" (btnClick)="onAction('Exportar')">
-      Exportar Relatório
+      Exportar Relatório33
     </app-button>
     <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="onAction('Novo Cadastro')">
       {{ pageDetails().buttonText }}
@@ -41,12 +41,12 @@
     (deleteRow)="onAction('Excluir')"
   />
 
-  <app-pagination
+  <!-- <app-pagination
     [currentPage]="currentPage()"
     [pageSize]="pageSize()"
     [totalItems]="filteredData().length"
     [pageSizeOptions]="[5, 10, 25]"
     (pageChange)="currentPage.set($event)"
     (pageSizeChange)="onPageSizeChange($event)"
-  />
+  /> -->
 </div>

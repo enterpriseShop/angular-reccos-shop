@@ -5,7 +5,6 @@ import { ToolbarComponent } from '../design-system/toolbar/toolbar';
 import { SearchInputComponent } from '../design-system/input/search-input';
 import { ButtonComponent } from '../design-system/button/button';
 import { DataTableComponent, ColumnDef } from '../design-system/data-table/data-table';
-import { PaginationComponent } from '../design-system/pagination/pagination';
 import { ToastService } from '../core/services/toast';
 
 export interface PlaceholderRowItem extends Record<string, unknown> {
@@ -25,7 +24,6 @@ export interface PlaceholderRowItem extends Record<string, unknown> {
     SearchInputComponent,
     ButtonComponent,
     DataTableComponent,
-    PaginationComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './placeholder.html',
