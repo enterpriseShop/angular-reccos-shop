@@ -119,13 +119,20 @@
   />
 
   <app-pagination
+    [pagination]="pagination()"
+    [pageSizeOptions]="[5, 10, 25, 50]"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+
+  <!-- <app-pagination
     [currentPage]="currentPage()"
     [pageSize]="pageSize()"
     [totalItems]="filteredProducts().length"
     [pageSizeOptions]="[5, 10, 25, 50]"
     (pageChange)="onPageChange($event)"
     (pageSizeChange)="onPageSizeChange($event)"
-  />
+  /> -->
 </div>
 
 <!-- Delete Confirmation Dialog -->

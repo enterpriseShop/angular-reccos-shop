@@ -1,0 +1,123 @@
+<!-- Page Header -->
+<app-page-header
+  title="Fabricantes e Marcas"
+  subtitle="Gerenciamento de marcas parceiras, logomarcas, slugs e presença institucional no catálogo."
+  [breadcrumbs]="[
+    { label: 'Catálogo', route: '/catalog/products' },
+    { label: 'Fabricantes' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newManufacturer()">
+      Novo Fabricante
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick KPI Summary Strip -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+  <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center">
+        <app-icon name="building" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">Total de Fabricantes</span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">{{ totalCount() }} cadastrados</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center">
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">Fabricantes Ativos</span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">{{ activeCount() }} marcas ativas</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center">
+        <app-icon name="globe" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">Com Website Oficial</span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">{{ withWebsiteCount() }} verificados</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por nome, slug ou website..."
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="[
+        { label: 'Todos os Status', value: '' },
+        { label: 'Ativo', value: 'active' },
+        { label: 'Inativo', value: 'inactive' }
+      ]"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="paginatedManufacturers()"
+    [actions]="actions"
+    [loading]="loading()"
+    [roundedBottom]="false"
+  />
+
+  <app-pagination
+    [currentPage]="currentPage()"
+    [pageSize]="pageSize()"
+    [totalItems]="filteredManufacturers().length"
+    [pageSizeOptions]="[5, 10, 25, 50]"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Fabricante do Catálogo"
+  [message]="'Tem certeza de que deseja remover o fabricante ' + (selectedManufacturerForDelete()?.name || '') + '?'"
+  type="danger"
+  confirmText="Excluir Fabricante"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- Manufacturer Create / Edit / View Drawer Form -->
+<app-manufacturer-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [manufacturer]="selectedManufacturer()"
+  (closeForm)="closeForm()"
+  (manufacturerSaved)="onManufacturerSaved()"
+/>

@@ -250,7 +250,6 @@
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
       <app-pagination
         [currentPage]="oemPagination().page"
-        [pageSize]="oemPagination().per_page"
         [totalItems]="oemTotalItens()"
         (pageChange)="onOemPageChange($event)"
         (pageSizeChange)="onOemPageSizeChange($event)"
@@ -339,7 +338,6 @@
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
       <app-pagination
         [currentPage]="productCodesPage()"
-        [pageSize]="productCodesPageSize()"
         [totalItems]="productCodes().length"
         (pageChange)="productCodesPage.set($event)"
         (pageSizeChange)="productCodesPageSize.set($event)"
@@ -444,7 +442,6 @@
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
       <app-pagination
         [currentPage]="equivalentPage()"
-        [pageSize]="equivalentPageSize()"
         [totalItems]="equivalentProducts().length"
         (pageChange)="equivalentPage.set($event)"
         (pageSizeChange)="equivalentPageSize.set($event)"
@@ -559,13 +556,14 @@
 
     @if (vehicleApplications().length > 0) {
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
-      <app-pagination
+      <p>pagination</p>
+      <!-- <app-pagination
         [currentPage]="vehiclePage()"
         [pageSize]="vehiclePageSize()"
         [totalItems]="vehicleApplications().length"
         (pageChange)="vehiclePage.set($event)"
         (pageSizeChange)="vehiclePageSize.set($event)"
-      />
+      /> -->
     </div>
     }
   </div>

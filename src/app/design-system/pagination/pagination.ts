@@ -1,5 +1,7 @@
-import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed, signal } from '@angular/core';
 import { AppIconComponent } from '../icon/app-icon';
+import { PaginationMeta } from '../../core/models/pagination/pagination.model';
+import { initialValuesPagination } from './utils/initial-values';
 
 export interface PageItem {
   type: 'page' | 'ellipsis';
@@ -15,44 +17,53 @@ export interface PageItem {
   styleUrl: './pagination.css',
 })
 export class PaginationComponent {
-  readonly currentPage = input<number>(1);
-  readonly pageSize = input<number>(10);
-  readonly totalItems = input<number>(0);
   readonly pageSizeOptions = input<number[]>([10, 25, 50, 100]);
   readonly showPageSize = input<boolean>(true);
   readonly showItemRange = input<boolean>(true);
+  readonly pagination = input<PaginationMeta>(initialValuesPagination);
+  readonly optionsSizes = signal<number[]>([5, 10, 25, 50, 100]);
+
+  // Evento Unificado para o Pai
+  readonly paginationChange = output<PaginationMeta>();
+
+  //remover depois
+  readonly currentPage = input<number>();
+  readonly totalItems = input<number>();
 
   readonly pageChange = output<number>();
   readonly pageSizeChange = output<number>();
 
   readonly totalPages = computed(() => {
-    return Math.max(1, Math.ceil(this.totalItems() / this.pageSize()));
+    return this.pagination().last_page;
+  });
+
+  readonly pageSize = computed(() => {
+    return this.pagination().per_page;
   });
 
   readonly startItem = computed(() => {
-    if (this.totalItems() === 0) return 0;
-    return (this.currentPage() - 1) * this.pageSize() + 1;
+    return this.pagination().from;
   });
 
   readonly endItem = computed(() => {
-    return Math.min(this.currentPage() * this.pageSize(), this.totalItems());
+    return this.pagination().to;
   });
 
   readonly startItemFormatted = computed(() => {
-    return this.startItem().toLocaleString('pt-BR');
+    return this.startItem()?.toLocaleString('pt-BR');
   });
 
   readonly endItemFormatted = computed(() => {
-    return this.endItem().toLocaleString('pt-BR');
+    return this.endItem()?.toLocaleString('pt-BR');
   });
 
   readonly totalItemsFormatted = computed(() => {
-    return this.totalItems().toLocaleString('pt-BR');
+    return this.pagination().total.toLocaleString('pt-BR');
   });
 
   readonly visiblePages = computed<PageItem[]>(() => {
     const total = this.totalPages();
-    const current = this.currentPage();
+    const current = this.pagination().current_page;
 
     if (total <= 7) {
       const items: PageItem[] = [];
@@ -90,15 +101,37 @@ export class PaginationComponent {
   });
 
   goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages() && page !== this.currentPage()) {
-      this.pageChange.emit(page);
-    }
+    const currentMeta = this.pagination();
+
+    // Evita ir para páginas inválidas ou para a página atual
+    if (page < 1 || page > this.totalPages() || page === currentMeta.current_page) return;
+
+    // Emite o evento individual simples
+    this.pageChange.emit(page);
+
+    // Emite o objeto PaginationMeta atualizado mantendo per_page
+    this.paginationChange.emit({
+      ...currentMeta,
+      current_page: page,
+    });
   }
 
   onPageSizeChange(event: Event): void {
     const size = parseInt((event.target as HTMLSelectElement).value, 10);
-    if (!isNaN(size)) {
+    const currentMeta = this.pagination();
+
+    if (!isNaN(size) && size !== currentMeta.per_page) {
       this.pageSizeChange.emit(size);
+
+      if (currentMeta.current_page !== 1) {
+        this.pageChange.emit(1);
+      }
+
+      this.paginationChange.emit({
+        ...currentMeta,
+        current_page: 1,
+        per_page: size,
+      });
     }
   }
 
@@ -108,7 +141,7 @@ export class PaginationComponent {
     if (!isNaN(val) && val >= 1 && val <= this.totalPages()) {
       this.goToPage(val);
     } else {
-      inputEl.value = this.currentPage().toString();
+      inputEl.value = this.pagination().current_page.toString();
     }
   }
 }

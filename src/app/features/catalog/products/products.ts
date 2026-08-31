@@ -21,6 +21,8 @@ import { ProductResponse } from '../../../core/models/products/product-response.
 import { ProductService } from '../../../core/services/product-service';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
 import { productTableActions, productTableColumns } from '../../../utils/product-table-collum';
+import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
+import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 
 export interface ProductItem extends Record<string, unknown> {
   id: string;
@@ -72,6 +74,7 @@ export class ProductsPageComponent implements OnInit {
 
   readonly columns: TableColumn<ProductResponse>[] = productTableColumns;
   readonly actions: TableAction<ProductResponse>[] = productTableActions;
+  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
   readonly filteredProducts = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -111,6 +114,7 @@ export class ProductsPageComponent implements OnInit {
         } else {
           this.totalItems.set(response.data.length);
         }
+        this.pagination.set(response.meta);
         this.loading.set(false);
       },
       error: (error) => {

@@ -31,6 +31,7 @@ export class ManufacturerStore extends OptionCacheStore<
           icon: 'chevrons-right',
           hasSubOptions: true,
           description: option.sublabel,
+          is_parent: false,
         })),
       })),
     );

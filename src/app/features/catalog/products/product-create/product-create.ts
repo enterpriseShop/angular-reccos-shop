@@ -133,6 +133,7 @@ export class ProductCreateComponent implements OnInit {
           icon: c.icon || 'folder',
           description: c.description,
           disabled: false,
+          is_parent: false,
         }));
         this.fetchedCategories.set(opts);
         this.categoryLoading.set(false);
@@ -269,6 +270,7 @@ export class ProductCreateComponent implements OnInit {
           sublabel: c.sublabel,
           icon: c.icon || 'folder',
           description: c.description,
+          is_parent: false,
         }));
         this.fetchedCategories.set(opts);
         this.categoryLoading.set(false);
@@ -288,6 +290,7 @@ export class ProductCreateComponent implements OnInit {
           sublabel: m.sublabel,
           icon: 'folder',
           description: '',
+          is_parent: false,
         }));
         this.fetchedManufacturers.set(opts);
         this.manufacturerLoading.set(false);

@@ -166,7 +166,7 @@ export class DataTableComponent<T extends Record<string, unknown>> {
 
   onActionClick(action: TableAction<T>, row: T, event: MouseEvent): void {
     event.stopPropagation();
-    if (action.id) {
+    if (action.handler) {
       action.handler(row);
     }
     console.log('[ON ACTION CLICK]', action, action.id);

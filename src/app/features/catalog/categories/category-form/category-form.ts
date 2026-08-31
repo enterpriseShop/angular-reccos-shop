@@ -6,15 +6,21 @@ import {
   signal,
   computed,
   effect,
-  inject
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../design-system/icon/app-icon';
 import { DrawerComponent } from '../../../../design-system/drawer/drawer';
-import { CategoryService } from '../../../../core/services/category';
 import { ToastService } from '../../../../core/services/toast';
-import { Category, CreateCategoryPayload, UpdateCategoryPayload } from '../../../../core/models/category';
+import { CategoryService } from '../../../../core/services/category-service';
+import {
+  CategoryResponse,
+  CreateCategoryPayload,
+  UpdateCategoryPayload,
+} from '../../../../core/models/catetories/categories.model';
+import { CategoryStore } from '../../../../core/store/category-store/category-store';
+import { AutocompleteOption } from '../../../../core/models/design-system/auto-complete.model';
 
 export interface CategoryFormData {
   parent_id: string | null;
@@ -53,33 +59,30 @@ export const CURATED_CATEGORY_ICONS: CuratedIcon[] = [
   { name: 'droplet', label: 'Fluido / Óleo', category: 'Fluidos' },
   { name: 'wind', label: 'Ar / Climatização', category: 'Arrefecimento' },
   { name: 'gauge', label: 'Pressão / Medição', category: 'Sensores' },
-  { name: 'grid', label: 'Grade / Estrutura', category: 'Carroceria' }
+  { name: 'grid', label: 'Grade / Estrutura', category: 'Carroceria' },
 ];
 
 @Component({
   selector: 'app-category-form',
   standalone: true,
-  imports: [
-    CommonModule,
-    ButtonComponent,
-    AppIconComponent,
-    DrawerComponent
-  ],
+  imports: [CommonModule, ButtonComponent, AppIconComponent, DrawerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './category-form.html',
-  styleUrl: './category-form.css'
+  styleUrl: './category-form.css',
 })
 export class CategoryFormComponent {
-  private categoryService = inject(CategoryService);
   private toastService = inject(ToastService);
+  private categoryStore = inject(CategoryStore);
+  private categoryService = inject(CategoryService);
 
   readonly isOpen = input<boolean>(false);
   readonly mode = input<'create' | 'edit' | 'view'>('create');
-  readonly category = input<Category | null>(null);
-  readonly categoriesList = input<Category[]>([]);
+  readonly totalItens = input<number>(0);
+  readonly category = input<CategoryResponse | null>(null);
+  readonly categoriesList = input<CategoryResponse[]>([]);
 
   readonly closeForm = output<void>();
-  readonly categorySaved = output<Category>();
+  readonly categorySaved = output<CategoryResponse>();
 
   // Reactive State Signals
   readonly isSubmitting = signal<boolean>(false);
@@ -105,6 +108,7 @@ export class CategoryFormComponent {
       const open = this.isOpen();
       const cat = this.category();
       const currentMode = this.mode();
+      console.log(['effect'], open, cat, currentMode);
 
       if (open) {
         this.formErrors.set({});
@@ -117,7 +121,7 @@ export class CategoryFormComponent {
             this.name.set(cat.name || '');
             this.slug.set(cat.slug || '');
             this.description.set(cat.description || '');
-            this.displayOrder.set(typeof cat.display_order === 'number' ? cat.display_order : 0);
+            this.displayOrder.set(cat?.display_order || 0);
             this.icon.set(cat.icon || 'folder');
             this.image.set(cat.image || '');
             this.active.set(cat.active !== undefined ? Boolean(cat.active) : true);
@@ -129,7 +133,7 @@ export class CategoryFormComponent {
           this.name.set('');
           this.slug.set('');
           this.description.set('');
-          this.displayOrder.set(this.suggestNextDisplayOrder());
+          this.displayOrder.set(this.totalItens() + 1);
           this.icon.set('folder');
           this.image.set('');
           this.active.set(true);
@@ -141,18 +145,10 @@ export class CategoryFormComponent {
 
   // Parent Category Options filtered to avoid cyclical hierarchy
   readonly parentCategoryOptions = computed(() => {
-    const list = this.categoriesList();
-    const currentCat = this.category();
-    const currentId = currentCat?.id;
-
-    return list.filter((c) => {
-      if (!currentId) return true;
-      // Do not allow selecting self as parent
-      if (c.id === currentId) return false;
-      // Do not allow selecting children of self if hierarchical
-      if (c.parent_id === currentId) return false;
-      return true;
-    });
+    const list = this.categoryStore
+      .optionList()
+      .filter((c: AutocompleteOption) => c.is_parent === true);
+    return list;
   });
 
   // Filtered Curated Icons list
@@ -160,7 +156,10 @@ export class CategoryFormComponent {
     const q = this.iconSearchQuery().toLowerCase().trim();
     if (!q) return CURATED_CATEGORY_ICONS;
     return CURATED_CATEGORY_ICONS.filter(
-      (item) => item.name.toLowerCase().includes(q) || item.label.toLowerCase().includes(q) || item.category.toLowerCase().includes(q)
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        item.label.toLowerCase().includes(q) ||
+        item.category.toLowerCase().includes(q),
     );
   });
 
@@ -190,10 +189,7 @@ export class CategoryFormComponent {
   }
 
   private suggestNextDisplayOrder(): number {
-    const list = this.categoriesList();
-    if (list.length === 0) return 1;
-    const max = Math.max(...list.map((c) => c.display_order || 0), 0);
-    return max + 1;
+    return this.totalItens() + 1;
   }
 
   // Event Handlers for Inputs
@@ -231,7 +227,7 @@ export class CategoryFormComponent {
 
   onParentChange(event: Event): void {
     const val = (event.target as HTMLSelectElement).value;
-    this.parentId.set(val === '' ? null : val);
+    this.parentId.set(val === 'abc' ? null : val);
   }
 
   onDescriptionChange(event: Event): void {
@@ -241,7 +237,9 @@ export class CategoryFormComponent {
 
   onDisplayOrderChange(event: Event): void {
     const val = parseInt((event.target as HTMLInputElement).value, 10);
+    console.log('display order:', val);
     this.displayOrder.set(isNaN(val) || val < 0 ? 0 : val);
+    console.log('display order:', this.displayOrder());
   }
 
   incrementDisplayOrder(): void {
@@ -330,7 +328,10 @@ export class CategoryFormComponent {
     }
 
     if (!this.validateForm()) {
-      this.toastService.error('Formulário Inválido', 'Corrija os campos indicados antes de salvar.');
+      this.toastService.error(
+        'Formulário Inválido',
+        'Corrija os campos indicados antes de salvar.',
+      );
       return;
     }
 
@@ -344,15 +345,21 @@ export class CategoryFormComponent {
       display_order: this.displayOrder(),
       icon: this.icon().trim() || 'folder',
       image: this.image().trim() || null,
-      active: this.active()
+      active: this.active(),
     };
+
+    // console.log('ITEMS PARA UPDATE/SAVE', payload);
+    // return;
 
     if (this.mode() === 'edit' && this.category()?.id) {
       const id = this.category()!.id;
       this.categoryService.update(id, payload).subscribe({
         next: (response) => {
           this.isSubmitting.set(false);
-          this.toastService.success('Categoria Atualizada', `A categoria "${response.data.name}" foi salva com sucesso.`);
+          this.toastService.success(
+            'Categoria Atualizada',
+            `A categoria "${response.data.name}" foi salva com sucesso.`,
+          );
           this.categorySaved.emit(response.data);
           this.close();
         },
@@ -363,17 +370,22 @@ export class CategoryFormComponent {
           if (err.error?.errors) {
             const serverErrors: Record<string, string> = {};
             for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key]) ? err.error.errors[key][0] : String(err.error.errors[key]);
+              serverErrors[key] = Array.isArray(err.error.errors[key])
+                ? err.error.errors[key][0]
+                : String(err.error.errors[key]);
             }
             this.formErrors.set(serverErrors);
           }
-        }
+        },
       });
     } else {
       this.categoryService.create(payload as CreateCategoryPayload).subscribe({
         next: (response) => {
           this.isSubmitting.set(false);
-          this.toastService.success('Categoria Criada', `A categoria "${response.data.name}" foi cadastrada com sucesso.`);
+          this.toastService.success(
+            'Categoria Criada',
+            `A categoria "${response.data.name}" foi cadastrada com sucesso.`,
+          );
           this.categorySaved.emit(response.data);
           this.close();
         },
@@ -384,11 +396,13 @@ export class CategoryFormComponent {
           if (err.error?.errors) {
             const serverErrors: Record<string, string> = {};
             for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key]) ? err.error.errors[key][0] : String(err.error.errors[key]);
+              serverErrors[key] = Array.isArray(err.error.errors[key])
+                ? err.error.errors[key][0]
+                : String(err.error.errors[key]);
             }
             this.formErrors.set(serverErrors);
           }
-        }
+        },
       });
     }
   }
