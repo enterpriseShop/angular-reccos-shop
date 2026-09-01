@@ -6,32 +6,24 @@ import {
   signal,
   computed,
   effect,
-  inject
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../design-system/icon/app-icon';
 import { DrawerComponent } from '../../../../design-system/drawer/drawer';
-import { ManufacturerService } from '../../../../core/services/manufacturer';
 import { ToastService } from '../../../../core/services/toast';
-import {
-  Manufacturer,
-  CreateManufacturerPayload,
-  UpdateManufacturerPayload
-} from '../../../../core/models/manufacturer';
+import { ManufacturerRequest } from '../../../../core/models/manufactureres/manufacturer-request.model';
+import { ManufacturerService } from '../../../../core/services/manufacture-service';
+import { ManufacturerResponse } from '../../../../core/models/manufactureres/manufacturer-response.model';
 
 @Component({
   selector: 'app-manufacturer-form',
   standalone: true,
-  imports: [
-    CommonModule,
-    ButtonComponent,
-    AppIconComponent,
-    DrawerComponent
-  ],
+  imports: [CommonModule, ButtonComponent, AppIconComponent, DrawerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './manufacturer-form.html',
-  styleUrl: './manufacturer-form.css'
+  styleUrl: './manufacturer-form.css',
 })
 export class ManufacturerFormComponent {
   private manufacturerService = inject(ManufacturerService);
@@ -39,10 +31,10 @@ export class ManufacturerFormComponent {
 
   readonly isOpen = input<boolean>(false);
   readonly mode = input<'create' | 'edit' | 'view'>('create');
-  readonly manufacturer = input<Manufacturer | null>(null);
+  readonly manufacturer = input<ManufacturerResponse | null>(null);
 
   readonly closeForm = output<void>();
-  readonly manufacturerSaved = output<Manufacturer>();
+  readonly manufacturerSaved = output<ManufacturerResponse>();
 
   // Reactive State Signals
   readonly isSubmitting = signal<boolean>(false);
@@ -230,28 +222,31 @@ export class ManufacturerFormComponent {
     }
 
     if (!this.validateForm()) {
-      this.toastService.error('Formulário Inválido', 'Corrija os campos indicados antes de salvar.');
+      this.toastService.error(
+        'Formulário Inválido',
+        'Corrija os campos indicados antes de salvar.',
+      );
       return;
     }
 
     this.isSubmitting.set(true);
 
-    const payload: CreateManufacturerPayload | UpdateManufacturerPayload = {
+    const payload: ManufacturerRequest = {
       name: this.name().trim(),
       slug: this.slug().trim(),
-      image: this.image().trim() || null,
-      website: this.website().trim() || null,
-      active: this.active()
+      image: this.image().trim(),
+      website: this.website().trim(),
+      active: this.active(),
     };
 
     if (this.mode() === 'edit' && this.manufacturer()?.id) {
       const id = this.manufacturer()!.id;
-      this.manufacturerService.update(id, payload).subscribe({
+      this.manufacturerService.updateManufacturer(id, payload).subscribe({
         next: (response) => {
           this.isSubmitting.set(false);
           this.toastService.success(
             'Fabricante Atualizado',
-            `O fabricante "${response.data.name}" foi salvo com sucesso.`
+            `O fabricante "${response.data.name}" foi salvo com sucesso.`,
           );
           this.manufacturerSaved.emit(response.data);
           this.close();
@@ -269,15 +264,15 @@ export class ManufacturerFormComponent {
             }
             this.formErrors.set(serverErrors);
           }
-        }
+        },
       });
     } else {
-      this.manufacturerService.create(payload as CreateManufacturerPayload).subscribe({
+      this.manufacturerService.createManufacturer(payload).subscribe({
         next: (response) => {
           this.isSubmitting.set(false);
           this.toastService.success(
             'Fabricante Criado',
-            `O fabricante "${response.data.name}" foi cadastrado com sucesso.`
+            `O fabricante "${response.data.name}" foi cadastrado com sucesso.`,
           );
           this.manufacturerSaved.emit(response.data);
           this.close();
@@ -295,7 +290,7 @@ export class ManufacturerFormComponent {
             }
             this.formErrors.set(serverErrors);
           }
-        }
+        },
       });
     }
   }

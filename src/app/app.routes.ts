@@ -50,6 +50,13 @@ export const routes: Routes = [
       import('./features/catalog/categories/categories').then((m) => m.CategoriesPageComponent),
   },
   {
+    path: 'catalog/manufacturers',
+    loadComponent: () =>
+      import('./features/catalog/manufacturer/manufacturers').then(
+        (m) => m.ManufacturersPageComponent,
+      ),
+  },
+  {
     path: 'compatibility/:sub',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },
