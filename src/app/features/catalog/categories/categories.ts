@@ -3,10 +3,14 @@ import {
   Component,
   computed,
   inject,
+  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
 import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
 import { ToolbarComponent } from '../../../design-system/toolbar/toolbar';
 import { SearchInputComponent } from '../../../design-system/input/search-input';
@@ -43,17 +47,21 @@ import { initialValuesPagination } from '../../../design-system/pagination/utils
   templateUrl: './categories.html',
   styleUrl: './categories.css',
 })
-export class CategoriesPageComponent implements OnInit {
+export class CategoriesPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private toastService = inject(ToastService);
   private readonly categoryService = inject(CategoryService);
 
-  private readonly perPage = signal<number>(25);
+  private readonly perPage = signal<number>(10);
   private readonly currentPage = signal<number>(1);
 
   readonly loading = signal<boolean>(false);
   readonly searchQuery = signal<string>('');
   readonly selectedStatus = signal<string>('');
+
+  // Subject para gerenciar o debounce da digitação no campo de busca
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
 
   // Category Form Drawer State
   readonly isFormOpen = signal<boolean>(false);
@@ -82,7 +90,7 @@ export class CategoriesPageComponent implements OnInit {
 
   readonly totalItens = signal<number>(0);
   query: CategoryDefaultQuery = {
-    name: null,
+    search: null,
     active: null,
     parent_id: null,
     page: this.currentPage(),
@@ -90,7 +98,25 @@ export class CategoriesPageComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    // 1. Busca inicial
     this.getPaginationAllCategories(this.query);
+
+    // 2. Inscrição para escutar a busca com debounce de 400ms
+    this.searchSubscription = this.searchSubject
+      .pipe(debounceTime(400), distinctUntilChanged())
+      .subscribe((queryText) => {
+        this.currentPage.set(1);
+        this.query = {
+          ...this.query,
+          search: queryText || null,
+          page: 1,
+        };
+        this.getPaginationAllCategories(this.query);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubscription?.unsubscribe();
   }
 
   getPaginationAllCategories(filters: CategoryDefaultQuery): void {
@@ -111,30 +137,24 @@ export class CategoriesPageComponent implements OnInit {
     });
   }
 
-  readonly filteredCategories = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const st = this.selectedStatus();
-
-    return this.allCategories().filter((c) => {
-      const matchesQ =
-        !q ||
-        c.name.toLowerCase().includes(q) ||
-        c.slug.toLowerCase().includes(q) ||
-        (c.description || '').toLowerCase().includes(q);
-      const matchesSt = !st || (st === 'active' ? c.active : !c.active);
-      return matchesQ && matchesSt;
-    });
-  });
-
   onSearchChange(query: string): void {
-    this.query = { ...this.query, name: query };
     this.searchQuery.set(query);
-    this.getPaginationAllCategories(this.query);
+    this.searchSubject.next(query);
   }
 
   onStatusChange(status: string): void {
-    this.query = { ...this.query, active: status === 'active' };
+    let activeValue: boolean | null = null;
+    if (status === 'active') activeValue = true;
+    if (status === 'inactive') activeValue = false;
+
     this.selectedStatus.set(status);
+    this.currentPage.set(1);
+
+    this.query = {
+      ...this.query,
+      active: activeValue,
+      page: 1,
+    };
     this.getPaginationAllCategories(this.query);
   }
 
@@ -165,13 +185,16 @@ export class CategoriesPageComponent implements OnInit {
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedStatus.set('');
+    this.currentPage.set(1);
+
     this.query = {
-      name: null,
+      search: null,
       active: null,
       parent_id: null,
-      page: this.currentPage(),
+      page: 1,
       per_page: this.perPage(),
     };
+    this.getPaginationAllCategories(this.query);
     this.toastService.info('Filtros limpos', 'Todos os parâmetros de busca foram resetados.');
   }
 

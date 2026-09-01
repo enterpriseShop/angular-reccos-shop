@@ -1,4 +1,4 @@
-export interface ManufacturerResponse {
+export interface ManufacturerResponse extends Record<string, unknown> {
   id: string;
   name: string;
   slug: string;
