@@ -24,10 +24,15 @@ import { ToastService } from '../../../core/services/toast';
 import { CategoryService } from '../../../core/services/category-service';
 import { CategoryResponse } from '../../../core/models/catetories/categories.model';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
-import { categoryTableActions, categoryTableColumns } from '../../../utils/category-table-collums';
+import {
+  categoryStatusOptions,
+  categoryTableActions,
+  categoryTableColumns,
+} from '../../../utils/category-table-collums';
 import { CategoryDefaultQuery } from '../../../core/models/catetories/categories-default-query';
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
+import { SelectOption } from '../../../core/models/design-system/select-option.model';
 
 @Component({
   selector: 'app-categories-page',
@@ -85,6 +90,7 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
     return map;
   });
 
+  readonly categotyStatus = signal<SelectOption[]>(categoryStatusOptions);
   readonly columns: TableColumn<CategoryResponse>[] = categoryTableColumns;
   readonly actions: TableAction<CategoryResponse>[] = categoryTableActions;
 
@@ -127,12 +133,9 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
         this.loading.set(false);
         this.pagination.set(response.meta);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro ao buscar categorias',
-          error.message || 'Falha ao carregar lista de categorias.',
-        );
+        this.allCategories.set([]);
       },
     });
   }

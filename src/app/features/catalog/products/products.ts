@@ -117,9 +117,8 @@ export class ProductsPageComponent implements OnInit {
         this.pagination.set(response.meta);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error('Erro ao buscar produtos', error.message || 'Falha na requisição.');
       },
     });
   }

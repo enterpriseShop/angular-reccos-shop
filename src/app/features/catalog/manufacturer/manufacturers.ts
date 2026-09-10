@@ -31,6 +31,7 @@ import {
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
+import { StatusStore } from '../../../core/store/status-store/status-store';
 
 @Component({
   selector: 'app-manufacturers-page',
@@ -52,6 +53,8 @@ import { GeneralOptionQuery } from '../../../core/models/generals/general-option
   styleUrl: './manufacturers.css',
 })
 export class ManufacturersPageComponent implements OnInit, OnDestroy {
+  private statusStore = inject(StatusStore);
+
   private toastService = inject(ToastService);
   private manufacturerService = inject(ManufacturerService);
 
@@ -71,6 +74,7 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
   readonly selectedManufacturer = signal<ManufacturerResponse | null>(null);
 
   // Delete Dialog State
+
   readonly deleteDialogOpen = signal<boolean>(false);
   readonly selectedManufacturerForDelete = signal<ManufacturerResponse | null>(null);
   readonly isDeleting = signal<boolean>(false);
@@ -89,6 +93,10 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
   };
 
   // Quick KPI Signals
+  readonly manufacturersStatus = computed(() => {
+    const options = this.statusStore.statusOptions().filter((m) => m.module === 'MANUFACTURER');
+    return options;
+  });
   readonly totalCount = computed(() => this.allManufacturers().length);
   readonly activeCount = computed(() => this.allManufacturers().filter((m) => m.active).length);
   readonly withWebsiteCount = computed(
@@ -96,10 +104,9 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
   );
 
   ngOnInit(): void {
-    // Busca inicial de dados
     this.loadManufacturers(this.query);
+    this.statusStore.hydrate();
 
-    // Inscrição no Subject com debounceTime (400ms)
     this.searchSubscription = this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged())
       .subscribe((queryText) => {
@@ -125,12 +132,8 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
         this.pagination.set(response.meta);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro ao buscar fabricantes',
-          error.message || 'Falha ao carregar lista de fabricantes.',
-        );
       },
     });
   }
@@ -157,6 +160,7 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
 
   // Filtro por status
   onStatusChange(status: string): void {
+    console.log('search query', status);
     let activeValue: boolean | null = null;
     if (status === 'active') activeValue = true;
     if (status === 'inactive') activeValue = false;

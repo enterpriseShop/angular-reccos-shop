@@ -94,9 +94,10 @@ export class ProductWorkspaceComponent implements OnInit {
   readonly productCreatedSuccessBanner = signal<boolean>(false);
 
   readonly oemCodeIds = signal<string[]>([]);
+  readonly totalOemCodes = signal<number>(0);
   readonly errors = signal<Record<string, string>>({});
 
-  readonly manufacturers = signal<ManufacturerOption[]>([]);
+  readonly manufacturers = computed(() => this.manufacturerStore.optionList());
   readonly manufacturersByProduct = signal<OemCode[]>([]);
   readonly selectedImageForDelete = signal<MediaImageItem | null>(null);
 
@@ -187,12 +188,20 @@ export class ProductWorkspaceComponent implements OnInit {
       next: (response) => {
         const codes = response.data || [];
         this.manufacturersByProduct.set(codes);
+        this.totalOemCodes.set((response as any).meta?.total ?? (response as any).total ?? codes.length);
       },
       error: (err) => {
         this.manufacturersByProduct.set([]);
-        this.toastService.error('Erro', err.error.data.messsage);
+        this.totalOemCodes.set(0);
+        this.toastService.error('Erro', err.error?.data?.message || err.error?.message || 'Erro ao buscar códigos OEM');
       },
     });
+  }
+
+  onOemSelectionChange(ids: string[]): void {
+    this.oemCodeIds.set(ids);
+    this.productForm.update((pf) => ({ ...pf, oem_code_ids: ids }));
+    this.markCurrentTabAsModified();
   }
 
   productById(productId: string): void {

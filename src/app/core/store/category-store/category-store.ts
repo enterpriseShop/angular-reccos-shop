@@ -47,4 +47,7 @@ export class CategoryStore extends OptionCacheStore<AutocompleteOption, Category
       response,
     };
   }
+  protected getOptionKey(option: AutocompleteOption): string {
+    return option.value;
+  }
 }

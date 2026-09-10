@@ -15,9 +15,8 @@ import { DrawerComponent } from '../../../../design-system/drawer/drawer';
 import { ToastService } from '../../../../core/services/toast';
 import { CategoryService } from '../../../../core/services/category-service';
 import {
+  CategoryRequest,
   CategoryResponse,
-  CreateCategoryPayload,
-  UpdateCategoryPayload,
 } from '../../../../core/models/catetories/categories.model';
 import { CategoryStore } from '../../../../core/store/category-store/category-store';
 import { AutocompleteOption } from '../../../../core/models/design-system/auto-complete.model';
@@ -108,7 +107,6 @@ export class CategoryFormComponent {
       const open = this.isOpen();
       const cat = this.category();
       const currentMode = this.mode();
-      console.log(['effect'], open, cat, currentMode);
 
       if (open) {
         this.formErrors.set({});
@@ -337,7 +335,7 @@ export class CategoryFormComponent {
 
     this.isSubmitting.set(true);
 
-    const payload: CreateCategoryPayload | UpdateCategoryPayload = {
+    const payload: CategoryRequest = {
       parent_id: this.parentId(),
       name: this.name().trim(),
       slug: this.slug().trim(),
@@ -348,63 +346,69 @@ export class CategoryFormComponent {
       active: this.active(),
     };
 
-    // console.log('ITEMS PARA UPDATE/SAVE', payload);
-    // return;
-
     if (this.mode() === 'edit' && this.category()?.id) {
       const id = this.category()!.id;
-      this.categoryService.update(id, payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Categoria Atualizada',
-            `A categoria "${response.data.name}" foi salva com sucesso.`,
-          );
-          this.categorySaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao atualizar categoria.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
-          }
-        },
-      });
+      this.updateCategory(id, payload);
     } else {
-      this.categoryService.create(payload as CreateCategoryPayload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Categoria Criada',
-            `A categoria "${response.data.name}" foi cadastrada com sucesso.`,
-          );
-          this.categorySaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao criar categoria.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
-          }
-        },
-      });
+      this.createCategory(payload);
     }
+  }
+
+  createCategory(payload: CategoryRequest) {
+    this.categoryService.create(payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Categoria Criada',
+          `A categoria "${response.data.name}" foi cadastrada com sucesso.`,
+        );
+        this.categorySaved.emit(response.data);
+        this.categoryStore.hydrate();
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao criar categoria.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
+          }
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
+  }
+
+  updateCategory(id: string, payload: CategoryRequest) {
+    this.categoryService.update(id, payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Categoria Atualizada',
+          `A categoria "${response.data.name}" foi salva com sucesso.`,
+        );
+        this.categorySaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao atualizar categoria.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
+          }
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
   }
 
   close(): void {

@@ -16,6 +16,7 @@ import { ToastService } from '../../../../core/services/toast';
 import { ManufacturerRequest } from '../../../../core/models/manufactureres/manufacturer-request.model';
 import { ManufacturerService } from '../../../../core/services/manufacture-service';
 import { ManufacturerResponse } from '../../../../core/models/manufactureres/manufacturer-response.model';
+import { ManufacturerStore } from '../../../../core/store/manufacturer-store/manufacturer-store';
 
 @Component({
   selector: 'app-manufacturer-form',
@@ -26,8 +27,9 @@ import { ManufacturerResponse } from '../../../../core/models/manufactureres/man
   styleUrl: './manufacturer-form.css',
 })
 export class ManufacturerFormComponent {
-  private manufacturerService = inject(ManufacturerService);
   private toastService = inject(ToastService);
+  private manufacturerService = inject(ManufacturerService);
+  private manufacturerStore = inject(ManufacturerStore);
 
   readonly isOpen = input<boolean>(false);
   readonly mode = input<'create' | 'edit' | 'view'>('create');
@@ -241,58 +243,67 @@ export class ManufacturerFormComponent {
 
     if (this.mode() === 'edit' && this.manufacturer()?.id) {
       const id = this.manufacturer()!.id;
-      this.manufacturerService.updateManufacturer(id, payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Fabricante Atualizado',
-            `O fabricante "${response.data.name}" foi salvo com sucesso.`,
-          );
-          this.manufacturerSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao atualizar fabricante.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
-          }
-        },
-      });
+      this.updateManufacturer(id, payload);
     } else {
-      this.manufacturerService.createManufacturer(payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Fabricante Criado',
-            `O fabricante "${response.data.name}" foi cadastrado com sucesso.`,
-          );
-          this.manufacturerSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao criar fabricante.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
-          }
-        },
-      });
+      this.createManufacturer(payload);
     }
+  }
+
+  updateManufacturer(id: string, payload: ManufacturerRequest) {
+    this.manufacturerService.updateManufacturer(id, payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Fabricante Atualizado',
+          `O fabricante "${response.data.name}" foi salvo com sucesso.`,
+        );
+        this.manufacturerSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao atualizar fabricante.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
+          }
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
+  }
+
+  createManufacturer(payload: ManufacturerRequest) {
+    this.manufacturerService.createManufacturer(payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.manufacturerStore.hydrate();
+        this.toastService.success(
+          'Fabricante Criado',
+          `O fabricante "${response.data.name}" foi cadastrado com sucesso.`,
+        );
+        this.manufacturerSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao criar fabricante.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
+          }
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
   }
 
   close(): void {

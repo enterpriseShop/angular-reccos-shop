@@ -1,4 +1,5 @@
 import { CategoryResponse } from '../core/models/catetories/categories.model';
+import { SelectOption } from '../core/models/design-system/select-option.model';
 import { TableAction, TableColumn } from '../core/models/list-table/list-table.model';
 
 export const categoryTableColumns: TableColumn<CategoryResponse>[] = [
@@ -56,4 +57,10 @@ export const categoryTableActions: TableAction<CategoryResponse>[] = [
     colorClass: 'text-gray-400 hover:text-[#D66A6A] hover:bg-gray-100 dark:hover:bg-slate-700',
     title: 'Excluir Categoria',
   },
+];
+
+export const categoryStatusOptions: SelectOption[] = [
+  { label: 'Todos os Status', value: '', sublabel: '', disabled: false, module: '' },
+  { label: 'Ativo', value: 'active', sublabel: 'Active', disabled: false, module: '' },
+  { label: 'Inativo', value: 'inactive', sublabel: 'Inactive', disabled: false, module: '' },
 ];

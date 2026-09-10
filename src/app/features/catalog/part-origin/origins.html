@@ -1,15 +1,15 @@
 <!-- Page Header -->
 <app-page-header
-  title="Fabricantes e Marcas"
-  subtitle="Gerenciamento de marcas parceiras, logomarcas, slugs e presença institucional no catálogo."
+  title="Origens de Peças"
+  subtitle="Classificação de procedência, produção nacional, importação e procedência OEM no catálogo."
   [breadcrumbs]="[
     { label: 'Catálogo', route: '/catalog/products' },
-    { label: 'Fabricantes' }
+    { label: 'Origem da Peça' }
   ]"
 >
   <div actions class="flex items-center gap-2">
-    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newManufacturer()">
-      Novo Fabricante
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newOrigin()">
+      Nova Origem
     </app-button>
   </div>
 </app-page-header>
@@ -23,14 +23,14 @@
       <div
         class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
       >
-        <app-icon name="building" size="w-4 h-4" />
+        <app-icon name="map-pin" size="w-4 h-4" />
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
-          Total de Fabricantes
+          Total de Origens
         </span>
         <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
-          {{ totalCount() }} cadastrados
+          {{ totalCount() }} cadastradas
         </span>
       </div>
     </div>
@@ -47,10 +47,10 @@
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
-          Fabricantes Ativos
+          Origens Ativas
         </span>
         <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
-          {{ activeCount() }} marcas ativas
+          {{ activeCount() }} ativas
         </span>
       </div>
     </div>
@@ -63,14 +63,14 @@
       <div
         class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
       >
-        <app-icon name="globe" size="w-4 h-4" />
+        <app-icon name="info" size="w-4 h-4" />
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
-          Com Website Oficial
+          Com Descrição Detalhada
         </span>
         <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
-          {{ withWebsiteCount() }} verificados
+          {{ withDescriptionCount() }} especificadas
         </span>
       </div>
     </div>
@@ -83,13 +83,13 @@
     <app-search-input
       [value]="searchQuery()"
       (valueChange)="onSearchChange($event)"
-      placeholder="Filtrar por nome, slug ou website..."
+      placeholder="Filtrar por nome ou descrição..."
     />
 
     <app-select
       [value]="selectedStatus()"
       (valueChange)="onStatusChange($event)"
-      [options]="manufacturersStatus()"
+      [options]="[]"
       placeholder="Todos os Status"
     />
   </div>
@@ -105,32 +105,34 @@
 <div class="w-full">
   <app-data-table
     [columns]="columns"
-    [data]="allManufacturers()"
+    [data]="allOrigins()"
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
     (actionClick)="onActionClick($event)"
   />
+
   <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
 </div>
 
 <!-- Delete Confirmation Dialog -->
 <app-confirm-dialog
   [isOpen]="deleteDialogOpen()"
-  title="Excluir Fabricante do Catálogo"
-  [message]="'Tem certeza de que deseja remover o fabricante ' + (selectedManufacturerForDelete()?.name || '') + '?'"
+  title="Excluir Origem da Peça"
+  [message]="'Tem certeza de que deseja remover a origem ' + (selectedOriginForDelete()?.name || '') + '?'"
   type="danger"
-  confirmText="Excluir Fabricante"
+  confirmText="Excluir Origem"
   cancelText="Cancelar"
   (confirmAction)="executeDelete()"
   (cancelAction)="deleteDialogOpen.set(false)"
 />
 
-<!-- Manufacturer Create / Edit / View Drawer Form -->
-<app-manufacturer-form
+<!-- Part Origin Create / Edit / View Drawer Form -->
+<app-part-origin-form
   [isOpen]="isFormOpen()"
   [mode]="formMode()"
-  [manufacturer]="selectedManufacturer()"
+  [partOrigin]="selectedOrigin()"
+  [pagination]="pagination()"
   (closeForm)="closeForm()"
-  (manufacturerSaved)="onManufacturerSaved()"
+  (partOriginSaved)="onOriginSaved()"
 />

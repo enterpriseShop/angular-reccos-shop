@@ -25,9 +25,8 @@
 
     <app-select
       [value]="selectedStatus()"
+      [options]="categotyStatus()"
       (valueChange)="onStatusChange($event)"
-      [options]="[]"
-      placeholder="Todos os Status"
     />
   </div>
 

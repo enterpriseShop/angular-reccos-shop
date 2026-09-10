@@ -7,7 +7,7 @@ import { StatusService } from '../../services/status-service';
 import { StatusQueryCache } from '../../models/status/status-query-cache.model';
 import { SelectOption } from '../../models/design-system/select-option.model';
 import { map } from 'rxjs';
-import { GeneralOption } from '../../models/generals/general-options-response.model';
+import { StatusOption } from '../../models/status/status-options.model';
 
 @Injectable({
   providedIn: 'root',
@@ -21,11 +21,11 @@ export class StatusStore extends OptionCacheStore<SelectOption, StatusQueryCache
   readonly statusOptions = computed(() => this.options()?.data ?? []);
 
   protected fetchOptions(query: GeneralOptionQuery) {
-    return this.service.getOptions('PRODUCT', query).pipe(
-      map((response: getAllResponse<GeneralOption[]>) => {
+    return this.service.getOptions(null, query).pipe(
+      map((response: getAllResponse<StatusOption[]>) => {
         return {
           ...response,
-          data: response.data.map((option: GeneralOption) => ({
+          data: response.data.map((option: StatusOption) => ({
             ...option,
             disabled: false,
           })),
@@ -50,5 +50,9 @@ export class StatusStore extends OptionCacheStore<SelectOption, StatusQueryCache
       query,
       response,
     };
+  }
+
+  protected getOptionKey(option: SelectOption): string {
+    return option.value;
   }
 }

@@ -54,7 +54,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
   readonly selectedOption = computed(() => {
     const val = this.value();
     if (val === undefined || val === null || val === '') return null;
-    const found = this.options().find((opt) => String(opt.label) === String(val));
+    const found = this.options().find((opt) => String(opt.value) === String(val));
     if (found) return found;
 
     // Fallback: search by label if value was populated as label
@@ -132,7 +132,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     this.filterQuery.set(text);
 
     const result: GeneralOptionQuery = {
-      search: null,
+      search: text.trim() || null,
       active: null,
       per_page: null,
       page: null,
@@ -158,7 +158,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     }
     if (opt.disabled) return;
 
-    this.valueChange.emit(String(opt.label));
+    this.valueChange.emit(String(opt.value));
     this.optionSelect.emit(opt);
     this.closeDropdown();
   }

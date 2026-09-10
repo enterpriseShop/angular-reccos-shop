@@ -162,6 +162,7 @@ export class ProductCreateComponent implements OnInit {
           value: p.id,
           sublabel: p.description,
           disabled: false,
+          module: '',
         }));
         this.fetchedPartOrigins.set(opts);
       },
@@ -183,6 +184,7 @@ export class ProductCreateComponent implements OnInit {
           value: u.value,
           sublabel: u.sublabel,
           disabled: false,
+          module: '',
         }));
         this.unitOptions.set(opts);
       },
@@ -346,7 +348,7 @@ export class ProductCreateComponent implements OnInit {
           '✔ Produto criado com sucesso.',
           'Entidade principal cadastrada. Você já pode enriquecer as informações complementares.',
         );
-        const newId = response.id || '1';
+        const newId = response.data.id;
         this.router.navigate(['/catalog/products', newId, 'edit'], {
           replaceUrl: true,
           state: { productJustCreated: true },

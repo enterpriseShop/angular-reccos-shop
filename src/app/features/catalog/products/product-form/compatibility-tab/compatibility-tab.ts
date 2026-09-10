@@ -10,7 +10,7 @@ import { ProductVehicleApplication } from '../../../../../core/models/vehicle-ap
 import { OemCode } from '../../../../../core/models/oem-codes/oem-codes.model';
 import { DatePipe } from '@angular/common';
 import { GeneralOptionQuery } from '../../../../../core/models/generals/general-option-query.model';
-import { ManufacturerOption } from '../../../../../core/models/manufactureres/manufaturer-options.model';
+import { AutocompleteOption } from '../../../../../core/models/design-system/auto-complete.model';
 
 @Component({
   selector: 'app-product-compatibility-tab',
@@ -28,7 +28,7 @@ export class ProductCompatibilityTabComponent {
   readonly vehicleApplications = input<ProductVehicleApplication[]>([]);
   readonly isReadOnly = input<boolean>(false);
   readonly totalItensOemCodes = input<number>(0);
-  readonly manufacturers = input<ManufacturerOption[]>([]);
+  readonly manufacturers = input<AutocompleteOption[]>([]);
 
   // Outputs for OEM selection
   readonly selectedOemCodeIdsChange = output<string[]>();
@@ -74,6 +74,32 @@ export class ProductCompatibilityTabComponent {
   readonly toggleOemStatus = output<string>();
 
   readonly oemTotalItens = computed(() => this.totalItensOemCodes());
+
+  readonly areAllVisibleSelected = computed(() => {
+    const list = this.oemCodes();
+    if (list.length === 0) return false;
+    const selectedSet = new Set(this.selectedOemCodeIds());
+    return list.every((item) => selectedSet.has(item.id));
+  });
+
+  readonly hasSelectedItems = computed(() => {
+    return this.selectedOemCodeIds().length > 0;
+  });
+
+  getSelectedCountForManufacturer(mfrId: string | null): number {
+    const selectedSet = new Set(this.selectedOemCodeIds());
+    if (selectedSet.size === 0) return 0;
+
+    if (mfrId === null) {
+      return selectedSet.size;
+    }
+
+    return this.oemCodes().filter(
+      (oem) =>
+        (oem.manufacturer?.id === mfrId || (oem as any).manufacturer_id === mfrId) &&
+        selectedSet.has(oem.id),
+    ).length;
+  }
 
   // Helper: check if an OEM code ID is selected
   isOemSelected(id: string): boolean {

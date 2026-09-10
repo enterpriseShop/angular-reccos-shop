@@ -57,6 +57,16 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'catalog/origins',
+    loadComponent: () =>
+      import('./features/catalog/part-origin/origins').then((m) => m.OriginsPageComponent),
+  },
+  {
+    path: 'compatibility/oem-codes',
+    loadComponent: () =>
+      import('./features/catalog/oem-code/oem-codes').then((m) => m.OemCodesPageComponent),
+  },
+  {
     path: 'compatibility/:sub',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },

@@ -24,7 +24,7 @@ export class ProductService {
   }
 
   create(payload: CreateProductPayload) {
-    return this.http.post<ProductResponse>(`${this.api}/${this.flag}`, payload);
+    return this.http.post<getAllResponse<ProductResponse>>(`${this.api}/${this.flag}`, payload);
   }
 
   // update(id: string, payload: UpdateProductPayload) {

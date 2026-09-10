@@ -18,13 +18,11 @@
       (change)="onChange($event)"
       class="w-full pl-3 pr-9 py-2 text-sm bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-[8px] text-gray-900 dark:text-slate-100 appearance-none focus:outline-none focus:border-[#4F8A6B] focus:ring-2 focus:ring-[#4F8A6B]/20 disabled:bg-gray-100 dark:disabled:bg-slate-900 disabled:cursor-not-allowed transition-colors"
     >
-      @if (placeholder()) {
-      <option value="" disabled [selected]="!value()">{{ placeholder() }}</option>
-      } @for (option of options(); track option.value) {
+      @for (option of options(); track option.value) {
       <option
         [value]="option.value"
         [disabled]="option.disabled"
-        [selected]="option.value == value()"
+        [selected]="option.value === value()"
       >
         {{ option.label }}
       </option>

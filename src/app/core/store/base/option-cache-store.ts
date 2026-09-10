@@ -45,6 +45,8 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
     response: getAllResponse<TOption[]>,
   ): TQueryCache;
 
+  protected abstract getOptionKey(option: TOption): string;
+
   constructor() {
     this.subscribeToCacheChanges();
   }
@@ -155,5 +157,44 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
 
     await this.cache.remove(this.INITIAL_KEY);
     await this.cache.remove(this.QUERY_KEY);
+  }
+
+  /**
+   * Adiciona uma nova opção ao cache inicial e atualiza o Signal.
+   */
+  async addOption(option: TOption): Promise<void> {
+    const current = this._options();
+
+    if (!current) {
+      return;
+    }
+
+    const updatedResponse: getAllResponse<TOption[]> = {
+      ...current,
+      data: [...current.data, option],
+    };
+
+    this._options.set(updatedResponse);
+
+    await this.cache.set(this.INITIAL_KEY, updatedResponse, this.CACHE_TTL);
+  }
+
+  /**
+   * Atualiza uma opção existente no cache inicial e atualiza o Signal.
+   */
+  async updateOption(option: TOption): Promise<void> {
+    const current = this._options();
+    if (!current) return;
+
+    const optionKey = this.getOptionKey(option);
+
+    const updatedResponse: getAllResponse<TOption[]> = {
+      ...current,
+      data: current.data.map((item) => (this.getOptionKey(item) === optionKey ? option : item)),
+    };
+
+    this._options.set(updatedResponse);
+
+    await this.cache.set(this.INITIAL_KEY, updatedResponse, this.CACHE_TTL);
   }
 }

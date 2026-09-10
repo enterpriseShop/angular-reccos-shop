@@ -1,15 +1,16 @@
 <!-- Page Header -->
 <app-page-header
-  title="Fabricantes e Marcas"
-  subtitle="Gerenciamento de marcas parceiras, logomarcas, slugs e presença institucional no catálogo."
+  title="Códigos OEM"
+  subtitle="Catálogo de numerações originais de fábrica (Original Equipment Manufacturer) e montadoras correspondentes."
   [breadcrumbs]="[
     { label: 'Catálogo', route: '/catalog/products' },
-    { label: 'Fabricantes' }
+    { label: 'Compatibilidade' },
+    { label: 'Códigos OEM' }
   ]"
 >
   <div actions class="flex items-center gap-2">
-    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newManufacturer()">
-      Novo Fabricante
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newOemCode()">
+      Novo Código OEM
     </app-button>
   </div>
 </app-page-header>
@@ -23,14 +24,34 @@
       <div
         class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
       >
-        <app-icon name="building" size="w-4 h-4" />
+        <app-icon name="barcode" size="w-4 h-4" />
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
-          Total de Fabricantes
+          Total de Códigos OEM
         </span>
         <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
           {{ totalCount() }} cadastrados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="truck" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Montadoras Atendidas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ uniqueManufacturersCount() }} montadoras
         </span>
       </div>
     </div>
@@ -47,30 +68,10 @@
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
-          Fabricantes Ativos
+          Vínculos com Produtos
         </span>
         <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
-          {{ activeCount() }} marcas ativas
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <div
-    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
-  >
-    <div class="flex items-center gap-3">
-      <div
-        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
-      >
-        <app-icon name="globe" size="w-4 h-4" />
-      </div>
-      <div>
-        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
-          Com Website Oficial
-        </span>
-        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
-          {{ withWebsiteCount() }} verificados
+          {{ linkedProductsCount() }} associações
         </span>
       </div>
     </div>
@@ -83,14 +84,14 @@
     <app-search-input
       [value]="searchQuery()"
       (valueChange)="onSearchChange($event)"
-      placeholder="Filtrar por nome, slug ou website..."
+      placeholder="Filtrar por código OEM ou montadora..."
     />
 
     <app-select
-      [value]="selectedStatus()"
-      (valueChange)="onStatusChange($event)"
-      [options]="manufacturersStatus()"
-      placeholder="Todos os Status"
+      [value]="selectedManufacturerId()"
+      (valueChange)="onManufacturerChange($event)"
+      [options]="manufacturerFilterOptions()"
+      placeholder="Todas as Montadoras"
     />
   </div>
 
@@ -105,32 +106,37 @@
 <div class="w-full">
   <app-data-table
     [columns]="columns"
-    [data]="allManufacturers()"
+    [data]="paginatedOemCodes()"
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
-    (actionClick)="onActionClick($event)"
   />
-  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
+
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalItems]="filteredOemCodes().length"
+    (pageChange)="onPageChange($event)"
+  />
 </div>
 
 <!-- Delete Confirmation Dialog -->
 <app-confirm-dialog
   [isOpen]="deleteDialogOpen()"
-  title="Excluir Fabricante do Catálogo"
-  [message]="'Tem certeza de que deseja remover o fabricante ' + (selectedManufacturerForDelete()?.name || '') + '?'"
+  title="Excluir Código OEM"
+  [message]="'Tem certeza de que deseja remover o código OEM ' + (selectedOemCodeForDelete()?.oem_code || '') + (selectedOemCodeForDelete()?.manufacturer?.name ? ' da montadora ' + selectedOemCodeForDelete()?.manufacturer?.name : '') + '?'"
   type="danger"
-  confirmText="Excluir Fabricante"
+  confirmText="Excluir Código"
   cancelText="Cancelar"
   (confirmAction)="executeDelete()"
   (cancelAction)="deleteDialogOpen.set(false)"
 />
 
-<!-- Manufacturer Create / Edit / View Drawer Form -->
-<app-manufacturer-form
+<!-- OEM Code Create / Edit / View Drawer Form -->
+<app-oem-code-form
   [isOpen]="isFormOpen()"
   [mode]="formMode()"
-  [manufacturer]="selectedManufacturer()"
+  [oemCode]="selectedOemCode()"
+  [options]="manufacturerFilterOptions()"
   (closeForm)="closeForm()"
-  (manufacturerSaved)="onManufacturerSaved()"
+  (oemCodeSaved)="onOemCodeSaved()"
 />
