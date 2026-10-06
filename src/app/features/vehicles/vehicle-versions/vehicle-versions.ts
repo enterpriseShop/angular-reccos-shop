@@ -211,7 +211,7 @@ export class VehicleVersionsPageComponent implements OnInit {
       const matchesQ =
         !q || versionName.includes(q) || modelName.includes(q) || brandName.includes(q);
 
-      const matchesBrand = !brId || v.model?.vehicle_brand_id === brId;
+      const matchesBrand = !brId || v.model?.brand?.id === brId;
       const matchesModel = !mdId || v.vehicle_model_id === mdId;
       const matchesStatus = !st || (st === 'active' ? v.active : !v.active);
 

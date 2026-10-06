@@ -1,16 +1,14 @@
-import { VehicleBrandResponse } from '../vehicles-brands/vehicle-brand-response.model';
 import { GeneralOption } from '../generals/general-options-response.model';
+import { VehicleBrandModelResponse } from '../vehicles-brands/vehicle-brand-model-response.model';
+import { VehicleVersionModelResponse } from '../vehicles-version/vehicle-version-model-response.model';
 
 export interface VehicleModelResponse extends Record<string, unknown> {
   id: string;
-  vehicle_brand_id: string;
   name: string;
   slug: string;
   active: boolean;
-  display_order: number;
-  brand: VehicleBrandResponse | null;
-  versions_count: number;
-  applications_count: number;
+  brand: VehicleBrandModelResponse | null;
+  versions: VehicleVersionModelResponse[] | null;
   created_at: string;
   updated_at: string;
 }

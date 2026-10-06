@@ -10,13 +10,15 @@ import { buildHttpParams } from './build-http-params';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehicleModelService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/vehicle-models';
+  private api = environment.apiUrl;
+  private apiUrl = `${this.api}/vehicle-models`;
 
   getAll(
     filters: Partial<GeneralOptionQuery>,

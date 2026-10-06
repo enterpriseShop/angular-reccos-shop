@@ -21,6 +21,7 @@ import {
 } from '../../../../core/models/vehicles-model/vehicle-model.model';
 import { VehicleBrandOption } from '../../../../core/models/vehicles-brands/vehicle-brand-response.model';
 import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
+import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
 
 @Component({
   selector: 'app-vehicle-model-form',
@@ -40,6 +41,7 @@ export class VehicleModelFormComponent {
   readonly mode = input<'create' | 'edit' | 'view'>('create');
   readonly model = input<VehicleModelResponse | null>(null);
   readonly preselectedBrandId = input<string | null>(null);
+  readonly totalVersionsCount = input<number>(0);
 
   readonly closeForm = output<void>();
   readonly modelSaved = output<VehicleModelResponse>();
@@ -56,8 +58,17 @@ export class VehicleModelFormComponent {
   readonly slug = signal<string>('');
   readonly active = signal<boolean>(true);
 
+  readonly perPage = signal<number>(10);
+  readonly currentPage = signal<number>(1);
+
   // Validation Errors
   readonly formErrors = signal<Record<string, string>>({});
+
+  params: Partial<GeneralOptionQuery> = {
+    active: null,
+    page: this.currentPage(),
+    per_page: this.perPage(),
+  };
 
   constructor() {
     effect(() => {
@@ -68,10 +79,10 @@ export class VehicleModelFormComponent {
 
       if (open) {
         this.formErrors.set({});
-        this.loadBrandOptions();
+        this.loadBrandOptions(this.params);
 
         if ((currentMode === 'edit' || currentMode === 'view') && currentItem) {
-          this.vehicleBrandId.set(currentItem.vehicle_brand_id || '');
+          this.vehicleBrandId.set(currentItem.brand?.id || '');
           this.name.set(currentItem.name || '');
           this.slug.set(currentItem.slug || '');
           this.active.set(currentItem.active !== undefined ? Boolean(currentItem.active) : true);
@@ -88,11 +99,34 @@ export class VehicleModelFormComponent {
     });
   }
 
-  loadBrandOptions(): void {
+  loadBrandOptions(params: Partial<GeneralOptionQuery>): void {
     if (this.brandOptions().length > 0) return;
 
     this.loadingBrands.set(true);
-    this.vehicleBrandStore.optionList();
+    this.vehicleBrandService.getAll(params).subscribe({
+      next: (response) => {
+        const result = response.data.map((brand) => ({
+          id: brand.id,
+          label: brand.name,
+          slug: brand.slug,
+          image: brand.image,
+          display_order: brand.display_order,
+          active: brand.active,
+        }));
+        this.brandOptions.set(result);
+      },
+      error: () => {
+        this.toastService.show({
+          type: 'error',
+          title: 'Erro ao carregar marcas',
+          message: 'Erro ao carregar marcas. Por favor, tente novamente.',
+        });
+        this.loadingBrands.set(false);
+      },
+      complete: () => {
+        this.loadingBrands.set(false);
+      },
+    });
   }
 
   readonly selectedBrand = computed(() => {

@@ -23,21 +23,9 @@ export const vehicleModelTableColumns: TableColumn<VehicleModelResponse>[] = [
     align: 'center',
     type: 'badge',
     badgeConfig: (m: VehicleModelResponse) => ({
-      text: `${m.versions_count || 0} versões`,
-      variant: (m.versions_count || 0) > 0 ? 'info' : 'neutral',
+      text: `${m.versions?.length || 0} versões`,
+      variant: (m.versions?.length || 0) > 0 ? 'info' : 'neutral',
       icon: 'layers',
-    }),
-  },
-  {
-    key: 'applications_count',
-    header: 'Aplicações',
-    width: '140px',
-    align: 'center',
-    type: 'badge',
-    badgeConfig: (m: VehicleModelResponse) => ({
-      text: `${m.applications_count || 0} aplicações`,
-      variant: (m.applications_count || 0) > 0 ? 'success' : 'neutral',
-      icon: 'tool',
     }),
   },
   {

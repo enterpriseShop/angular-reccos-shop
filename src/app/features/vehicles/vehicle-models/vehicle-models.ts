@@ -113,11 +113,11 @@ export class VehicleModelsPageComponent implements OnInit {
   readonly totalCount = computed(() => this.allModels().length);
   readonly activeCount = computed(() => this.allModels().filter((m) => m.active).length);
   readonly coveredBrandsCount = computed(() => {
-    const brandsSet = new Set(this.allModels().map((m) => m.vehicle_brand_id));
+    const brandsSet = new Set(this.allModels().map((m) => m.brand?.id));
     return brandsSet.size;
   });
   readonly totalVersionsCount = computed(() =>
-    this.allModels().reduce((sum, m) => sum + (Number(m.versions_count) || 0), 0),
+    this.allModels().reduce((sum, m) => sum + (m.versions?.length || 0), 0),
   );
 
   readonly pagination = signal<PaginationMeta>(initialValuesPagination);
@@ -138,22 +138,11 @@ export class VehicleModelsPageComponent implements OnInit {
     this.loading.set(true);
     this.vehicleModelService.getAll(params).subscribe({
       next: (response) => {
-        this.allModels.set(response.data || []);
-        if (response.meta) {
-          this.totalItems.set(response.meta.total);
-          this.currentPage.set(response.meta.current_page);
-          this.perPage.set(response.meta.per_page);
-        } else {
-          this.totalItems.set(response.data.length);
-        }
-        this.loading.set(false);
+        this.allModels.set(response.data);
+        this.pagination.set(response.meta);
       },
-      error: (error) => {
+      complete: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro ao buscar modelos',
-          error.message || 'Falha ao carregar lista de modelos de veículos.',
-        );
       },
     });
   }
@@ -171,7 +160,7 @@ export class VehicleModelsPageComponent implements OnInit {
         m.slug.toLowerCase().includes(q) ||
         brandName.includes(q);
 
-      const matchesBrand = !brId || m.vehicle_brand_id === brId;
+      const matchesBrand = !brId || m.brand?.id === brId;
       const matchesStatus = !st || (st === 'active' ? m.active : !m.active);
 
       return matchesQ && matchesBrand && matchesStatus;

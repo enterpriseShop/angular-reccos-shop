@@ -102,8 +102,7 @@ export class VehicleEngineFormComponent {
         if ((currentMode === 'edit' || currentMode === 'view') && currentItem) {
           const versionObj = currentItem.version;
           const modelObj = versionObj && 'model' in versionObj ? versionObj.model : null;
-          const brandId =
-            modelObj && 'vehicle_brand_id' in modelObj ? modelObj.vehicle_brand_id : '';
+          const brandId = modelObj && 'vehicle_brand_id' in modelObj ? modelObj.brand?.id : '';
           const modelId =
             versionObj && 'vehicle_model_id' in versionObj ? versionObj.vehicle_model_id : '';
 

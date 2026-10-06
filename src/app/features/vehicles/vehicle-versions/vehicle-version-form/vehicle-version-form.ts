@@ -87,7 +87,7 @@ export class VehicleVersionFormComponent {
         this.loadModelOptions(this.params);
 
         if ((currentMode === 'edit' || currentMode === 'view') && currentItem) {
-          const brandId = currentItem.model?.vehicle_brand_id || '';
+          const brandId = currentItem.model?.brand?.id || '';
           this.selectedBrandId.set(brandId);
           this.vehicleModelId.set(currentItem.vehicle_model_id || '');
           this.name.set(currentItem.name || '');
