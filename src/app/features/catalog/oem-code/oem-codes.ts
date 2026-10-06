@@ -23,6 +23,7 @@ import { ProductOemCodeResource } from '../../../core/models/oem-codes/oem-codes
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
 import { ManufacturerStore } from '../../../core/store/manufacturer-store/manufacturer-store';
 import { SelectOption } from '../../../core/models/design-system/select-option.model';
+import { oemCodesTableActions, oemCodesTableColumns } from '../../../utils/oem-code-table-collums';
 
 @Component({
   selector: 'app-oem-codes-page',
@@ -67,83 +68,8 @@ export class OemCodesPageComponent implements OnInit {
   readonly isDeleting = signal<boolean>(false);
 
   readonly allOemCodes = signal<ProductOemCodeResource[]>([]);
-
-  readonly columns: TableColumn<ProductOemCodeResource>[] = [
-    {
-      key: 'id',
-      header: 'Tipo',
-      width: '60px',
-      align: 'center',
-      type: 'icon',
-      iconGetter: () => 'barcode',
-    },
-    {
-      key: 'oem_code',
-      header: 'Código OEM',
-      width: '220px',
-      valueGetter: (item: ProductOemCodeResource) => item.oem_code,
-    },
-    {
-      key: 'manufacturer',
-      header: 'Montadora / Fabricante',
-      width: '240px',
-      valueGetter: (item: ProductOemCodeResource) => item.manufacturer?.name || '—',
-    },
-    {
-      key: 'products_count',
-      header: 'Produtos Vinculados',
-      width: '160px',
-      align: 'center',
-      type: 'badge',
-      badgeConfig: (item: ProductOemCodeResource) => ({
-        text: `${item.products_count ?? 0} produto(s)`,
-        variant: Number(item.products_count ?? 0) > 0 ? 'success' : 'neutral',
-      }),
-    },
-    {
-      key: 'created_at',
-      header: 'Registrado em',
-      width: '140px',
-      align: 'center',
-      type: 'date',
-    },
-  ];
-
-  readonly actions: TableAction<ProductOemCodeResource>[] = [
-    {
-      id: 'copy',
-      label: 'Copiar',
-      icon: 'copy',
-      colorClass:
-        'text-gray-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700',
-      title: 'Copiar Código OEM',
-      handler: (item) => this.copyCode(item),
-    },
-    {
-      id: 'view',
-      label: 'Visualizar',
-      icon: 'eye',
-      colorClass: 'text-gray-400 hover:text-[#5A8DEE] hover:bg-gray-100 dark:hover:bg-slate-700',
-      title: 'Visualizar Detalhes',
-      handler: (item) => this.viewOemCode(item),
-    },
-    {
-      id: 'edit',
-      label: 'Editar',
-      icon: 'edit',
-      colorClass: 'text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700',
-      title: 'Editar Código OEM',
-      handler: (item) => this.editOemCode(item),
-    },
-    {
-      id: 'delete',
-      label: 'Excluir',
-      icon: 'trash-2',
-      colorClass: 'text-gray-400 hover:text-[#D66A6A] hover:bg-gray-100 dark:hover:bg-slate-700',
-      title: 'Excluir Código OEM',
-      handler: (item) => this.confirmDelete(item),
-    },
-  ];
+  readonly columns: TableColumn<ProductOemCodeResource>[] = oemCodesTableColumns;
+  readonly actions: TableAction<ProductOemCodeResource>[] = oemCodesTableActions;
 
   // Quick KPI Signals
   readonly totalCount = computed(() => this.allOemCodes().length);
@@ -317,5 +243,22 @@ export class OemCodesPageComponent implements OnInit {
         );
       },
     });
+  }
+
+  onActionClick(event: { actionId: string; row: ProductOemCodeResource }): void {
+    switch (event.actionId) {
+      case 'copy':
+        this.copyCode(event.row);
+        break;
+      case 'view':
+        this.viewOemCode(event.row);
+        break;
+      case 'edit':
+        this.editOemCode(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
   }
 }

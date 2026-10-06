@@ -1,0 +1,220 @@
+<!-- Page Header -->
+<app-page-header
+  title="Motores de Veículos"
+  subtitle="Catálogo de especificações mecânicas, cilindrada, combustível e potência homologados por versão."
+  [breadcrumbs]="[
+    { label: 'Veículos', route: '/vehicles/brands' },
+    { label: 'Versões', route: '/vehicles/versions' },
+    { label: 'Motores' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button
+      id="btn-new-vehicle-engine"
+      variant="primary"
+      size="md"
+      iconStart="plus"
+      (btnClick)="newEngine()"
+    >
+      Novo Motor
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick Stats / KPIs -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center"
+      >
+        <app-icon name="cpu" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Motores
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalCount() }} cadastrados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"
+      >
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Motores Ativos
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ activeCount() }} ativos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="git-branch" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Versões Vinculadas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ coveredVersionsCount() }} versões
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center"
+      >
+        <app-icon name="tool" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Aplicações Conectadas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalApplicationsCount() }} vínculos
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por motor, versão, modelo ou combustível..."
+    />
+
+    <app-select
+      [value]="selectedBrandId()"
+      (valueChange)="onBrandFilterChange($event)"
+      [options]="brandSelectOptions()"
+      placeholder="Todas as Marcas"
+    />
+
+    <app-select
+      [value]="selectedModelId()"
+      (valueChange)="onModelFilterChange($event)"
+      [options]="modelSelectOptions()"
+      placeholder="Todos os Modelos"
+    />
+
+    <app-select
+      [value]="selectedFuel()"
+      (valueChange)="onFuelFilterChange($event)"
+      [options]="fuelFilterOptions"
+      placeholder="Todos os Combustíveis"
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="statusOptions"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2 shrink-0">
+    <app-button
+      id="btn-refresh-engines"
+      variant="ghost"
+      size="md"
+      iconStart="rotate-cw"
+      (btnClick)="loadEngines()"
+      [loading]="loading()"
+    >
+      Atualizar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Data Table Container -->
+<div
+  class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700/80 shadow-2xs overflow-hidden mt-4"
+>
+  <app-data-table
+    [columns]="columns"
+    [data]="paginatedEngines()"
+    [actions]="actions"
+    [loading]="loading()"
+    emptyMessage="Nenhum motor de veículo encontrado com os filtros selecionados."
+    emptySubMessage="Cadastre uma nova motorização ou ajuste os termos de busca."
+  />
+
+  <!-- Pagination -->
+  @if (totalItems() > 0) {
+  <div
+    class="p-3 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between"
+  >
+    <div class="text-xs text-gray-500 dark:text-slate-400">
+      Mostrando
+      <span class="font-semibold text-gray-700 dark:text-slate-200">
+        {{ (currentPage() - 1) * pageSize() + 1 }}
+      </span>
+      a
+      <span class="font-semibold text-gray-700 dark:text-slate-200">
+        {{ Math.min(currentPage() * pageSize(), totalItems()) }}
+      </span>
+      de
+      <span class="font-semibold text-gray-700 dark:text-slate-200">{{ totalItems() }}</span>
+      motores
+    </div>
+
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalItems]="totalItems()"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
+    />
+  </div>
+  }
+</div>
+
+<!-- Form Drawer (Create / Edit / View) -->
+<app-vehicle-engine-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [engine]="selectedEngine()"
+  (closeForm)="closeForm()"
+  (engineSaved)="onEngineSaved($event)"
+/>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Motor de Veículo"
+  [message]="'Tem certeza que deseja excluir o motor \'' + (selectedEngineForDelete()?.name || '') + '\'? Esta ação pode afetar aplicações automotivas e produtos vinculados.'"
+  confirmText="Sim, excluir motor"
+  cancelText="Cancelar"
+  type="danger"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="closeDeleteDialog()"
+/>

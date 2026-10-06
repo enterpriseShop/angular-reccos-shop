@@ -1,0 +1,168 @@
+<!-- Page Header -->
+<app-page-header
+  title="Modelos de Veículos"
+  subtitle="Gerenciamento das linhas e famílias de modelos de veículos vinculados a montadoras homologadas."
+  [breadcrumbs]="[
+    { label: 'Veículos', route: '/vehicles/brands' },
+    { label: 'Modelos' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="md" iconStart="plus" (btnClick)="newModel()">
+      Novo Modelo
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick Stats / KPIs -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
+      >
+        <app-icon name="layers" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Modelos
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalCount() }} cadastrados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"
+      >
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Modelos Ativos
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ activeCount() }} ativos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="car" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Montadoras Cobertas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ coveredBrandsCount() }} marcas
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center"
+      >
+        <app-icon name="git-branch" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Versões Mapeadas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalVersionsCount() }} versões
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por modelo, slug ou marca..."
+    />
+
+    <app-select
+      [value]="selectedBrandId()"
+      (valueChange)="onBrandFilterChange($event)"
+      [options]="brandSelectOptions()"
+      placeholder="Todas as Marcas"
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="statusOptions"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    @if (searchQuery() || selectedBrandId() || selectedStatus()) {
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar Filtros
+    </app-button>
+    }
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="allModels()"
+    [actions]="actions"
+    [loading]="loading()"
+    emptyTitle="Nenhum modelo encontrado"
+    emptyDescription="Não há modelos de veículos cadastrados ou correspondentes aos filtros selecionados."
+    [roundedBottom]="false"
+  />
+
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Modelo de Veículo"
+  [message]="'Tem certeza de que deseja remover o modelo ' + (selectedModelForDelete()?.name || '') + '? Essa ação pode afetar versões e aplicações vinculadas a este modelo.'"
+  confirmText="Sim, Excluir Modelo"
+  cancelText="Cancelar"
+  type="danger"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- Model Drawer Form (Create / Edit / View) -->
+<app-vehicle-model-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [model]="selectedModel()"
+  [preselectedBrandId]="selectedBrandId()"
+  (closeForm)="closeForm()"
+  (modelSaved)="onModelSaved()"
+/>

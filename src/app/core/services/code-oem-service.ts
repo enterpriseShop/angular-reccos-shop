@@ -41,7 +41,7 @@ export class OemCodeService {
     );
   }
 
-  getByManufacturer(filters: GeneralOptionQuery) {
+  getByManufacturer(filters: Partial<GeneralOptionQuery>) {
     const params = buildHttpParams(filters);
     return this.http.get<PaginatedResponse<OemCode>>(`${this.api}/${this.flag}/by-manufacturer`, {
       params,

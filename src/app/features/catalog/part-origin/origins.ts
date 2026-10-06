@@ -71,7 +71,7 @@ export class OriginsPageComponent implements OnInit {
 
   readonly allOrigins = signal<PartOriginResponse[]>([]);
 
-  query: Partial<GeneralOptionQuery> = {
+  params: Partial<GeneralOptionQuery> = {
     search: null,
     active: null,
     page: this.currentPage(),
@@ -90,7 +90,7 @@ export class OriginsPageComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.loadOrigins(this.query);
+    this.loadOrigins(this.params);
   }
 
   loadOrigins(query: Partial<GeneralOptionQuery>): void {
@@ -113,12 +113,12 @@ export class OriginsPageComponent implements OnInit {
 
   onPaginationChange(meta: PaginationMeta): void {
     this.pagination.set(meta);
-    this.query = {
-      ...this.query,
+    this.params = {
+      ...this.params,
       page: meta.current_page,
       per_page: meta.per_page,
     };
-    this.loadOrigins(this.query);
+    this.loadOrigins(this.params);
   }
 
   onActionClick(event: { actionId: string; row: PartOriginResponse }): void {
@@ -147,15 +147,15 @@ export class OriginsPageComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
-    this.query = { ...this.query, page };
-    this.loadOrigins(this.query);
+    this.params = { ...this.params, page };
+    this.loadOrigins(this.params);
   }
 
   onPageSizeChange(size: number): void {
     this.perPage.set(size);
     this.currentPage.set(1);
-    this.query = { ...this.query, per_page: size, page: 1 };
-    this.loadOrigins(this.query);
+    this.params = { ...this.params, per_page: size, page: 1 };
+    this.loadOrigins(this.params);
   }
 
   resetFilters(): void {
@@ -189,7 +189,7 @@ export class OriginsPageComponent implements OnInit {
   }
 
   onOriginSaved(): void {
-    this.loadOrigins(this.query);
+    this.loadOrigins(this.params);
   }
 
   confirmDelete(origin: PartOriginResponse): void {

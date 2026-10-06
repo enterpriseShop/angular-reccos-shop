@@ -1,0 +1,391 @@
+<app-drawer
+  [isOpen]="isOpen()"
+  [title]="formTitle()"
+  [icon]="mode() === 'edit' ? 'edit' : (mode() === 'view' ? 'eye' : 'calendar')"
+  width="lg"
+  (closeDrawer)="close()"
+>
+  <!-- Main Form Body -->
+  <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-6 pb-4">
+    <!-- Header Badge & Quick Context -->
+    <div
+      class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-700/80"
+    >
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Icon Thumbnail -->
+        <div
+          class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center font-bold overflow-hidden border border-emerald-200/60 dark:border-emerald-800/40 shrink-0"
+        >
+          <app-icon name="car" size="w-5 h-5" />
+        </div>
+        <div class="min-w-0">
+          <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate">
+            @if (application(); as app) { {{ app.brand?.name || 'Aplicação' }} {{ app.model?.name ||
+            '' }} {{ app.version?.name || '' }} } @else { Nova Aplicação Veicular }
+          </span>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-[11px] text-gray-500 dark:text-slate-400 font-mono truncate">
+              @if (yearFrom() || yearTo()) { {{ yearFrom() ? yearFrom() : 'Início' }} — {{ yearTo()
+              ? yearTo() : 'Atual' }} } @else { Ano não especificado }
+            </span>
+            <span class="text-[10px] text-gray-300 dark:text-slate-600">•</span>
+            <span class="text-[11px] text-gray-500 dark:text-slate-400 flex items-center gap-1">
+              <app-icon name="wrench" size="w-3 h-3" />
+              Catálogo de Compatibilidade
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shrink-0 ml-2">
+        @if (active()) {
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          Ativo
+        </span>
+        } @else {
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+          Inativo
+        </span>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 1: Hierarquia Veicular (Montadora -> Modelo -> Versão -> Motor) -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4"
+    >
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="car" size="w-4 h-4" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Hierarquia do Veículo
+        </h4>
+      </div>
+
+      <!-- 1.1 Marca / Montadora (vehicle_brand_id) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label for="app-brand-id" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+            Montadora / Marca
+            <span class="text-red-500">*</span>
+          </label>
+          <span class="text-[10px] text-gray-400">1º Nível</span>
+        </div>
+        <select
+          id="app-brand-id"
+          [value]="brandId()"
+          [disabled]="isReadOnly()"
+          (change)="onBrandChange($event)"
+          [class.border-red-500]="formErrors()['vehicle_brand_id']"
+          [class.focus:border-red-500]="formErrors()['vehicle_brand_id']"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+        >
+          <option value="">Selecione uma montadora...</option>
+          @for (brand of brandOptions(); track brand.id) {
+          <option [value]="brand.id">{{ brand.label }}</option>
+          }
+        </select>
+        @if (formErrors()['vehicle_brand_id']) {
+        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+          {{ formErrors()['vehicle_brand_id'] }}
+        </p>
+        }
+      </div>
+
+      <!-- 1.2 Modelo do Veículo (vehicle_model_id) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label for="app-model-id" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+            Modelo do Veículo
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="flex items-center gap-1">
+            @if (loadingModels()) {
+            <span class="text-[10px] text-[#4F8A6B] font-medium flex items-center gap-1">
+              <span
+                class="w-2.5 h-2.5 border-2 border-[#4F8A6B] border-t-transparent rounded-full animate-spin"
+              ></span>
+              Carregando...
+            </span>
+            }
+            <span class="text-[10px] text-gray-400">2º Nível</span>
+          </div>
+        </div>
+        <select
+          id="app-model-id"
+          [value]="modelId()"
+          [disabled]="isReadOnly() || !brandId() || loadingModels()"
+          (change)="onModelChange($event)"
+          [class.border-red-500]="formErrors()['vehicle_model_id']"
+          [class.focus:border-red-500]="formErrors()['vehicle_model_id']"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+        >
+          <option value="">
+            {{ brandId() ? (loadingModels() ? 'Carregando modelos...' : 'Selecione um modelo...') :
+            'Selecione a montadora primeiro' }}
+          </option>
+          @for (model of modelOptions(); track model.id) {
+          <option [value]="model.id">{{ model.label }}</option>
+          }
+        </select>
+        @if (formErrors()['vehicle_model_id']) {
+        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+          {{ formErrors()['vehicle_model_id'] }}
+        </p>
+        }
+      </div>
+
+      <!-- 1.3 Versão do Veículo (vehicle_version_id) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label
+            for="app-version-id"
+            class="text-xs font-semibold text-gray-800 dark:text-slate-200"
+          >
+            Versão do Veículo
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="flex items-center gap-1">
+            @if (loadingVersions()) {
+            <span class="text-[10px] text-[#4F8A6B] font-medium flex items-center gap-1">
+              <span
+                class="w-2.5 h-2.5 border-2 border-[#4F8A6B] border-t-transparent rounded-full animate-spin"
+              ></span>
+              Carregando...
+            </span>
+            }
+            <span class="text-[10px] text-gray-400">3º Nível</span>
+          </div>
+        </div>
+        <select
+          id="app-version-id"
+          [value]="versionId()"
+          [disabled]="isReadOnly() || !modelId() || loadingVersions()"
+          (change)="onVersionChange($event)"
+          [class.border-red-500]="formErrors()['vehicle_version_id']"
+          [class.focus:border-red-500]="formErrors()['vehicle_version_id']"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+        >
+          <option value="">
+            {{ modelId() ? (loadingVersions() ? 'Carregando versões...' : 'Selecione uma versão...')
+            : 'Selecione o modelo primeiro' }}
+          </option>
+          @for (version of versionOptions(); track version.id) {
+          <option [value]="version.id">{{ version.label }}</option>
+          }
+        </select>
+        @if (formErrors()['vehicle_version_id']) {
+        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+          {{ formErrors()['vehicle_version_id'] }}
+        </p>
+        }
+      </div>
+
+      <!-- 1.4 Motorização / Motor (vehicle_engine_id - Opcional) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label
+            for="app-engine-id"
+            class="text-xs font-semibold text-gray-800 dark:text-slate-200"
+          >
+            Motorização / Motor
+          </label>
+          <div class="flex items-center gap-1">
+            @if (loadingEngines()) {
+            <span class="text-[10px] text-[#4F8A6B] font-medium flex items-center gap-1">
+              <span
+                class="w-2.5 h-2.5 border-2 border-[#4F8A6B] border-t-transparent rounded-full animate-spin"
+              ></span>
+              Carregando...
+            </span>
+            }
+            <span class="text-[10px] text-gray-400">Opcional</span>
+          </div>
+        </div>
+        <select
+          id="app-engine-id"
+          [value]="engineId()"
+          [disabled]="isReadOnly() || !versionId() || loadingEngines()"
+          (change)="onEngineChange($event)"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+        >
+          <option value="">Nenhum / Todas as motorizações desta versão</option>
+          @for (engine of engineOptions(); track engine.id) {
+          <option [value]="engine.id">
+            {{ engine.label }} @if (engine.label) { ({{ engine.label }}) }
+          </option>
+          }
+        </select>
+        <p class="text-[10px] text-gray-400 dark:text-slate-500">
+          Deixe em branco caso a peça seja compatível com qualquer motorização desta versão.
+        </p>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2: Faixa de Anos de Compatibilidade -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4"
+    >
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="calendar" size="w-4 h-4" class="text-blue-500" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Faixa de Anos de Fabricação
+        </h4>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Ano Inicial (year_from) -->
+        <div class="space-y-1.5">
+          <label
+            for="app-year-from"
+            class="text-xs font-semibold text-gray-800 dark:text-slate-200"
+          >
+            Ano Inicial (De)
+          </label>
+          <input
+            id="app-year-from"
+            type="number"
+            min="1900"
+            max="2100"
+            [value]="yearFrom() !== null ? yearFrom() : ''"
+            [disabled]="isReadOnly()"
+            (input)="onYearFromChange($event)"
+            placeholder="Ex: 2012"
+            [class.border-red-500]="formErrors()['year_from']"
+            class="w-full px-3 py-2 text-xs font-mono rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+          />
+          @if (formErrors()['year_from']) {
+          <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+            <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+            {{ formErrors()['year_from'] }}
+          </p>
+          }
+        </div>
+
+        <!-- Ano Final (year_to) -->
+        <div class="space-y-1.5">
+          <label for="app-year-to" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+            Ano Final (Até)
+          </label>
+          <input
+            id="app-year-to"
+            type="number"
+            min="1900"
+            max="2100"
+            [value]="yearTo() !== null ? yearTo() : ''"
+            [disabled]="isReadOnly()"
+            (input)="onYearToChange($event)"
+            placeholder="Ex: 2018 (ou vazio se atual)"
+            [class.border-red-500]="formErrors()['year_to']"
+            class="w-full px-3 py-2 text-xs font-mono rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+          />
+          @if (formErrors()['year_to']) {
+          <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+            <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+            {{ formErrors()['year_to'] }}
+          </p>
+          }
+        </div>
+      </div>
+
+      <div
+        class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-gray-100 dark:border-slate-800 text-[11px] text-gray-500 dark:text-slate-400 flex items-start gap-2"
+      >
+        <app-icon name="info" size="w-3.5 h-3.5" class="text-blue-500 shrink-0 mt-0.5" />
+        <span>
+          Deixe o "Ano Final" em branco caso a peça seja compatível com veículos em produção ativa
+          (anos atuais e subsequentes).
+        </span>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 3: Observações Técnicas -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4"
+    >
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="file-text" size="w-4 h-4" class="text-indigo-500" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Observações Técnicas & Restrições
+        </h4>
+      </div>
+
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label for="app-notes" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+            Notas de Aplicação
+          </label>
+          <span class="text-[10px] text-gray-400">{{ notes().length }} caracteres</span>
+        </div>
+        <textarea
+          id="app-notes"
+          rows="3"
+          [value]="notes()"
+          [disabled]="isReadOnly()"
+          (input)="onNotesChange($event)"
+          placeholder="Ex: Aplica-se apenas em modelos com câmbio manual de 5 marchas e tração dianteira. Não compatível com freio ABS."
+          class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors resize-none"
+        ></textarea>
+        @if (formErrors()['notes']) {
+        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+          {{ formErrors()['notes'] }}
+        </p>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 4: Status do Registro -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-3"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold text-gray-800 dark:text-slate-200 block">
+            Status da Aplicação
+          </span>
+          <p class="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+            Aplicações inativas ficam ocultas na busca de compatibilidade pública do catálogo.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          [disabled]="isReadOnly()"
+          (click)="onActiveToggle()"
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          [class]="active() ? 'bg-[#4F8A6B]' : 'bg-gray-200 dark:bg-slate-700'"
+        >
+          <span
+            class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+            [class]="active() ? 'translate-x-5' : 'translate-x-0'"
+          ></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Form Footer Actions -->
+    <div
+      class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-slate-700/80"
+    >
+      <app-button variant="ghost" size="md" (btnClick)="close()">
+        {{ isReadOnly() ? 'Fechar' : 'Cancelar' }}
+      </app-button>
+
+      @if (!isReadOnly()) {
+      <app-button variant="primary" size="md" [loading]="isSubmitting()" (btnClick)="onSubmit()">
+        <app-icon name="check" size="w-4 h-4" />
+        {{ mode() === 'edit' ? 'Atualizar Aplicação' : 'Salvar Aplicação' }}
+      </app-button>
+      }
+    </div>
+  </form>
+</app-drawer>

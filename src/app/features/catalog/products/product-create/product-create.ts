@@ -108,7 +108,7 @@ export class ProductCreateComponent implements OnInit {
     { label: 'Novo Produto' },
   ];
 
-  private queries: GeneralOptionQuery = {
+  private queries: Partial<GeneralOptionQuery> = {
     search: null,
     active: null,
     per_page: null,
@@ -122,7 +122,7 @@ export class ProductCreateComponent implements OnInit {
     this.loadInitialOptions(this.queries);
   }
 
-  loadInitialOptions(query: GeneralOptionQuery): void {
+  loadInitialOptions(query: Partial<GeneralOptionQuery>): void {
     this.categoryLoading.set(true);
     this.categoryService.getOptions(query).subscribe({
       next: (res) => {

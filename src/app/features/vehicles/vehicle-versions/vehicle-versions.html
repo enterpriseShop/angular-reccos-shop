@@ -1,0 +1,182 @@
+<!-- Page Header -->
+<app-page-header
+  title="Versões de Veículos"
+  subtitle="Gerenciamento das versões de acabamento, pacotes de equipamentos e motorização homologados."
+  [breadcrumbs]="[
+    { label: 'Veículos', route: '/vehicles/brands' },
+    { label: 'Versões' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="md" iconStart="plus" (btnClick)="newVersion()">
+      Nova Versão
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick Stats / KPIs -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
+      >
+        <app-icon name="git-branch" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Versões
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalCount() }} cadastradas
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"
+      >
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Versões Ativas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ activeCount() }} ativas
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="layers" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Modelos Vinculados
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ coveredModelsCount() }} modelos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center"
+      >
+        <app-icon name="cpu" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Motores Mapeados
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalEnginesCount() }} motores
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por versão, modelo ou marca..."
+    />
+
+    <app-select
+      [value]="selectedBrandId()"
+      (valueChange)="onBrandFilterChange($event)"
+      [options]="brandSelectOptions()"
+      placeholder="Todas as Marcas"
+    />
+
+    <app-select
+      [value]="selectedModelId()"
+      (valueChange)="onModelFilterChange($event)"
+      [options]="modelSelectOptions()"
+      placeholder="Todos os Modelos"
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="statusOptions"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    @if (searchQuery() || selectedBrandId() || selectedModelId() || selectedStatus()) {
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar Filtros
+    </app-button>
+    }
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="paginatedVersions()"
+    [actions]="actions"
+    [loading]="loading()"
+    emptyTitle="Nenhuma versão encontrada"
+    emptyDescription="Não há versões de veículos cadastradas ou correspondentes aos filtros selecionados."
+    [roundedBottom]="false"
+  />
+
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalItems]="filteredVersions().length"
+    [pageSizeOptions]="[5, 10, 20, 50]"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Versão de Veículo"
+  [message]="'Tem certeza de que deseja remover a versão ' + (selectedVersionForDelete()?.name || '') + '? Essa ação pode afetar aplicações e motores vinculados a esta versão.'"
+  confirmText="Sim, Excluir Versão"
+  cancelText="Cancelar"
+  type="danger"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- Version Drawer Form (Create / Edit / View) -->
+<app-vehicle-version-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [version]="selectedVersion()"
+  [preselectedModelId]="selectedModelId()"
+  [preselectedBrandId]="selectedBrandId()"
+  (closeForm)="closeForm()"
+  (versionSaved)="onVersionSaved()"
+/>

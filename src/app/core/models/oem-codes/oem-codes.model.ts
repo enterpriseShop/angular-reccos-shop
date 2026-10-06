@@ -6,7 +6,7 @@ export interface ProductOemCodeResource extends Record<string, unknown> {
   oem_code: string;
   product: ProductSummaryResponse | null;
   manufacturer: ManufacturerSummaryResponse;
-  products_count?: number | string;
+  products_count: number | string;
   created_at: string;
   updated_at: string;
 }

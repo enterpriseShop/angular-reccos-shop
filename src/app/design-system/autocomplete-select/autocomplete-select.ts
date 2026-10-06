@@ -42,7 +42,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
 
   readonly valueChange = output<string>();
   readonly optionSelect = output<AutocompleteOption>();
-  readonly searchQueryChange = output<GeneralOptionQuery>();
+  readonly searchQueryChange = output<Partial<GeneralOptionQuery>>();
 
   readonly isOpen = signal<boolean>(false);
   readonly filterQuery = signal<string>('');
@@ -131,7 +131,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     const text = target.value;
     this.filterQuery.set(text);
 
-    const result: GeneralOptionQuery = {
+    const result: Partial<GeneralOptionQuery> = {
       search: text.trim() || null,
       active: null,
       per_page: null,
@@ -171,7 +171,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     event.stopPropagation();
     this.valueChange.emit('');
     this.filterQuery.set('');
-    const result: GeneralOptionQuery = {
+    const result: Partial<GeneralOptionQuery> = {
       search: null,
       active: null,
       per_page: null,

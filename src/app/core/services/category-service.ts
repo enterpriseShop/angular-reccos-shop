@@ -4,10 +4,10 @@ import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { environment } from '../../../environments/environment';
 import { CategoryRequest, CategoryResponse } from '../models/catetories/categories.model';
 import { buildHttpParams } from './build-http-params';
-import { CategoryOption } from '../models/catetories/category-options.model';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { CategoryDefaultQuery } from '../models/catetories/categories-default-query';
+import { CategoryOption } from '../models/catetories/category-options.model';
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +24,7 @@ export class CategoryService {
     });
   }
 
-  getOptions(filters: GeneralOptionQuery) {
+  getOptions(filters: Partial<GeneralOptionQuery>) {
     const params = buildHttpParams(filters);
     return this.http.get<getAllResponse<CategoryOption[]>>(`${this.api}/${this.flag}/options`, {
       params,

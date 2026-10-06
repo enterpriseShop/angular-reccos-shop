@@ -66,7 +66,7 @@ export class ProductCompatibilityTabComponent {
   }
 
   // OEM Outputs pagination
-  readonly oemFiltersChange = output<GeneralOptionQuery>();
+  readonly oemFiltersChange = output<Partial<GeneralOptionQuery>>();
 
   readonly addOemCode = output<void>();
   readonly setPrimaryOem = output<string>();

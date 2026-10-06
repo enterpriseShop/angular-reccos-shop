@@ -9,22 +9,28 @@ import { createDefaultQuery } from '../../services/query-service';
 export abstract class PaginatedCacheStore<TData, TResponse, TQueryCache> {
   protected readonly cache = inject(AppCacheService);
 
-  protected abstract isDefaultQuery(query: GeneralOptionQuery): boolean;
+  protected abstract isDefaultQuery(query: Partial<GeneralOptionQuery>): boolean;
 
   protected abstract extractData(response: TResponse): TData[];
 
-  protected abstract isSameCachedQuery(cached: TQueryCache, query: GeneralOptionQuery): boolean;
+  protected abstract isSameCachedQuery(
+    cached: TQueryCache,
+    query: Partial<GeneralOptionQuery>,
+  ): boolean;
 
   protected abstract extractCachedData(cached: TQueryCache): TData[];
 
-  protected abstract createQueryCache(query: GeneralOptionQuery, response: TResponse): TQueryCache;
+  protected abstract createQueryCache(
+    query: Partial<GeneralOptionQuery>,
+    response: TResponse,
+  ): TQueryCache;
 
   protected readonly CACHE_TTL = 1000 * 60 * 60 * 6;
 
   protected abstract readonly INITIAL_KEY: string;
   protected abstract readonly QUERY_KEY: string;
 
-  protected abstract fetch(query: GeneralOptionQuery): Observable<TResponse>;
+  protected abstract fetch(query: Partial<GeneralOptionQuery>): Observable<TResponse>;
 
   protected readonly _data = signal<TData[]>([]);
 
@@ -32,13 +38,13 @@ export abstract class PaginatedCacheStore<TData, TResponse, TQueryCache> {
 
   protected readonly defaultQuery = createDefaultQuery();
 
-  protected currentQuery = this.defaultQuery;
+  protected currentQuery: Partial<GeneralOptionQuery> = this.defaultQuery;
 
   constructor() {
     this.subscribeToCacheChanges();
   }
 
-  async loadInitial(query: GeneralOptionQuery = this.defaultQuery): Promise<void> {
+  async loadInitial(query: Partial<GeneralOptionQuery> = this.defaultQuery): Promise<void> {
     this.currentQuery = query;
 
     const cached = await this.cache.get<TResponse>(this.INITIAL_KEY);
@@ -51,7 +57,7 @@ export abstract class PaginatedCacheStore<TData, TResponse, TQueryCache> {
     this.loadFromApi(query, this.INITIAL_KEY);
   }
 
-  async load(query: GeneralOptionQuery): Promise<void> {
+  async load(query: Partial<GeneralOptionQuery>): Promise<void> {
     this.currentQuery = query;
 
     if (this.isDefaultQuery(query)) {
@@ -63,7 +69,7 @@ export abstract class PaginatedCacheStore<TData, TResponse, TQueryCache> {
     await this.loadQuery(query);
   }
 
-  private async loadQuery(query: GeneralOptionQuery): Promise<void> {
+  private async loadQuery(query: Partial<GeneralOptionQuery>): Promise<void> {
     const cached = await this.cache.get<TQueryCache>(this.QUERY_KEY);
 
     if (cached && this.isSameCachedQuery(cached, query)) {
@@ -86,7 +92,7 @@ export abstract class PaginatedCacheStore<TData, TResponse, TQueryCache> {
     });
   }
 
-  private loadFromApi(query: GeneralOptionQuery, cacheKey: string): void {
+  private loadFromApi(query: Partial<GeneralOptionQuery>, cacheKey: string): void {
     this.fetch(query).subscribe({
       next: async (response) => {
         this._data.set(this.extractData(response));

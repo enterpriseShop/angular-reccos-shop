@@ -1,0 +1,352 @@
+<app-drawer
+  [isOpen]="isOpen()"
+  [title]="formTitle()"
+  [icon]="mode() === 'edit' ? 'edit' : (mode() === 'view' ? 'eye' : 'cpu')"
+  width="lg"
+  (closeDrawer)="close()"
+>
+  <!-- Main Form Body -->
+  <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-6 pb-4">
+
+    <!-- Header Badge & Quick Context -->
+    <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-700/80">
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Thumbnail or Brand Icon -->
+        <div class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold overflow-hidden border border-purple-200/60 dark:border-purple-800/40 shrink-0">
+          @if (selectedBrand()?.image) {
+            <img
+              [src]="selectedBrand()!.image!"
+              [alt]="selectedBrand()!.label"
+              referrerpolicy="no-referrer"
+              class="w-full h-full object-contain p-1 bg-white dark:bg-slate-800"
+            />
+          } @else {
+            <app-icon name="cpu" size="w-5 h-5" />
+          }
+        </div>
+        <div class="min-w-0">
+          <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate">
+            {{ name() ? name() : 'Novo Motor de Veículo' }}
+          </span>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-[11px] text-gray-500 dark:text-slate-400 font-medium truncate">
+              {{ selectedVersion() ? selectedVersion()!.label : (selectedModel() ? selectedModel()!.label : 'Versão não vinculada') }}
+            </span>
+            @if (selectedBrand()) {
+              <span class="text-[10px] text-gray-300 dark:text-slate-600">•</span>
+              <span class="text-[11px] text-gray-400 dark:text-slate-500 font-medium truncate">
+                {{ selectedBrand()!.label }}
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="shrink-0 ml-2">
+        @if (active()) {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Ativo
+          </span>
+        } @else {
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+            Inativo
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 1: Vinculação com Versão do Veículo (BelongsTo VehicleVersion) -->
+    <div class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4">
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="git-branch" size="w-4 h-4" class="text-purple-600 dark:text-purple-400" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Vínculo Automotivo (Cascata)
+        </h4>
+      </div>
+
+      <!-- Filtro Opcional de Marca para facilitar a seleção -->
+      <div class="space-y-1.5">
+        <label for="engine-brand-filter" class="text-xs font-semibold text-gray-700 dark:text-slate-300 flex items-center justify-between">
+          <span>Montadora / Marca (Filtro)</span>
+          @if (loadingBrands()) {
+            <span class="text-[10px] text-gray-400">Carregando marcas...</span>
+          }
+        </label>
+        <select
+          id="engine-brand-filter"
+          [value]="selectedBrandId()"
+          [disabled]="isReadOnly() || loadingBrands()"
+          (change)="onBrandChange($event)"
+          class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        >
+          <option value="">Todas as Montadoras</option>
+          @for (brand of brandOptions(); track brand.id) {
+            <option [value]="brand.id">{{ brand.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro de Modelo para refinar as Versões -->
+      <div class="space-y-1.5">
+        <label for="engine-model-filter" class="text-xs font-semibold text-gray-700 dark:text-slate-300 flex items-center justify-between">
+          <span>Modelo do Veículo (Filtro)</span>
+          @if (loadingModels()) {
+            <span class="text-[10px] text-gray-400">Carregando modelos...</span>
+          }
+        </label>
+        <select
+          id="engine-model-filter"
+          [value]="selectedModelId()"
+          [disabled]="isReadOnly() || loadingModels()"
+          (change)="onModelChange($event)"
+          class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        >
+          <option value="">Todos os Modelos</option>
+          @for (model of filteredModelOptions(); track model.id) {
+            <option [value]="model.id">{{ model.label }} {{ model.brand_name ? '(' + model.brand_name + ')' : '' }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Versão do Veículo (vehicle_version_id - OBRIGATÓRIA) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label for="engine-version" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+            Versão do Veículo <span class="text-red-500">*</span>
+          </label>
+          @if (loadingVersions()) {
+            <span class="text-[10px] text-gray-400">Carregando versões...</span>
+          }
+        </div>
+        <select
+          id="engine-version"
+          [value]="vehicleVersionId()"
+          [disabled]="isReadOnly() || loadingVersions()"
+          (change)="onVersionChange($event)"
+          class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          [class.border-red-400]="formErrors()['vehicle_version_id']"
+          [class.focus:border-red-400]="formErrors()['vehicle_version_id']"
+          [class.focus:ring-red-400/20]="formErrors()['vehicle_version_id']"
+        >
+          <option value="">Selecione a versão homologada...</option>
+          @for (ver of filteredVersionOptions(); track ver.id) {
+            <option [value]="ver.id">
+              {{ ver.label }} {{ ver.model_name ? '— ' + ver.model_name : '' }}
+            </option>
+          }
+        </select>
+        @if (formErrors()['vehicle_version_id']) {
+          <p class="text-[11px] text-red-500 flex items-center gap-1 font-medium">
+            <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+            {{ formErrors()['vehicle_version_id'] }}
+          </p>
+        } @else {
+          <p class="text-[11px] text-gray-500 dark:text-slate-400">
+            Vínculo obrigatório que define a motorização oficial da versão.
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2: Especificações Técnicas do Motor -->
+    <div class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4">
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="tool" size="w-4 h-4" class="text-purple-600 dark:text-purple-400" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Especificações do Motor
+        </h4>
+      </div>
+
+      <!-- Nome do Motor (name - OBRIGATÓRIO) -->
+      <div class="space-y-1.5">
+        <label for="engine-name" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+          Identificação / Nome do Motor <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="engine-name"
+          type="text"
+          [value]="name()"
+          [disabled]="isReadOnly()"
+          (input)="onNameChange($event)"
+          placeholder="Ex: EA211 1.0 12V TSI 170, Firefly 1.3 8V GSE, 2.0 16V FlexOne"
+          maxlength="255"
+          class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+          [class.border-red-400]="formErrors()['name']"
+          [class.focus:border-red-400]="formErrors()['name']"
+          [class.focus:ring-red-400/20]="formErrors()['name']"
+        />
+        @if (formErrors()['name']) {
+          <p class="text-[11px] text-red-500 flex items-center gap-1 font-medium">
+            <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+            {{ formErrors()['name'] }}
+          </p>
+        } @else {
+          <p class="text-[11px] text-gray-500 dark:text-slate-400">
+            Código comercial ou técnico da família mecânica (máx. 255 caracteres).
+          </p>
+        }
+      </div>
+
+      <!-- Grid: Cilindrada e Potência -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <!-- Cilindrada (displacement) -->
+        <div class="space-y-1.5">
+          <label for="engine-displacement" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+            Cilindrada
+          </label>
+          <div class="relative">
+            <input
+              id="engine-displacement"
+              type="text"
+              [value]="displacement()"
+              [disabled]="isReadOnly()"
+              (input)="onDisplacementChange($event)"
+              placeholder="Ex: 999 cc ou 1.0 12V"
+              maxlength="50"
+              class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+              [class.border-red-400]="formErrors()['displacement']"
+            />
+          </div>
+          @if (formErrors()['displacement']) {
+            <p class="text-[11px] text-red-500 font-medium">{{ formErrors()['displacement'] }}</p>
+          } @else {
+            <p class="text-[10px] text-gray-400">Volume deslocado (ex: 999 cc, 1.4, 2.0).</p>
+          }
+        </div>
+
+        <!-- Potência (horsepower) -->
+        <div class="space-y-1.5">
+          <label for="engine-horsepower" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+            Potência (cv / hp)
+          </label>
+          <div class="relative">
+            <input
+              id="engine-horsepower"
+              type="number"
+              min="1"
+              max="2000"
+              step="1"
+              [value]="horsepower() !== null ? horsepower() : ''"
+              [disabled]="isReadOnly()"
+              (input)="onHorsepowerChange($event)"
+              placeholder="Ex: 116"
+              class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors pr-10"
+              [class.border-red-400]="formErrors()['horsepower']"
+            />
+            <span class="absolute right-3 top-2.5 text-xs font-semibold text-gray-400 pointer-events-none">
+              cv
+            </span>
+          </div>
+          @if (formErrors()['horsepower']) {
+            <p class="text-[11px] text-red-500 font-medium">{{ formErrors()['horsepower'] }}</p>
+          } @else {
+            <p class="text-[10px] text-gray-400">Potência declarada (1 a 2000 cv).</p>
+          }
+        </div>
+      </div>
+
+      <!-- Combustível (fuel) -->
+      <div class="space-y-2">
+        <label for="engine-fuel" class="text-xs font-semibold text-gray-800 dark:text-slate-200">
+          Tipo de Combustível
+        </label>
+        
+        <!-- Presets Rápidos -->
+        @if (!isReadOnly()) {
+          <div class="flex flex-wrap gap-1.5">
+            @for (preset of fuelPresets; track preset) {
+              <button
+                type="button"
+                (click)="selectFuelPreset(preset)"
+                [class.bg-[#4F8A6B]]="fuel() === preset"
+                [class.text-white]="fuel() === preset"
+                [class.border-[#4F8A6B]]="fuel() === preset"
+                [class.bg-gray-50]="fuel() !== preset"
+                [class.dark:bg-slate-900]="fuel() !== preset"
+                [class.text-gray-700]="fuel() !== preset"
+                [class.dark:text-slate-300]="fuel() !== preset"
+                [class.border-gray-200]="fuel() !== preset"
+                [class.dark:border-slate-700]="fuel() !== preset"
+                class="px-2.5 py-1 text-[11px] font-medium rounded-lg border hover:border-[#4F8A6B]/60 transition-all cursor-pointer"
+              >
+                {{ preset }}
+              </button>
+            }
+          </div>
+        }
+
+        <input
+          id="engine-fuel"
+          type="text"
+          [value]="fuel()"
+          [disabled]="isReadOnly()"
+          (input)="onFuelChange($event)"
+          placeholder="Ex: Flex, Gasolina, Diesel, Híbrido Flex, Elétrico"
+          maxlength="100"
+          class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+          [class.border-red-400]="formErrors()['fuel']"
+        />
+        @if (formErrors()['fuel']) {
+          <p class="text-[11px] text-red-500 font-medium">{{ formErrors()['fuel'] }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 3: Status de Ativação -->
+    <div class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between">
+      <div>
+        <h4 class="text-xs font-bold text-gray-800 dark:text-slate-200">
+          Status de Ativação
+        </h4>
+        <p class="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+          Motores inativos ficam ocultos para novos vínculos no catálogo de produtos e aplicações.
+        </p>
+      </div>
+
+      <button
+        id="engine-active-toggle"
+        type="button"
+        role="switch"
+        [attr.aria-checked]="active()"
+        [disabled]="isReadOnly()"
+        (click)="toggleActive()"
+        class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 disabled:cursor-not-allowed disabled:opacity-60"
+        [class.bg-[#4F8A6B]]="active()"
+        [class.bg-gray-300]="!active()"
+        [class.dark:bg-slate-600]="!active()"
+      >
+        <span
+          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+          [class.translate-x-5]="active()"
+          [class.translate-x-0]="!active()"
+        ></span>
+      </button>
+    </div>
+
+    <!-- Drawer Footer Actions -->
+    <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-800">
+      <app-button
+        variant="ghost"
+        size="md"
+        (btnClick)="close()"
+      >
+        {{ isReadOnly() ? 'Fechar' : 'Cancelar' }}
+      </app-button>
+
+      @if (!isReadOnly()) {
+        <app-button
+          id="btn-save-vehicle-engine"
+          variant="primary"
+          size="md"
+          iconStart="check"
+          [loading]="isSubmitting()"
+          (btnClick)="onSubmit()"
+        >
+          {{ mode() === 'create' ? 'Cadastrar Motor' : 'Salvar Alterações' }}
+        </app-button>
+      }
+    </div>
+  </form>
+</app-drawer>

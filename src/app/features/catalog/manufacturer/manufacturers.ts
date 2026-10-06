@@ -86,7 +86,7 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
 
   readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
-  query: Partial<GeneralOptionQuery> = {
+  params: Partial<GeneralOptionQuery> = {
     active: null,
     page: this.currentPage(),
     per_page: this.perPage(),
@@ -104,19 +104,19 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
   );
 
   ngOnInit(): void {
-    this.loadManufacturers(this.query);
+    this.loadManufacturers(this.params);
     this.statusStore.hydrate();
 
     this.searchSubscription = this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged())
       .subscribe((queryText) => {
         this.currentPage.set(1);
-        this.query = {
-          ...this.query,
+        this.params = {
+          ...this.params,
           search: queryText,
           page: 1,
         };
-        this.loadManufacturers(this.query);
+        this.loadManufacturers(this.params);
       });
   }
 
@@ -168,25 +168,25 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
     this.selectedStatus.set(status);
     this.currentPage.set(1);
 
-    this.query = {
-      ...this.query,
+    this.params = {
+      ...this.params,
       active: activeValue,
       page: 1,
     };
-    this.loadManufacturers(this.query);
+    this.loadManufacturers(this.params);
   }
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
-    this.query = { ...this.query, page };
-    this.loadManufacturers(this.query);
+    this.params = { ...this.params, page };
+    this.loadManufacturers(this.params);
   }
 
   onPageSizeChange(size: number): void {
     this.perPage.set(size);
     this.currentPage.set(1);
-    this.query = { ...this.query, per_page: size, page: 1 };
-    this.loadManufacturers(this.query);
+    this.params = { ...this.params, per_page: size, page: 1 };
+    this.loadManufacturers(this.params);
   }
 
   resetFilters(): void {
@@ -194,14 +194,14 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
     this.selectedStatus.set('');
     this.currentPage.set(1);
 
-    this.query = {
+    this.params = {
       active: null,
       search: '',
       page: 1,
       per_page: this.perPage(),
     };
 
-    this.loadManufacturers(this.query);
+    this.loadManufacturers(this.params);
     this.toastService.info('Filtros limpos', 'Todos os parâmetros de busca foram resetados.');
   }
 
@@ -229,7 +229,7 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
   }
 
   onManufacturerSaved(): void {
-    this.loadManufacturers(this.query);
+    this.loadManufacturers(this.params);
   }
 
   confirmDelete(mfr: ManufacturerResponse): void {
@@ -262,11 +262,11 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
 
   onPaginationChange(meta: PaginationMeta): void {
     this.pagination.set(meta);
-    this.query = {
-      ...this.query,
+    this.params = {
+      ...this.params,
       page: meta.current_page,
       per_page: meta.per_page,
     };
-    this.loadManufacturers(this.query);
+    this.loadManufacturers(this.params);
   }
 }

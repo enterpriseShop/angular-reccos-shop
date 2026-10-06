@@ -1,0 +1,142 @@
+<!-- Page Header -->
+<app-page-header
+  title="Depósitos e Almoxarifados"
+  subtitle="Gestão de locais físicos de armazenagem, centros de distribuição, filiais e inventário."
+  [breadcrumbs]="[
+    { label: 'Estoque', route: '/inventory' },
+    { label: 'Depósitos' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newWarehouse()">
+      Novo Depósito
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick KPI Summary Strip -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
+      >
+        <app-icon name="warehouse" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Depósitos
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalCount() }} cadastrados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
+      >
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Depósitos Ativos
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ activeCount() }} operacionais
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="package-check" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Vínculos de Inventário
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalLinkedProductsCount() }} produtos em estoque
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por código, nome ou descrição..."
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="[]"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="paginatedWarehouses()"
+    [actions]="actions"
+    [loading]="loading()"
+    [roundedBottom]="false"
+  />
+
+  <app-pagination
+    [currentPage]="currentPage()"
+    [totalItems]="filteredWarehouses().length"
+    [pageSizeOptions]="[5, 10, 25, 50]"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Depósito"
+  [message]="'Tem certeza de que deseja remover o depósito ' + (selectedWarehouseForDelete()?.name || '') + ' (' + (selectedWarehouseForDelete()?.code || '') + ')?'"
+  type="danger"
+  confirmText="Excluir Depósito"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- Warehouse Create / Edit / View Drawer Form -->
+<app-warehouse-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [warehouse]="selectedWarehouse()"
+  (closeForm)="closeForm()"
+  (warehouseSaved)="onWarehouseSaved()"
+/>

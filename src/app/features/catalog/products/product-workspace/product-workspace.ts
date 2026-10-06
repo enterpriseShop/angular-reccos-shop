@@ -37,7 +37,6 @@ import {
 } from '../../models/product-workspace.model';
 import { initialProductPayload } from '../../../../core/utils/product-initial-payload';
 import { OemCodeService } from '../../../../core/services/code-oem-service';
-import { ManufacturerOption } from '../../../../core/models/manufactureres/manufaturer-options.model';
 import { OemCode } from '../../../../core/models/oem-codes/oem-codes.model';
 import { ProductByIdService } from '../../../../core/services/product-by-id-service';
 import { StatusStore } from '../../../../core/store/status-store/status-store';
@@ -154,7 +153,7 @@ export class ProductWorkspaceComponent implements OnInit {
     { label: this.headerTitle() },
   ]);
 
-  private queries: GeneralOptionQuery = {
+  private params: Partial<GeneralOptionQuery> = {
     search: null,
     active: null,
     per_page: null,
@@ -172,9 +171,9 @@ export class ProductWorkspaceComponent implements OnInit {
     this.productCreatedSuccessBanner.set(!!state?.['productJustCreated']);
 
     setTimeout(() => {
-      this.queries.per_page = 10;
-      this.queries.page = 1;
-      this.getOemCodeByManufacturer(this.queries);
+      this.params.per_page = 10;
+      this.params.page = 1;
+      this.getOemCodeByManufacturer(this.params);
     }, 100);
 
     if (id) {
@@ -183,17 +182,22 @@ export class ProductWorkspaceComponent implements OnInit {
     }
   }
 
-  getOemCodeByManufacturer(query: GeneralOptionQuery) {
+  getOemCodeByManufacturer(query: Partial<GeneralOptionQuery>) {
     this.oemCodeService.getByManufacturer(query).subscribe({
       next: (response) => {
         const codes = response.data || [];
         this.manufacturersByProduct.set(codes);
-        this.totalOemCodes.set((response as any).meta?.total ?? (response as any).total ?? codes.length);
+        this.totalOemCodes.set(
+          (response as any).meta?.total ?? (response as any).total ?? codes.length,
+        );
       },
       error: (err) => {
         this.manufacturersByProduct.set([]);
         this.totalOemCodes.set(0);
-        this.toastService.error('Erro', err.error?.data?.message || err.error?.message || 'Erro ao buscar códigos OEM');
+        this.toastService.error(
+          'Erro',
+          err.error?.data?.message || err.error?.message || 'Erro ao buscar códigos OEM',
+        );
       },
     });
   }
@@ -942,7 +946,7 @@ export class ProductWorkspaceComponent implements OnInit {
     this.deleteProductDialogOpen.set(true);
   }
 
-  onOemFiltersChange(filters: GeneralOptionQuery): void {
+  onOemFiltersChange(filters: Partial<GeneralOptionQuery>): void {
     console.log('filters', filters);
     this.getOemCodeByManufacturer(filters);
   }
