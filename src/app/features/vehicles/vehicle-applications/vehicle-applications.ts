@@ -177,7 +177,7 @@ export class VehicleApplicationsPageComponent implements OnInit {
   }
 
   loadBrandFilterOptions(params: Partial<VehicleApplicationFilters>): void {
-    this.vehicleBrandService.getOptions(params).subscribe({
+    this.vehicleBrandService.getOptions(params as any).subscribe({
       next: (res) => {
         const options = (res.data || []).map((b) => ({
           label: b.label,

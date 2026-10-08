@@ -44,8 +44,6 @@ export class DataTableComponent<T extends Record<string, unknown>> {
 
   readonly rowClick = output<T>();
   readonly actionClick = output<{ actionId: string; row: T }>();
-  readonly editRow = output<T>();
-  readonly deleteRow = output<T>();
 
   resolveValue(row: T, col: TableColumn<T>): unknown {
     if (col.valueGetter) {
@@ -145,7 +143,6 @@ export class DataTableComponent<T extends Record<string, unknown>> {
           icon: 'edit',
           colorClass: 'text-gray-400 hover:text-[#4F8A6B]',
           title: 'Editar',
-          handler: (r) => this.editRow.emit(r),
         },
         {
           id: 'delete',
@@ -153,7 +150,6 @@ export class DataTableComponent<T extends Record<string, unknown>> {
           icon: 'trash-2',
           colorClass: 'text-gray-400 hover:text-[#D66A6A]',
           title: 'Excluir',
-          handler: (r) => this.deleteRow.emit(r),
         },
       ];
     }
@@ -169,12 +165,6 @@ export class DataTableComponent<T extends Record<string, unknown>> {
     if (action.handler) {
       action.handler(row);
     }
-    console.log('[ON ACTION CLICK]', action, action.id);
     this.actionClick.emit({ actionId: action.id, row });
-    // if (action.id === 'edit') {
-    //   this.editRow.emit(row);
-    // } else if (action.id === 'delete') {
-    //   this.deleteRow.emit(row);
-    // }
   }
 }

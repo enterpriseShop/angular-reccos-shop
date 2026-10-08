@@ -23,6 +23,7 @@
       [placeholder]="placeholder()"
       [disabled]="disabled()"
       [readOnly]="readonly()"
+      autocomplete="off"
       [attr.step]="type() === 'number' ? step() : null"
       [attr.min]="type() === 'number' ? min() : null"
       [attr.max]="type() === 'number' ? max() : null"

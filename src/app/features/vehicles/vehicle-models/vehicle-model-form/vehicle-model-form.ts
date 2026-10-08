@@ -152,28 +152,12 @@ export class VehicleModelFormComponent {
     const input = event.target as HTMLInputElement;
     const value = input.value;
     this.name.set(value);
+    this.slug.set(this.slugify(value));
 
     // Clear error
     if (this.formErrors()['name']) {
       const errors = { ...this.formErrors() };
       delete errors['name'];
-      this.formErrors.set(errors);
-    }
-
-    // Auto-generate slug if auto mode is on
-    if (this.isAutoSlug()) {
-      this.slug.set(this.slugify(value));
-    }
-  }
-
-  onSlugChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.slug.set(input.value.toLowerCase().trim());
-    this.isAutoSlug.set(false);
-
-    if (this.formErrors()['slug']) {
-      const errors = { ...this.formErrors() };
-      delete errors['slug'];
       this.formErrors.set(errors);
     }
   }
@@ -215,10 +199,6 @@ export class VehicleModelFormComponent {
       errors['name'] = 'O nome não pode exceder 255 caracteres.';
     }
 
-    if (this.slug() && this.slug().length > 255) {
-      errors['slug'] = 'O slug não pode exceder 255 caracteres.';
-    }
-
     this.formErrors.set(errors);
     return Object.keys(errors).length === 0;
   }
@@ -240,18 +220,21 @@ export class VehicleModelFormComponent {
 
     this.isSubmitting.set(true);
 
-    const generatedSlug = this.slug().trim() || this.slugify(this.name().trim());
-
-    const payload: VehicleModelRequest = {
-      vehicle_brand_id: this.vehicleBrandId().trim(),
-      name: this.name().trim(),
-      slug: generatedSlug,
-      active: this.active(),
-    };
-
     if (this.mode() === 'create') {
+      const generatedSlug = this.slug().trim() || this.slugify(this.name().trim());
+      const payload: VehicleModelRequest = {
+        vehicle_brand_id: this.vehicleBrandId().trim(),
+        name: this.name().trim(),
+        slug: generatedSlug,
+        active: this.active(),
+      };
       this.createVehicleModel(payload);
     } else if (this.mode() === 'edit' && this.model()) {
+      const payload: VehicleModelRequest = {
+        vehicle_brand_id: this.vehicleBrandId().trim(),
+        name: this.name().trim(),
+        active: this.active(),
+      };
       this.updateVehicleModel(this.model()!.id, payload);
     }
   }

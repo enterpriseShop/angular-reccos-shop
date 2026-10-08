@@ -5,7 +5,11 @@ import {
   signal,
   computed,
   inject,
+  DestroyRef,
 } from '@angular/core';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { VehicleModelFormComponent } from './vehicle-model-form/vehicle-model-form';
 import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
 import { SearchInputComponent } from '../../../design-system/input/search-input';
@@ -30,6 +34,10 @@ import { GeneralOptionQuery } from '../../../core/models/generals/general-option
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/vehicle-model-store';
+import { VehicleBrandService } from '../../../core/services/vehicle-brand';
+import { VehicleModelFiltersResponse } from '../../../core/models/vehicles-model/vehicle-model-filters.models';
+import { VehicleBrandFiltersRequest } from '../../../core/models/vehicles-brands/vehicle-brand-filters.model';
+import { GeneralStatusParams } from '../../../utils/general-simplify-status';
 
 @Component({
   selector: 'app-vehicle-models-page',
@@ -53,16 +61,32 @@ import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/ve
 })
 export class VehicleModelsPageComponent implements OnInit {
   private toastService = inject(ToastService);
-  private vehicleModelService = inject(VehicleModelService);
   private vehicleModelStore = inject(VehicleModelStore);
+  private vehicleBrandService = inject(VehicleBrandService);
+  private vehicleModelService = inject(VehicleModelService);
+  private destroyRef = inject(DestroyRef);
+
+  private searchSubject = new Subject<string>();
+
+  constructor() {
+    this.searchSubject
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe((query) => {
+        this.executeSearch(query);
+      });
+  }
 
   // Data & State Signals
   readonly allModels = signal<VehicleModelResponse[]>([]);
   // readonly brandOptions = signal<VehicleBrandOption[]>([]);
   readonly loading = signal<boolean>(false);
+
   readonly searchQuery = signal<string>('');
-  readonly selectedBrandId = signal<string>('');
   readonly selectedStatus = signal<string>('');
+  readonly selectedBrandId = signal<string>('');
+  readonly selectedVersion = signal<string>('');
+  readonly brandSelectOptions = signal<SelectOption[]>([]);
+  readonly versionSelectOptions = signal<SelectOption[]>([]);
 
   brandOptions = computed(() => {
     const options = this.vehicleModelStore.optionList();
@@ -85,25 +109,7 @@ export class VehicleModelsPageComponent implements OnInit {
   readonly isDeleting = signal<boolean>(false);
 
   // Filter Dropdown Options
-  readonly statusOptions: SelectOption[] = [];
-
-  readonly brandSelectOptions = computed<SelectOption[]>(() => {
-    const defaultOpt: SelectOption = {
-      value: '',
-      label: '',
-      sublabel: '',
-      disabled: true,
-      module: '',
-    };
-    const mapped = this.brandOptions().map((b) => ({
-      value: b.value,
-      label: b.label,
-      sublabel: b.sublabel,
-      disabled: b.disabled,
-      module: '',
-    }));
-    return [defaultOpt, ...mapped];
-  });
+  readonly statusOptions: SelectOption[] = GeneralStatusParams;
 
   // Table Columns Definition
   readonly columns: TableColumn<VehicleModelResponse>[] = vehicleModelTableColumns;
@@ -122,24 +128,73 @@ export class VehicleModelsPageComponent implements OnInit {
 
   readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
-  params: Partial<GeneralOptionQuery> = {
-    active: null,
+  brandParams: VehicleBrandFiltersRequest = {
+    active: 1,
     search: null,
+  };
+
+  params: Partial<VehicleModelFiltersResponse> = {
+    brand: null,
+    search: null,
+    active: null,
+    version: null,
+    vehicle_brand_id: null,
     page: this.currentPage(),
     per_page: this.perPage(),
-    vehicle_brand_id: null,
   };
 
   ngOnInit(): void {
     this.loadModels(this.params);
+    this.loadBrands(this.brandParams);
   }
 
-  loadModels(params: Partial<GeneralOptionQuery>): void {
+  private extractErrorMessage(err: any, fallbackMessage: string): string {
+    if (err?.error?.errors && typeof err.error.errors === 'object') {
+      const messages = Object.values(err.error.errors).flat();
+      if (messages.length > 0) {
+        return messages.join(' ');
+      }
+    }
+    return err?.error?.message || err?.message || fallbackMessage;
+  }
+
+  onActionClick(event: { actionId: string; row: VehicleModelResponse }): void {
+    console.log('[ON ACTION CLICK 1]', event);
+    switch (event.actionId) {
+      case 'view':
+        this.viewModel(event.row);
+        break;
+      case 'edit':
+        this.editModel(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
+  }
+
+  viewVehicleModel(model: VehicleModelResponse): void {
+    this.viewModel(model);
+  }
+
+  editVehicleModel(model: VehicleModelResponse): void {
+    this.editModel(model);
+  }
+
+  loadModels(query: Partial<GeneralOptionQuery>): void {
     this.loading.set(true);
-    this.vehicleModelService.getAll(params).subscribe({
+    this.vehicleModelService.getAll(query).subscribe({
       next: (response) => {
         this.allModels.set(response.data);
         this.pagination.set(response.meta);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        const message = this.extractErrorMessage(
+          err,
+          'Não foi possível carregar os modelos de veículos.',
+        );
+        this.toastService.error('Erro ao Carregar', message);
       },
       complete: () => {
         this.loading.set(false);
@@ -147,39 +202,73 @@ export class VehicleModelsPageComponent implements OnInit {
     });
   }
 
-  readonly filteredModels = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const st = this.selectedStatus();
-    const brId = this.selectedBrandId();
-
-    return this.allModels().filter((m) => {
-      const brandName = (m.brand?.name || '').toLowerCase();
-      const matchesQ =
-        !q ||
-        m.name.toLowerCase().includes(q) ||
-        m.slug.toLowerCase().includes(q) ||
-        brandName.includes(q);
-
-      const matchesBrand = !brId || m.brand?.id === brId;
-      const matchesStatus = !st || (st === 'active' ? m.active : !m.active);
-
-      return matchesQ && matchesBrand && matchesStatus;
+  loadBrands(query: Partial<VehicleBrandFiltersRequest>) {
+    this.vehicleBrandService.getOptions(query).subscribe({
+      next: (response) => {
+        this.brandSelectOptions.set(response.data);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar marcas model', err);
+        const message = this.extractErrorMessage(
+          err,
+          'Não foi possível carregar as marcas de veículos.',
+        );
+        this.toastService.error('Erro ao Carregar Marcas', message);
+      },
     });
-  });
+  }
 
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
+    this.searchSubject.next(query);
+  }
+
+  private executeSearch(query: string): void {
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      search: query || null,
+      page: this.currentPage(),
+      per_page: this.perPage(),
+    };
+    this.loadModels(this.params);
   }
 
   onBrandFilterChange(brandId: string): void {
     this.selectedBrandId.set(brandId);
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      vehicle_brand_id: brandId || null,
+      page: this.currentPage(),
+      per_page: this.perPage(),
+    };
+    this.loadModels(this.params);
+  }
+
+  onVersionFilterChange(version: string): void {
+    this.selectedVersion.set(version);
+    this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      version: version || null,
+      page: this.currentPage(),
+      per_page: this.perPage(),
+    };
+    this.loadModels(this.params);
   }
 
   onStatusChange(status: string): void {
     this.selectedStatus.set(status);
     this.currentPage.set(1);
+    const activeValue = status === 'active' ? 1 : status === 'inactive' ? 0 : null;
+    this.params = {
+      ...this.params,
+      active: activeValue,
+      page: this.currentPage(),
+      per_page: this.perPage(),
+    };
+    this.loadModels(this.params);
   }
 
   onPaginationChange(meta: PaginationMeta): void {
@@ -195,8 +284,18 @@ export class VehicleModelsPageComponent implements OnInit {
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedBrandId.set('');
+    this.selectedVersion.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      search: null,
+      vehicle_brand_id: null,
+      version: null,
+      active: null,
+      page: 1,
+    };
+    this.loadModels(this.params);
   }
 
   onPageChange(page: number): void {

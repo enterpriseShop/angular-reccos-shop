@@ -33,7 +33,7 @@ export interface VehicleVersionFilters {
   q: string | null;
   vehicle_brand_id: string | null;
   vehicle_model_id: string | null;
-  active: boolean | null;
+  active: number | null;
 }
 
 export interface VehicleVersionOption {

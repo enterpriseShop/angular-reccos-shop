@@ -261,7 +261,7 @@ export class ProductCreateComponent implements OnInit {
     this.createForm.update((p) => ({ ...p, description: val }));
   }
 
-  onCategorySearch(query: GeneralOptionQuery): void {
+  onCategorySearch(query: Partial<GeneralOptionQuery>): void {
     this.categoryLoading.set(true);
     this.categoryService.getOptions(query).subscribe({
       next: (res) => {
@@ -281,7 +281,7 @@ export class ProductCreateComponent implements OnInit {
     });
   }
 
-  onManufacturerSearch(query: GeneralOptionQuery): void {
+  onManufacturerSearch(query: Partial<GeneralOptionQuery>): void {
     this.manufacturerLoading.set(true);
     this.manufacturerService.getOptions(query).subscribe({
       next: (res) => {

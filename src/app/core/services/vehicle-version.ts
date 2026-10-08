@@ -11,17 +11,22 @@ import { buildHttpParams } from './build-http-params';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { VehicleVersionRequest } from '../models/vehicles-version/vehicle-version-request.model';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehicleVersionService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/vehicle-version';
+  private baseUrl = environment.apiUrl;
+  private apiUrl = 'vehicle-versions';
 
   getAll(filters: VehicleVersionFilters): Observable<PaginatedResponse<VehicleVersionResponse>> {
     const params = buildHttpParams(filters);
-    return this.http.get<PaginatedResponse<VehicleVersionResponse>>(this.apiUrl, { params });
+    return this.http.get<PaginatedResponse<VehicleVersionResponse>>(
+      `${this.baseUrl}/${this.apiUrl}`,
+      { params },
+    );
   }
 
   getOptions(
@@ -29,27 +34,37 @@ export class VehicleVersionService {
   ): Observable<{ success: boolean; data: VehicleVersionOption[] }> {
     const params = buildHttpParams(filters);
     return this.http.get<{ success: boolean; data: VehicleVersionOption[] }>(
-      '/api/vehicle-versions/options',
+      `${this.baseUrl}/${this.apiUrl}/options`,
       { params },
     );
   }
 
   getById(id: string): Observable<getAllResponse<VehicleVersionResponse>> {
-    return this.http.get<getAllResponse<VehicleVersionResponse>>(`${this.apiUrl}/${id}`);
+    return this.http.get<getAllResponse<VehicleVersionResponse>>(
+      `${this.baseUrl}/${this.apiUrl}/${id}`,
+    );
   }
 
   create(payload: VehicleVersionRequest): Observable<getAllResponse<VehicleVersionResponse>> {
-    return this.http.post<getAllResponse<VehicleVersionResponse>>(this.apiUrl, payload);
+    return this.http.post<getAllResponse<VehicleVersionResponse>>(
+      `${this.baseUrl}/${this.apiUrl}`,
+      payload,
+    );
   }
 
   update(
     id: string,
     payload: VehicleVersionRequest,
   ): Observable<getAllResponse<VehicleVersionResponse>> {
-    return this.http.put<getAllResponse<VehicleVersionResponse>>(`${this.apiUrl}/${id}`, payload);
+    return this.http.put<getAllResponse<VehicleVersionResponse>>(
+      `${this.baseUrl}/${this.apiUrl}/${id}`,
+      payload,
+    );
   }
 
   delete(id: string): Observable<getAllResponse<VehicleVersionResponse>> {
-    return this.http.delete<getAllResponse<VehicleVersionResponse>>(`${this.apiUrl}/${id}`);
+    return this.http.delete<getAllResponse<VehicleVersionResponse>>(
+      `${this.baseUrl}/${this.apiUrl}/${id}`,
+    );
   }
 }

@@ -6,7 +6,7 @@
   (closeDrawer)="close()"
 >
   <!-- Main Form Body -->
-  <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-6 pb-4">
+  <form (submit)="$event.preventDefault(); onSubmit()" autocomplete="off" class="space-y-6 pb-4">
     <!-- Header Badge & Quick Context -->
     <div
       class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-700/80"
@@ -132,6 +132,7 @@
         <input
           id="model-name"
           type="text"
+          autocomplete="off"
           [value]="name()"
           [disabled]="isReadOnly()"
           (input)="onNameChange($event)"
@@ -177,24 +178,17 @@
           <input
             id="model-slug"
             type="text"
+            autocomplete="off"
+            [disabled]="true"
             [value]="slug()"
-            [disabled]="isReadOnly()"
-            (input)="onSlugChange($event)"
             placeholder="ex: gol, corolla, onix-plus"
             maxlength="255"
             class="w-full px-3 py-2 text-xs bg-transparent text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none font-mono disabled:cursor-not-allowed"
           />
         </div>
-        @if (formErrors()['slug']) {
-        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
-          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
-          {{ formErrors()['slug'] }}
-        </p>
-        } @else {
         <p class="text-[11px] text-gray-400 dark:text-slate-500">
-          Utilizado em rotas e filtros de catálogo (único por modelo).
+          Utilizado em rotas e filtros de catálogo (gerado automaticamente no cadastro).
         </p>
-        }
       </div>
     </div>
 

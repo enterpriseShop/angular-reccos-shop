@@ -147,7 +147,7 @@ export class VehicleApplicationFormComponent {
       year: null,
       active: false,
     };
-    this.vehicleBrandService.getOptions(params).subscribe({
+    this.vehicleBrandService.getOptions(params as any).subscribe({
       next: (res) => {
         console.log(res);
         this.brandOptions.set([]);

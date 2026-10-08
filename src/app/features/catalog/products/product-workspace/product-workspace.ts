@@ -464,7 +464,7 @@ export class ProductWorkspaceComponent implements OnInit {
     const type = prompt('Digite o Tipo (Ex.: EAN-13, Código Fábrica):', 'EAN-13') || 'Geral';
 
     const newId = 'pc-' + Date.now();
-    const newCode = { id: newId, type, code, active: true };
+    const newCode = { id: newId, type, code, active: 1 };
 
     this.product.update((p) => ({
       ...p,
@@ -736,11 +736,11 @@ export class ProductWorkspaceComponent implements OnInit {
 
   // toggleNoteStatus(id: string): void {}
 
-  onCategorySearch(query: GeneralOptionQuery): void {
+  onCategorySearch(query: Partial<GeneralOptionQuery>): void {
     this.categoryStore.loadOptions(query);
   }
 
-  onManufacturerSearch(query: GeneralOptionQuery): void {
+  onManufacturerSearch(query: Partial<GeneralOptionQuery>): void {
     this.manufacturerStore.loadOptions(query);
   }
 

@@ -99,18 +99,24 @@
 
 <!-- Filter Toolbar -->
 <app-toolbar>
-  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
     <app-search-input
       [value]="searchQuery()"
       (valueChange)="onSearchChange($event)"
-      placeholder="Filtrar por modelo, slug ou marca..."
+      placeholder="Filtrar por modelo"
     />
-
     <app-select
       [value]="selectedBrandId()"
       (valueChange)="onBrandFilterChange($event)"
       [options]="brandSelectOptions()"
       placeholder="Todas as Marcas"
+    />
+
+    <app-select
+      [value]="selectedVersion()"
+      (valueChange)="onVersionFilterChange($event)"
+      [options]="versionSelectOptions()"
+      placeholder="Todas as Versões"
     />
 
     <app-select
@@ -122,7 +128,7 @@
   </div>
 
   <div end class="flex items-center gap-2">
-    @if (searchQuery() || selectedBrandId() || selectedStatus()) {
+    @if (searchQuery() || selectedBrandId() || selectedVersion() || selectedStatus()) {
     <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
       Limpar Filtros
     </app-button>
@@ -137,6 +143,7 @@
     [data]="allModels()"
     [actions]="actions"
     [loading]="loading()"
+    (actionClick)="onActionClick($event)"
     emptyTitle="Nenhum modelo encontrado"
     emptyDescription="Não há modelos de veículos cadastrados ou correspondentes aos filtros selecionados."
     [roundedBottom]="false"
@@ -159,11 +166,11 @@
 
 <!-- Model Drawer Form (Create / Edit / View) -->
 <app-vehicle-model-form
-  [isOpen]="isFormOpen()"
   [mode]="formMode()"
+  [isOpen]="isFormOpen()"
   [model]="selectedModel()"
-  [totalVersionsCount]="totalVersionsCount()"
-  [preselectedBrandId]="selectedBrandId()"
   (closeForm)="closeForm()"
   (modelSaved)="onModelSaved()"
+  [preselectedBrandId]="selectedBrandId()"
+  [totalVersionsCount]="totalVersionsCount()"
 />

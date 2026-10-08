@@ -157,7 +157,7 @@ export class VehicleVersionsPageComponent implements OnInit {
     q: null,
     vehicle_brand_id: null,
     vehicle_model_id: null,
-    active: false,
+    active: 1,
   };
 
   ngOnInit(): void {

@@ -11,7 +11,7 @@ import { GeneralOptionQuery } from '../models/generals/general-option-query.mode
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { environment } from '../../../environments/environment';
 import { SelectOption } from '../models/design-system/select-option.model';
-import { VehicleApplicationFilters } from '../models/vehicle-application/vehicle-application.model';
+import { VehicleBrandFiltersRequest } from '../models/vehicles-brands/vehicle-brand-filters.model';
 
 export interface VehicleBrandFilters {
   page?: number;
@@ -64,7 +64,7 @@ export class VehicleBrandService {
   }
 
   getOptions(
-    filters: Partial<VehicleApplicationFilters>,
+    filters: Partial<VehicleBrandFiltersRequest>,
   ): Observable<getAllResponse<SelectOption[]>> {
     const params = buildHttpParams(filters);
     return this.http.get<getAllResponse<SelectOption[]>>(`${this.api}/${this.flag}/options`, {

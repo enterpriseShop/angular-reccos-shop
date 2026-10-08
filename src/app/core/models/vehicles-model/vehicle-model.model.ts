@@ -16,7 +16,7 @@ export interface VehicleModelResponse extends Record<string, unknown> {
 export interface VehicleModelRequest {
   vehicle_brand_id: string;
   name: string;
-  slug: string;
+  slug?: string;
   active: boolean;
 }
 

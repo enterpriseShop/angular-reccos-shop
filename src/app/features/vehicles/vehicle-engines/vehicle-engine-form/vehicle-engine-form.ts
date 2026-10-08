@@ -188,7 +188,7 @@ export class VehicleEngineFormComponent {
   private loadBrandOptions(): void {
     this.loadingBrands.set(true);
     const paramsValues = this.params;
-    this.vehicleBrandService.getOptions(paramsValues as VehicleApplicationFilters).subscribe({
+    this.vehicleBrandService.getOptions(paramsValues as any).subscribe({
       next: (res) => {
         console.log(res);
         this.brandOptions.set([]);

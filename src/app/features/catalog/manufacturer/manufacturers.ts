@@ -161,9 +161,9 @@ export class ManufacturersPageComponent implements OnInit, OnDestroy {
   // Filtro por status
   onStatusChange(status: string): void {
     console.log('search query', status);
-    let activeValue: boolean | null = null;
-    if (status === 'active') activeValue = true;
-    if (status === 'inactive') activeValue = false;
+    let activeValue: number | null = null;
+    if (status === 'active') activeValue = 1;
+    if (status === 'inactive') activeValue = 0;
 
     this.selectedStatus.set(status);
     this.currentPage.set(1);

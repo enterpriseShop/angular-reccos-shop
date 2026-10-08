@@ -23,7 +23,7 @@ export class VehicleBrandStore extends OptionCacheStore<
   protected readonly QUERY_KEY = 'vehicle-brands:query';
 
   protected fetchOptions(query: Partial<GeneralOptionQuery>) {
-    return this.service.getOptions(query as VehicleApplicationFilters).pipe(
+    return this.service.getOptions(query as any).pipe(
       map((r: getAllResponse<GeneralOption[]>) => ({
         ...r,
         data: r.data.map(

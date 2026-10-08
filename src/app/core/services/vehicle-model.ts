@@ -18,39 +18,47 @@ import { environment } from '../../../environments/environment';
 export class VehicleModelService {
   private http = inject(HttpClient);
   private api = environment.apiUrl;
-  private apiUrl = `${this.api}/vehicle-models`;
+  private flag = `vehicle-models`;
 
   getAll(
     filters: Partial<GeneralOptionQuery>,
   ): Observable<PaginatedResponse<VehicleModelResponse>> {
     const params = buildHttpParams(filters);
-    return this.http.get<PaginatedResponse<VehicleModelResponse>>(this.apiUrl, { params });
+    return this.http.get<PaginatedResponse<VehicleModelResponse>>(`${this.api}/${this.flag}`, {
+      params,
+    });
   }
 
   getById(id: string): Observable<getAllResponse<VehicleModelResponse>> {
-    return this.http.get<getAllResponse<VehicleModelResponse>>(`${this.apiUrl}/${id}`);
+    return this.http.get<getAllResponse<VehicleModelResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
   create(payload: VehicleModelRequest): Observable<getAllResponse<VehicleModelResponse>> {
-    return this.http.post<getAllResponse<VehicleModelResponse>>(this.apiUrl, payload);
+    return this.http.post<getAllResponse<VehicleModelResponse>>(
+      `${this.api}/${this.flag}`,
+      payload,
+    );
   }
 
   update(
     id: string,
     payload: VehicleModelRequest,
   ): Observable<getAllResponse<VehicleModelResponse>> {
-    return this.http.put<getAllResponse<VehicleModelResponse>>(`${this.apiUrl}/${id}`, payload);
+    return this.http.put<getAllResponse<VehicleModelResponse>>(
+      `${this.api}/${this.flag}/${id}`,
+      payload,
+    );
   }
 
   delete(id: string): Observable<getAllResponse<VehicleModelResponse>> {
-    return this.http.delete<getAllResponse<VehicleModelResponse>>(`${this.apiUrl}/${id}`);
+    return this.http.delete<getAllResponse<VehicleModelResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
   getOptions(
     filters: Partial<GeneralOptionQuery>,
   ): Observable<getAllResponse<VehicleModelOption[]>> {
     const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<VehicleModelOption[]>>(`${this.apiUrl}/options`, {
+    return this.http.get<getAllResponse<VehicleModelOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
     });
   }
