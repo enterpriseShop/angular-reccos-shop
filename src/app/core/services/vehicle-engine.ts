@@ -5,7 +5,7 @@ import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { buildHttpParams } from './build-http-params';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { environment } from '../../../environments/environment';
-import { VehicleVersionRequest } from '../models/vehicles-version/vehicle-version-request.model';
+import { VehicleEngineRequest } from '../models/vehicles-engine/vehicle-engine-request.model';
 import {
   VehicleEngineFilters,
   VehicleEngineOption,
@@ -35,13 +35,13 @@ export class VehicleEngineService {
     return this.http.get<getAllResponse<VehicleEngineResponse>>(`${this.api}/${id}`);
   }
 
-  create(payload: VehicleVersionRequest): Observable<getAllResponse<VehicleEngineResponse>> {
+  create(payload: VehicleEngineRequest): Observable<getAllResponse<VehicleEngineResponse>> {
     return this.http.post<getAllResponse<VehicleEngineResponse>>(this.api, payload);
   }
 
   update(
     id: string,
-    payload: VehicleVersionRequest,
+    payload: VehicleEngineRequest,
   ): Observable<getAllResponse<VehicleEngineResponse>> {
     return this.http.put<getAllResponse<VehicleEngineResponse>>(`${this.api}/${id}`, payload);
   }

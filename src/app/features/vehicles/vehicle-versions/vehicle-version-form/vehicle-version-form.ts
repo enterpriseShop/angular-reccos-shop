@@ -14,13 +14,12 @@ import { AppIconComponent } from '../../../../design-system/icon/app-icon';
 import { DrawerComponent } from '../../../../design-system/drawer/drawer';
 import { VehicleVersionService } from '../../../../core/services/vehicle-version';
 import { VehicleModelService } from '../../../../core/services/vehicle-model';
-import { VehicleBrandService } from '../../../../core/services/vehicle-brand';
 import { ToastService } from '../../../../core/services/toast';
 import { VehicleVersionResponse } from '../../../../core/models/vehicles-version/vehicle-version.model';
-import { VehicleModelOption } from '../../../../core/models/vehicles-model/vehicle-model.model';
 import { VehicleVersionRequest } from '../../../../core/models/vehicles-version/vehicle-version-request.model';
 import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
 import { VehicleModelStore } from '../../../../core/store/vehicles/vehicle-model/vehicle-model-store';
+import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
 
 @Component({
   selector: 'app-vehicle-version-form',
@@ -31,11 +30,11 @@ import { VehicleModelStore } from '../../../../core/store/vehicles/vehicle-model
   styleUrl: './vehicle-version-form.css',
 })
 export class VehicleVersionFormComponent {
-  private vehicleVersionService = inject(VehicleVersionService);
-  private vehicleModelService = inject(VehicleModelService);
-  private vehicleBrandService = inject(VehicleBrandService);
   private toastService = inject(ToastService);
   private vehicleModelStore = inject(VehicleModelStore);
+  private vehicleBrandStore = inject(VehicleBrandStore);
+  private vehicleModelService = inject(VehicleModelService);
+  private vehicleVersionService = inject(VehicleVersionService);
 
   readonly isOpen = input<boolean>(false);
   readonly mode = input<'create' | 'edit' | 'view'>('create');
@@ -48,7 +47,6 @@ export class VehicleVersionFormComponent {
 
   // State Signals
   readonly isSubmitting = signal<boolean>(false);
-  readonly modelOptions = signal<VehicleModelOption[]>([]);
   readonly loadingBrands = signal<boolean>(false);
   readonly loadingModels = signal<boolean>(false);
 
@@ -70,7 +68,7 @@ export class VehicleVersionFormComponent {
   };
 
   readonly brandOptions = computed(() => {
-    const options = this.vehicleModelStore.optionList();
+    const options = this.vehicleBrandStore.optionList();
     return options;
   });
 
@@ -84,7 +82,7 @@ export class VehicleVersionFormComponent {
 
       if (open) {
         this.formErrors.set({});
-        this.loadModelOptions(this.params);
+        // this.loadModelOptions(this.params);
 
         if ((currentMode === 'edit' || currentMode === 'view') && currentItem) {
           const brandId = currentItem.model?.brand?.id || '';
@@ -103,36 +101,23 @@ export class VehicleVersionFormComponent {
     });
   }
 
-  loadModelOptions(params: Partial<GeneralOptionQuery>): void {
-    this.loadingModels.set(true);
-    this.vehicleModelService.getOptions(params).subscribe({
-      next: (res) => {
-        this.modelOptions.set(res.data || []);
-        this.loadingModels.set(false);
-      },
-      error: () => {
-        this.loadingModels.set(false);
-      },
-    });
-  }
-
   readonly filteredModelOptions = computed(() => {
+    const options = this.vehicleModelStore.optionList();
     const brandId = this.selectedBrandId();
-    const all = this.modelOptions();
-    if (!brandId) return all;
-    return all.filter((m) => m.vehicle_brand_id === brandId);
+    if (!brandId) return options;
+    return options;
   });
 
   readonly selectedModel = computed(() => {
     const modelId = this.vehicleModelId();
-    return this.modelOptions().find((m) => m.id === modelId) || null;
+    return this.filteredModelOptions().find((m) => m.value === modelId) || null;
   });
 
   readonly selectedBrand = computed(() => {
-    const model = this.selectedModel();
-    if (model?.vehicle_brand_id) {
-      return this.brandOptions().find((b) => b.value === model.vehicle_brand_id) || null;
-    }
+    // const model = this.selectedModel();
+    // if (model?.vehicle_brand_id) {
+    //   return this.brandOptions().find((b) => b.value === model.vehicle_brand_id) || null;
+    // }
     const brandId = this.selectedBrandId();
     return this.brandOptions().find((b) => b.value === brandId) || null;
   });
@@ -150,30 +135,19 @@ export class VehicleVersionFormComponent {
 
   readonly isReadOnly = computed(() => this.mode() === 'view');
 
-  onBrandChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const newBrandId = target.value;
-    this.selectedBrandId.set(newBrandId);
-
-    // If current selected model does not belong to new brand, reset model
-    const currentModel = this.selectedModel();
-    if (currentModel && newBrandId && currentModel.vehicle_brand_id !== newBrandId) {
-      this.vehicleModelId.set('');
-    }
-
-    this.clearFieldError('vehicle_model_id');
-  }
-
   onModelChange(event: Event): void {
     const target = event.target as HTMLSelectElement;
     const modelId = target.value;
     this.vehicleModelId.set(modelId);
 
-    // Sync brand if unset
-    const chosenModel = this.modelOptions().find((m) => m.id === modelId);
-    if (chosenModel && chosenModel.vehicle_brand_id) {
-      this.selectedBrandId.set(chosenModel.vehicle_brand_id);
-    }
+    const brandLabel = this.filteredModelOptions().filter(
+      (m) => m.value.toLowerCase() === modelId.toLowerCase(),
+    )[0]?.sublabel;
+    const selectedbrand = this.brandOptions().filter(
+      (b) => b.sublabel.toLowerCase() === brandLabel.toLowerCase(),
+    )[0]?.value;
+
+    this.selectedBrandId.set(selectedbrand || '');
 
     this.clearFieldError('vehicle_model_id');
   }
@@ -233,72 +207,75 @@ export class VehicleVersionFormComponent {
       vehicle_model_id: this.vehicleModelId(),
       name: this.name().trim(),
       active: this.active(),
-      displacement: null,
-      fuel: null,
-      horsepower: null,
-      vehicle_version_id: null,
     };
 
     if (this.mode() === 'create') {
-      this.vehicleVersionService.create(payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Versão Cadastrada',
-            response.message || 'Versão de veículo criado(a) com sucesso.',
-          );
-          this.versionSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          if (err.status === 422 && err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const [key, msgs] of Object.entries(err.error.errors)) {
-              if (Array.isArray(msgs) && msgs.length > 0) {
-                serverErrors[key] = msgs[0];
-              }
-            }
-            this.formErrors.set(serverErrors);
-          }
-          this.toastService.error(
-            'Falha no Cadastro',
-            err.error?.message || 'Não foi possível cadastrar a versão de veículo.',
-          );
-        },
-      });
+      this.createVehicleVersion(payload);
     } else {
-      // Edit Mode
       const currentItem = this.version();
       if (!currentItem) return;
-      this.vehicleVersionService.update(currentItem.id, payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Versão Atualizada',
-            response.message || 'Versão de veículo atualizado(a) com sucesso.',
-          );
-          this.versionSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          if (err.status === 422 && err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const [key, msgs] of Object.entries(err.error.errors)) {
-              if (Array.isArray(msgs) && msgs.length > 0) {
-                serverErrors[key] = msgs[0];
-              }
-            }
-            this.formErrors.set(serverErrors);
-          }
-          this.toastService.error(
-            'Falha na Atualização',
-            err.error?.message || 'Não foi possível atualizar a versão de veículo.',
-          );
-        },
-      });
+      this.updateVehicleVersion(currentItem.id, payload);
     }
+  }
+
+  updateVehicleVersion(versionId: string, payload: VehicleVersionRequest) {
+    this.vehicleVersionService.update(versionId, payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Versão Atualizada',
+          response.message || 'Versão de veículo atualizado(a) com sucesso.',
+        );
+        this.versionSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        if (err.status === 422 && err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const [key, msgs] of Object.entries(err.error.errors)) {
+            if (Array.isArray(msgs) && msgs.length > 0) {
+              serverErrors[key] = msgs[0];
+            }
+          }
+          this.formErrors.set(serverErrors);
+        }
+        this.toastService.error(
+          'Falha na Atualização',
+          err.error?.message || 'Não foi possível atualizar a versão de veículo.',
+        );
+      },
+    });
+  }
+
+  createVehicleVersion(payload: VehicleVersionRequest) {
+    this.vehicleVersionService.create(payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Versão Cadastrada',
+          response.message || 'Versão de veículo criado(a) com sucesso.',
+        );
+        this.versionSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        if (err.status === 422 && err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const [key, msgs] of Object.entries(err.error.errors)) {
+            if (Array.isArray(msgs) && msgs.length > 0) {
+              serverErrors[key] = msgs[0];
+            }
+          }
+          this.formErrors.set(serverErrors);
+        }
+        this.toastService.error(
+          'Falha no Cadastro',
+          err.error?.message || 'Não foi possível cadastrar a versão de veículo.',
+        );
+      },
+    });
   }
 
   close(): void {

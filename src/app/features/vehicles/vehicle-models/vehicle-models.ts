@@ -36,8 +36,8 @@ import { initialValuesPagination } from '../../../design-system/pagination/utils
 import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/vehicle-model-store';
 import { VehicleBrandService } from '../../../core/services/vehicle-brand';
 import { VehicleModelFiltersResponse } from '../../../core/models/vehicles-model/vehicle-model-filters.models';
-import { VehicleBrandFiltersRequest } from '../../../core/models/vehicles-brands/vehicle-brand-filters.model';
 import { GeneralStatusParams } from '../../../utils/general-simplify-status';
+import { VehicleBrandStore } from '../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
 
 @Component({
   selector: 'app-vehicle-models-page',
@@ -60,11 +60,12 @@ import { GeneralStatusParams } from '../../../utils/general-simplify-status';
   styleUrl: './vehicle-models.css',
 })
 export class VehicleModelsPageComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
   private toastService = inject(ToastService);
+  private vehicleBrandStore = inject(VehicleBrandStore);
   private vehicleModelStore = inject(VehicleModelStore);
   private vehicleBrandService = inject(VehicleBrandService);
   private vehicleModelService = inject(VehicleModelService);
-  private destroyRef = inject(DestroyRef);
 
   private searchSubject = new Subject<string>();
 
@@ -85,7 +86,10 @@ export class VehicleModelsPageComponent implements OnInit {
   readonly selectedStatus = signal<string>('');
   readonly selectedBrandId = signal<string>('');
   readonly selectedVersion = signal<string>('');
-  readonly brandSelectOptions = signal<SelectOption[]>([]);
+
+  readonly brandSelectOptions = computed<SelectOption[]>(() => {
+    return this.vehicleBrandStore.optionList();
+  });
   readonly versionSelectOptions = signal<SelectOption[]>([]);
 
   brandOptions = computed(() => {
@@ -128,11 +132,6 @@ export class VehicleModelsPageComponent implements OnInit {
 
   readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
-  brandParams: VehicleBrandFiltersRequest = {
-    active: 1,
-    search: null,
-  };
-
   params: Partial<VehicleModelFiltersResponse> = {
     brand: null,
     search: null,
@@ -145,7 +144,6 @@ export class VehicleModelsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadModels(this.params);
-    this.loadBrands(this.brandParams);
   }
 
   private extractErrorMessage(err: any, fallbackMessage: string): string {
@@ -159,7 +157,6 @@ export class VehicleModelsPageComponent implements OnInit {
   }
 
   onActionClick(event: { actionId: string; row: VehicleModelResponse }): void {
-    console.log('[ON ACTION CLICK 1]', event);
     switch (event.actionId) {
       case 'view':
         this.viewModel(event.row);
@@ -198,22 +195,6 @@ export class VehicleModelsPageComponent implements OnInit {
       },
       complete: () => {
         this.loading.set(false);
-      },
-    });
-  }
-
-  loadBrands(query: Partial<VehicleBrandFiltersRequest>) {
-    this.vehicleBrandService.getOptions(query).subscribe({
-      next: (response) => {
-        this.brandSelectOptions.set(response.data);
-      },
-      error: (err) => {
-        console.error('Erro ao carregar marcas model', err);
-        const message = this.extractErrorMessage(
-          err,
-          'Não foi possível carregar as marcas de veículos.',
-        );
-        this.toastService.error('Erro ao Carregar Marcas', message);
       },
     });
   }

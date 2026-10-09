@@ -73,34 +73,6 @@
         </h4>
       </div>
 
-      <!-- Filtro Opcional de Marca para facilitar seleção do Modelo -->
-      <div class="space-y-1.5">
-        <label
-          for="version-brand-filter"
-          class="text-xs font-semibold text-gray-700 dark:text-slate-300 flex items-center justify-between"
-        >
-          <span>Montadora / Fabricante (Filtro)</span>
-          @if (loadingBrands()) {
-          <span class="text-[10px] text-gray-400">Carregando marcas...</span>
-          }
-        </label>
-        <select
-          id="version-brand-filter"
-          [value]="selectedBrandId()"
-          [disabled]="isReadOnly() || loadingBrands()"
-          (change)="onBrandChange($event)"
-          class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors cursor-pointer"
-        >
-          <option value="">Todas as Montadoras</option>
-          @for (brand of brandOptions(); track brand.value) {
-          <option [value]="brand.value">{{ brand.label }}</option>
-          }
-        </select>
-        <p class="text-[11px] text-gray-500 dark:text-slate-400">
-          Selecione a montadora para filtrar a lista de modelos abaixo.
-        </p>
-      </div>
-
       <!-- Modelo do Veículo (vehicle_model_id) -->
       <div class="space-y-1.5">
         <div class="flex items-center justify-between">
@@ -126,7 +98,8 @@
           <option value="" disabled>Selecione o modelo do veículo...</option>
           @for (model of filteredModelOptions(); track model.value) {
           <option [value]="model.value">
-            {{ model.label }} {{ model.brand_name ? '(' + model.brand_name + ')' : '' }}
+            {{ model.label }}
+            <!-- {{ model.brand_name ? '(' + model.brand_name + ')' : '' }} -->
           </option>
           }
         </select>
@@ -143,6 +116,33 @@
           .
         </p>
         }
+      </div>
+
+      <!-- Filtro Opcional de Marca para facilitar seleção do Modelo -->
+      <div class="space-y-1.5">
+        <label
+          for="version-brand-filter"
+          class="text-xs font-semibold text-gray-700 dark:text-slate-300 flex items-center justify-between"
+        >
+          <span>Montadora / Fabricante (Filtro)</span>
+          @if (loadingBrands()) {
+          <span class="text-[10px] text-gray-400">Carregando marcas...</span>
+          }
+        </label>
+        <select
+          id="version-brand-filter"
+          [value]="selectedBrandId()"
+          disabled
+          class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        >
+          <option value="">Montadora do Veículo</option>
+          @for (brand of brandOptions(); track brand.value) {
+          <option [value]="brand.value">{{ brand.label }}</option>
+          }
+        </select>
+        <p class="text-[11px] text-gray-500 dark:text-slate-400">
+          Selecione a montadora para filtrar a lista de modelos abaixo.
+        </p>
       </div>
     </div>
 

@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
-  VehicleModelOption,
   VehicleModelRequest,
   VehicleModelResponse,
 } from '../models/vehicles-model/vehicle-model.model';
@@ -11,6 +10,8 @@ import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
 import { environment } from '../../../environments/environment';
+import { VehicleVersionFilter } from '../models/vehicles-version/vehicle-version-filter.model';
+import { GeneralOption } from '../models/generals/general-options-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -54,11 +55,9 @@ export class VehicleModelService {
     return this.http.delete<getAllResponse<VehicleModelResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
-  getOptions(
-    filters: Partial<GeneralOptionQuery>,
-  ): Observable<getAllResponse<VehicleModelOption[]>> {
+  getOptions(filters: Partial<VehicleVersionFilter>): Observable<getAllResponse<GeneralOption[]>> {
     const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<VehicleModelOption[]>>(`${this.api}/${this.flag}/options`, {
+    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
     });
   }

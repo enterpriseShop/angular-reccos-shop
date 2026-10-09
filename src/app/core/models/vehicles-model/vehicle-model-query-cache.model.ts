@@ -1,8 +1,8 @@
-import { AutocompleteOption } from '../design-system/auto-complete.model';
+import { SelectOption } from '../design-system/select-option.model';
 import { getAllResponse } from '../generals/general-responses-list.model';
 import { GeneralOptionQuery } from '../generals/general-option-query.model';
 
 export interface VehicleModelQueryCache {
   query: GeneralOptionQuery;
-  response: getAllResponse<AutocompleteOption[]>;
+  response: getAllResponse<SelectOption[]>;
 }

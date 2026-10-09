@@ -6,6 +6,9 @@ import {
   computed,
   inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { VehicleVersionFormComponent } from './vehicle-version-form/vehicle-version-form';
 import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
@@ -19,21 +22,22 @@ import { ToolbarComponent } from '../../../design-system/toolbar/toolbar';
 import { AppIconComponent } from '../../../design-system/icon/app-icon';
 import { VehicleVersionService } from '../../../core/services/vehicle-version';
 import { VehicleModelService } from '../../../core/services/vehicle-model';
-import { VehicleBrandService } from '../../../core/services/vehicle-brand';
 import { ToastService } from '../../../core/services/toast';
 import {
   VehicleVersionFilters,
   VehicleVersionResponse,
 } from '../../../core/models/vehicles-version/vehicle-version.model';
-import { VehicleModelOption } from '../../../core/models/vehicles-model/vehicle-model.model';
 import { SelectOption } from '../../../core/models/design-system/select-option.model';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
 import {
   vehicleVersionsTableActions,
   vehicleVersionsTableColumns,
 } from '../../../utils/vehicle-versions-table-collums';
-import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
 import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/vehicle-model-store';
+import { VehicleBrandStore } from '../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
+import { GeneralStatusParams } from '../../../utils/general-simplify-status';
+import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
+import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 
 @Component({
   selector: 'app-vehicle-versions-page',
@@ -58,23 +62,23 @@ import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/ve
 export class VehicleVersionsPageComponent implements OnInit {
   private toastService = inject(ToastService);
   private vehicleModelStore = inject(VehicleModelStore);
+  private vehicleBrandStore = inject(VehicleBrandStore);
   private vehicleModelService = inject(VehicleModelService);
-  private vehicleBrandService = inject(VehicleBrandService);
   private vehicleVersionService = inject(VehicleVersionService);
 
   // Data & State Signals
-  readonly modelOptions = signal<VehicleModelOption[]>([]);
-  readonly allVersions = signal<VehicleVersionResponse[]>([]);
   readonly loading = signal<boolean>(false);
   readonly searchQuery = signal<string>('');
+  readonly selectedStatus = signal<string>('');
   readonly selectedBrandId = signal<string>('');
   readonly selectedModelId = signal<string>('');
-  readonly selectedStatus = signal<string>('');
+  readonly allVersions = signal<VehicleVersionResponse[]>([]);
 
   // Pagination Signals
-  readonly currentPage = signal<number>(1);
-  readonly pageSize = signal<number>(10);
+  readonly perPage = signal<number>(10);
   readonly totalItems = signal<number>(0);
+  readonly currentPage = signal<number>(1);
+  readonly currentStatus = signal<number | null>(1);
 
   // Form Drawer Signals
   readonly isFormOpen = signal<boolean>(false);
@@ -82,62 +86,27 @@ export class VehicleVersionsPageComponent implements OnInit {
   readonly selectedVersion = signal<VehicleVersionResponse | null>(null);
 
   // Delete Dialog Signals
+  readonly isDeleting = signal<boolean>(false);
   readonly deleteDialogOpen = signal<boolean>(false);
   readonly selectedVersionForDelete = signal<VehicleVersionResponse | null>(null);
-  readonly isDeleting = signal<boolean>(false);
 
   // Filter Dropdown Options
-  readonly statusOptions: SelectOption[] = [];
-
-  readonly brandOptions = computed(() => {
-    const options = this.vehicleModelStore.optionList();
-    return options;
-  });
+  readonly statusOptions = signal<SelectOption[]>(GeneralStatusParams);
 
   readonly brandSelectOptions = computed<SelectOption[]>(() => {
-    const defaultOpt: SelectOption = {
-      value: '',
-      label: '',
-      sublabel: '',
-      disabled: true,
-      module: '',
-    };
-    const mapped = this.brandOptions().map((b) => ({
-      value: b.value,
-      label: b.label,
-      sublabel: b.sublabel,
-      disabled: false,
-      module: '',
-    }));
-    return [defaultOpt, ...mapped];
+    return this.vehicleBrandStore.optionList();
   });
 
   readonly modelSelectOptions = computed<SelectOption[]>(() => {
-    const defaultOpt: SelectOption = {
-      value: '',
-      label: '',
-      sublabel: '',
-      disabled: true,
-      module: '',
-    };
-    const brandId = this.selectedBrandId();
-    let list = this.modelOptions();
-    if (brandId) {
-      list = list.filter((m) => m.vehicle_brand_id === brandId);
-    }
-    const mapped = list.map((m) => ({
-      value: m.id,
-      label: m.label + (m.brand_name ? ` (${m.brand_name})` : ''),
-      sublabel: '',
-      disabled: false,
-      module: '',
-    }));
-    return [defaultOpt, ...mapped];
+    return this.vehicleModelStore.optionList();
   });
 
   // Table Columns Definition
   readonly columns: TableColumn<VehicleVersionResponse>[] = vehicleVersionsTableColumns;
   readonly actions: TableAction<VehicleVersionResponse>[] = vehicleVersionsTableActions;
+
+  // Pagination
+  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
   // Quick KPI Signals
   readonly totalCount = computed(() => this.allVersions().length);
@@ -151,122 +120,144 @@ export class VehicleVersionsPageComponent implements OnInit {
   );
 
   params: VehicleVersionFilters = {
-    page: 1,
-    per_page: 10,
     search: null,
-    q: null,
     vehicle_brand_id: null,
     vehicle_model_id: null,
-    active: 1,
+    page: this.currentPage(),
+    per_page: this.perPage(),
+    active: this.currentStatus(),
   };
+
+  private searchSubject = new Subject<string>();
+
+  constructor() {
+    this.searchSubject
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((query) => {
+        this.currentPage.set(1);
+        this.searchQuery.set(query);
+        this.params = { ...this.params, search: query || null, page: 1 };
+        this.loadVersions(this.params);
+      });
+  }
 
   ngOnInit(): void {
     this.loadVersions(this.params);
-    this.loadModelOptions(this.params);
-  }
-
-  loadModelOptions(params: Partial<GeneralOptionQuery>): void {
-    this.vehicleModelService.getOptions(params).subscribe({
-      next: (res) => {
-        this.modelOptions.set(res.data || []);
-      },
-    });
   }
 
   loadVersions(params: VehicleVersionFilters): void {
     this.loading.set(true);
     this.vehicleVersionService.getAll(params).subscribe({
       next: (response) => {
+        this.allVersions.set([]);
         this.allVersions.set(response.data || []);
-        if (response.meta) {
-          this.totalItems.set(response.meta.total);
-          this.currentPage.set(response.meta.current_page);
-          this.pageSize.set(response.meta.per_page);
-        } else {
-          this.totalItems.set((response.data || []).length);
-        }
-        this.loading.set(false);
+        this.pagination.set(response.meta);
       },
       error: (error) => {
-        this.loading.set(false);
         this.toastService.error(
           'Erro ao buscar versões',
           error.message || 'Falha ao carregar lista de versões de veículos.',
         );
       },
+      complete: () => {
+        this.loading.set(false);
+      },
     });
   }
 
-  readonly filteredVersions = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const st = this.selectedStatus();
-    const brId = this.selectedBrandId();
-    const mdId = this.selectedModelId();
-
-    return this.allVersions().filter((v) => {
-      const versionName = (v.name || '').toLowerCase();
-      const modelName = (v.model?.name || '').toLowerCase();
-      const brandName = (v.model?.brand?.name || '').toLowerCase();
-
-      const matchesQ =
-        !q || versionName.includes(q) || modelName.includes(q) || brandName.includes(q);
-
-      const matchesBrand = !brId || v.model?.brand?.id === brId;
-      const matchesModel = !mdId || v.vehicle_model_id === mdId;
-      const matchesStatus = !st || (st === 'active' ? v.active : !v.active);
-
-      return matchesQ && matchesBrand && matchesModel && matchesStatus;
-    });
-  });
-
-  readonly paginatedVersions = computed(() => {
-    const all = this.filteredVersions();
-    const page = this.currentPage();
-    const size = this.pageSize();
-    const start = (page - 1) * size;
-    return all.slice(start, start + size);
-  });
-
   onSearchChange(query: string): void {
-    this.searchQuery.set(query);
-    this.currentPage.set(1);
+    this.searchSubject.next(query);
   }
 
   onBrandFilterChange(brandId: string): void {
     this.selectedBrandId.set(brandId);
-    // If selected model is not of this brand, reset selected model
-    const currentModel = this.modelOptions().find((m) => m.id === this.selectedModelId());
-    if (currentModel && brandId && currentModel.vehicle_brand_id !== brandId) {
-      this.selectedModelId.set('');
-    }
+    this.selectedModelId.set('');
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      vehicle_brand_id: brandId || null,
+      vehicle_model_id: null,
+      page: 1,
+    };
+    this.loadVersions(this.params);
   }
 
   onModelFilterChange(modelId: string): void {
     this.selectedModelId.set(modelId);
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      vehicle_model_id: modelId || null,
+      page: 1,
+    };
+    this.loadVersions(this.params);
   }
 
   onStatusChange(status: string): void {
     this.selectedStatus.set(status);
     this.currentPage.set(1);
+    const activeValue = status === 'active' ? 1 : status === 'inactive' ? 0 : null;
+    this.currentStatus.set(activeValue);
+    this.params = {
+      ...this.params,
+      active: activeValue,
+      page: this.currentPage(),
+    };
+    this.loadVersions(this.params);
   }
 
   resetFilters(): void {
+    this.currentPage.set(1);
+    this.currentStatus.set(1);
+
     this.searchQuery.set('');
+    this.selectedStatus.set('');
     this.selectedBrandId.set('');
     this.selectedModelId.set('');
-    this.selectedStatus.set('');
-    this.currentPage.set(1);
+
+    this.params = {
+      search: null,
+      vehicle_brand_id: null,
+      vehicle_model_id: null,
+      page: this.currentPage(),
+      per_page: this.perPage(),
+      active: this.currentStatus(),
+    };
+    this.loadVersions(this.params);
   }
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
+    this.params = {
+      ...this.params,
+      page,
+    };
+    this.loadVersions(this.params);
   }
 
   onPageSizeChange(size: number): void {
-    this.pageSize.set(size);
+    this.perPage.set(size);
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      per_page: size,
+      page: 1,
+    };
+    this.loadVersions(this.params);
+  }
+
+  onActionClick(event: { actionId: string; row: VehicleVersionResponse }): void {
+    switch (event.actionId) {
+      case 'view':
+        this.viewVersion(event.row);
+        break;
+      case 'edit':
+        this.editVersion(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
   }
 
   newVersion(): void {
@@ -318,12 +309,18 @@ export class VehicleVersionsPageComponent implements OnInit {
     });
   }
 
-  onVersionSaved(): void {
-    this.loadVersions(this.params);
-  }
-
   closeForm(): void {
     this.isFormOpen.set(false);
     this.selectedVersion.set(null);
+  }
+
+  onPaginationChange(meta: PaginationMeta): void {
+    this.pagination.set(meta);
+    this.params = {
+      ...this.params,
+      page: meta.current_page,
+      per_page: meta.per_page,
+    };
+    this.loadVersions(this.params);
   }
 }

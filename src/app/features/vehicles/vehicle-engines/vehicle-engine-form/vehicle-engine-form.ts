@@ -20,9 +20,8 @@ import { VehicleEngineService } from '../../../../core/services/vehicle-engine';
 import { VehicleBrandOption } from '../../../../core/models/vehicles-brands/vehicle-brand-response.model';
 import { VehicleModelOption } from '../../../../core/models/vehicles-model/vehicle-model.model';
 import { VehicleVersionOption } from '../../../../core/models/vehicles-version/vehicle-version.model';
-import { VehicleVersionRequest } from '../../../../core/models/vehicles-version/vehicle-version-request.model';
+import { VehicleEngineRequest } from '../../../../core/models/vehicles-engine/vehicle-engine-request.model';
 import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
-import { VehicleApplicationFilters } from '../../../../core/models/vehicle-application/vehicle-application.model';
 import { VehicleEngineResponse } from '../../../../core/models/vehicles-engine/vehicle-engine.model';
 
 @Component({
@@ -204,7 +203,7 @@ export class VehicleEngineFormComponent {
     this.loadingModels.set(true);
     this.vehicleModelService.getOptions(this.params).subscribe({
       next: (res) => {
-        this.modelOptions.set(res.data || []);
+        // this.modelOptions.set(res.data || []);
         this.loadingModels.set(false);
       },
       error: () => {
@@ -394,16 +393,13 @@ export class VehicleEngineFormComponent {
     }
 
     this.isSubmitting.set(true);
-    const payload: VehicleVersionRequest = {
+    const payload: VehicleEngineRequest = {
       vehicle_version_id: this.vehicleVersionId(),
       name: this.name().trim(),
       displacement: this.displacement().trim() || null,
       fuel: this.fuel().trim() || null,
       horsepower: this.horsepower() ?? null,
       active: this.active(),
-      // vehicle_model_id: this.modelId() || null,
-      // vehicle_version_id: this.vehicleVersionId() || null,
-      vehicle_model_id: '',
     };
 
     if (this.mode() === 'create') {
@@ -413,7 +409,7 @@ export class VehicleEngineFormComponent {
     }
   }
 
-  createVehicleVersion(payload: VehicleVersionRequest) {
+  createVehicleVersion(payload: VehicleEngineRequest) {
     this.vehicleEngineService.create(payload).subscribe({
       next: (response) => {
         this.isSubmitting.set(false);
@@ -438,7 +434,7 @@ export class VehicleEngineFormComponent {
     });
   }
 
-  updateVehicleVersion(payload: VehicleVersionRequest) {
+  updateVehicleVersion(payload: VehicleEngineRequest) {
     this.vehicleEngineService.update(this.engine()!.id, payload).subscribe({
       next: (response) => {
         this.isSubmitting.set(false);

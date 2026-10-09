@@ -245,7 +245,7 @@ export class VehicleEnginesPageComponent implements OnInit {
 
   private loadModelOptions(): void {
     this.vehicleModelService.getOptions(this.params).subscribe({
-      next: (res) => this.modelOptions.set(res.data || []),
+      // next: (res) => this.modelOptions.set(res.data || []),
     });
   }
 

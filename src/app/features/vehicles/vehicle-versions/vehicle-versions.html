@@ -103,7 +103,7 @@
     <app-search-input
       [value]="searchQuery()"
       (valueChange)="onSearchChange($event)"
-      placeholder="Filtrar por versão, modelo ou marca..."
+      placeholder="Filtrar por versão"
     />
 
     <app-select
@@ -123,7 +123,7 @@
     <app-select
       [value]="selectedStatus()"
       (valueChange)="onStatusChange($event)"
-      [options]="statusOptions"
+      [options]="statusOptions()"
       placeholder="Todos os Status"
     />
   </div>
@@ -141,21 +141,16 @@
 <div class="w-full">
   <app-data-table
     [columns]="columns"
-    [data]="paginatedVersions()"
+    [data]="allVersions()"
     [actions]="actions"
     [loading]="loading()"
+    (actionClick)="onActionClick($event)"
     emptyTitle="Nenhuma versão encontrada"
     emptyDescription="Não há versões de veículos cadastradas ou correspondentes aos filtros selecionados."
     [roundedBottom]="false"
   />
 
-  <app-pagination
-    [currentPage]="currentPage()"
-    [totalItems]="filteredVersions().length"
-    [pageSizeOptions]="[5, 10, 20, 50]"
-    (pageChange)="onPageChange($event)"
-    (pageSizeChange)="onPageSizeChange($event)"
-  />
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
 </div>
 
 <!-- Delete Confirmation Dialog -->
@@ -172,11 +167,11 @@
 
 <!-- Version Drawer Form (Create / Edit / View) -->
 <app-vehicle-version-form
-  [isOpen]="isFormOpen()"
   [mode]="formMode()"
+  [isOpen]="isFormOpen()"
   [version]="selectedVersion()"
   [preselectedModelId]="selectedModelId()"
   [preselectedBrandId]="selectedBrandId()"
   (closeForm)="closeForm()"
-  (versionSaved)="onVersionSaved()"
+  (versionSaved)="resetFilters()"
 />
