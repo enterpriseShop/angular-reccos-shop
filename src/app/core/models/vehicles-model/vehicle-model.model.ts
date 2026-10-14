@@ -7,6 +7,7 @@ export interface VehicleModelResponse extends Record<string, unknown> {
   name: string;
   slug: string;
   active: boolean;
+  image: string;
   brand: VehicleBrandModelResponse | null;
   versions: VehicleVersionModelResponse[] | null;
   created_at: string;
@@ -23,6 +24,7 @@ export interface VehicleModelRequest {
 export interface VehicleModelOption extends GeneralOption {
   id: string;
   slug: string;
+  name: string;
   vehicle_brand_id: string;
   brand_name: string;
   active: boolean;

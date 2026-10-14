@@ -170,7 +170,7 @@
   [isOpen]="isFormOpen()"
   [model]="selectedModel()"
   (closeForm)="closeForm()"
-  (modelSaved)="onModelSaved()"
+  (modelSaved)="onModelSaved($event)"
   [preselectedBrandId]="selectedBrandId()"
   [totalVersionsCount]="totalVersionsCount()"
 />

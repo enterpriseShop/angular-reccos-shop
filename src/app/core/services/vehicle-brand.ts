@@ -42,6 +42,15 @@ export class VehicleBrandService {
     return this.http.get<getAllResponse<VehicleBrandResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
+  getOptions(
+    filters: Partial<VehicleBrandFiltersRequest>,
+  ): Observable<getAllResponse<SelectOption[]>> {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<SelectOption[]>>(`${this.api}/${this.flag}/options`, {
+      params,
+    });
+  }
+
   create(payload: VehicleBrandPayloadRequest): Observable<getAllResponse<VehicleBrandResponse>> {
     return this.http.post<getAllResponse<VehicleBrandResponse>>(
       `${this.api}/${this.flag}`,
@@ -61,14 +70,5 @@ export class VehicleBrandService {
 
   delete(id: string): Observable<getAllResponse<VehicleBrandResponse>> {
     return this.http.delete<getAllResponse<VehicleBrandResponse>>(`${this.api}/${this.flag}/${id}`);
-  }
-
-  getOptions(
-    filters: Partial<VehicleBrandFiltersRequest>,
-  ): Observable<getAllResponse<SelectOption[]>> {
-    const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<SelectOption[]>>(`${this.api}/${this.flag}/options`, {
-      params,
-    });
   }
 }

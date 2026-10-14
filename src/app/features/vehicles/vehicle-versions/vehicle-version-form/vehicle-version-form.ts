@@ -14,15 +14,15 @@ import { AppIconComponent } from '../../../../design-system/icon/app-icon';
 import { DrawerComponent } from '../../../../design-system/drawer/drawer';
 import { MultiSelectComponent } from '../../../../design-system/multi-select/multi-select';
 import { VehicleVersionService } from '../../../../core/services/vehicle-version';
-import { VehicleModelService } from '../../../../core/services/vehicle-model';
-import { VehicleEngineService } from '../../../../core/services/vehicle-engine';
 import { ToastService } from '../../../../core/services/toast';
 import { VehicleVersionResponse } from '../../../../core/models/vehicles-version/vehicle-version.model';
 import { VehicleVersionRequest } from '../../../../core/models/vehicles-version/vehicle-version-request.model';
 import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
-import { GeneralOption } from '../../../../core/models/generals/general-options-response.model';
 import { VehicleModelStore } from '../../../../core/store/vehicles/vehicle-model/vehicle-model-store';
-import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
+import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicle-brand/vehicle-brand-store';
+import { VehicleEngineStore } from '../../../../core/store/vehicles/vehicle-engine/vehicle-engine-store';
+import { VehicleVersionStore } from '../../../../core/store/vehicles/vehicle-version/vehicle-version-store';
+import { SelectOption } from '../../../../core/models/design-system/select-option.model';
 
 @Component({
   selector: 'app-vehicle-version-form',
@@ -36,9 +36,9 @@ export class VehicleVersionFormComponent {
   private toastService = inject(ToastService);
   private vehicleModelStore = inject(VehicleModelStore);
   private vehicleBrandStore = inject(VehicleBrandStore);
-  private vehicleModelService = inject(VehicleModelService);
+  private vehicleEngineStore = inject(VehicleEngineStore);
+  private vehicleVersionStore = inject(VehicleVersionStore);
   private vehicleVersionService = inject(VehicleVersionService);
-  private vehicleEngineService = inject(VehicleEngineService);
 
   readonly isOpen = input<boolean>(false);
   readonly mode = input<'create' | 'edit' | 'view'>('create');
@@ -61,7 +61,7 @@ export class VehicleVersionFormComponent {
   readonly name = signal<string>('');
   readonly active = signal<boolean>(true);
   readonly selectedEngineIds = signal<string[]>([]);
-  readonly engineOptions = signal<GeneralOption[]>([]);
+  readonly engineOptions = computed(() => this.vehicleEngineStore.optionList());
 
   // Validation Errors
   readonly formErrors = signal<Record<string, string>>({});
@@ -89,7 +89,7 @@ export class VehicleVersionFormComponent {
 
       if (open) {
         this.formErrors.set({});
-        this.loadEngineOptions();
+        // this.loadEngineOptions();
 
         if ((currentMode === 'edit' || currentMode === 'view') && currentItem) {
           const brandId = currentItem.model?.brand?.id || '';
@@ -115,20 +115,19 @@ export class VehicleVersionFormComponent {
     });
   }
 
-  private loadEngineOptions(): void {
-    this.loadingEngines.set(true);
-    this.vehicleEngineService.getOptions().subscribe({
-      next: (res) => {
-        this.loadingEngines.set(false);
-        this.engineOptions.set(res.data || []);
-      },
-      error: () => {
-        this.loadingEngines.set(false);
-        this.engineOptions.set([]);
-      },
-    });
-  }
-
+  // private loadEngineOptions(): void {
+  //   this.loadingEngines.set(true);
+  //   this.vehicleEngineService.getOptions().subscribe({
+  //     next: (res) => {
+  //       this.loadingEngines.set(false);
+  //       this.engineOptions.set(res.data || []);
+  //     },
+  //     error: () => {
+  //       this.loadingEngines.set(false);
+  //       this.engineOptions.set([]);
+  //     },
+  //   });
+  // }
 
   readonly filteredModelOptions = computed(() => {
     const options = this.vehicleModelStore.optionList();
@@ -239,7 +238,6 @@ export class VehicleVersionFormComponent {
       engine_ids: this.selectedEngineIds(),
     };
 
-
     if (this.mode() === 'create') {
       this.createVehicleVersion(payload);
     } else {
@@ -258,6 +256,7 @@ export class VehicleVersionFormComponent {
           response.message || 'Versão de veículo atualizado(a) com sucesso.',
         );
         this.versionSaved.emit(response.data);
+        this.updateVehicleStore(response.data);
         this.close();
       },
       error: (err) => {
@@ -287,6 +286,7 @@ export class VehicleVersionFormComponent {
           'Versão Cadastrada',
           response.message || 'Versão de veículo criado(a) com sucesso.',
         );
+        this.updateVehicleStore(response.data);
         this.versionSaved.emit(response.data);
         this.close();
       },
@@ -307,6 +307,22 @@ export class VehicleVersionFormComponent {
         );
       },
     });
+  }
+
+  private updateVehicleStore(response: VehicleVersionResponse): void {
+    const option: SelectOption = {
+      label: response.name,
+      value: response.id,
+      sublabel: response.model?.name,
+      module: '',
+      disabled: false,
+    };
+
+    if (this.mode() === 'edit') {
+      this.vehicleVersionStore.updateOption(option);
+    } else {
+      this.vehicleVersionStore.addOption(option);
+    }
   }
 
   close(): void {

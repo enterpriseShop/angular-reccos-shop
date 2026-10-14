@@ -1,16 +1,20 @@
 import { VehicleVersionResponse } from '../vehicles-version/vehicle-version.model';
 
+export interface VehicleEngineBrandItem {
+  id: string;
+  name: string;
+}
+
+export interface VehicleEngineModelItem {
+  id: string;
+  name: string;
+  brand?: VehicleEngineBrandItem | null;
+}
+
 export interface VehicleEngineVersionItem {
   id: string;
   name: string;
-  model?: {
-    id: string;
-    name: string;
-    brand?: {
-      id: string;
-      name: string;
-    };
-  };
+  model?: VehicleEngineModelItem | null;
 }
 
 export interface VehicleEngineResponse extends Record<string, unknown> {
@@ -22,8 +26,8 @@ export interface VehicleEngineResponse extends Record<string, unknown> {
   active: boolean;
   created_at: string;
   updated_at: string;
-  applications_count?: number;
   versions?: VehicleEngineVersionItem[];
+  applications_count?: number;
   vehicle_version_id?: string;
   version?: VehicleVersionResponse | null;
 }

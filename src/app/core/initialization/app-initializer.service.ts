@@ -6,7 +6,7 @@ import { StatusStore } from '../store/status-store/status-store';
 import { UnitSaleStore } from '../store/unit-sale/unit-sale-store';
 import { WarehouseStore } from '../store/warehouse/warehouse-store';
 import { PartOriginStore } from '../store/part-origin/part-origin-store';
-import { VehicleBrandStore } from '../store/vehicles/vehicles-brand/vehicle-brand-store';
+import { VehicleBrandStore } from '../store/vehicles/vehicle-brand/vehicle-brand-store';
 import { VehicleModelStore } from '../store/vehicles/vehicle-model/vehicle-model-store';
 import { VehicleVersionStore } from '../store/vehicles/vehicle-version/vehicle-version-store';
 import { VehicleEngineStore } from '../store/vehicles/vehicle-engine/vehicle-engine-store';

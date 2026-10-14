@@ -12,14 +12,15 @@ import {
   VehicleApplicationResponse,
 } from '../models/vehicle-application/vehicle-application.model';
 import { GeneralOption } from '../models/generals/general-options-response.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehicleApplicationService {
   private http = inject(HttpClient);
-  private api = '/api/vehicle-application';
-  private flag = 'vehicle-application';
+  private api = environment.apiUrl;
+  private flag = 'vehicle-applications';
 
   getAll(
     filters: Partial<VehicleApplicationFilters>,

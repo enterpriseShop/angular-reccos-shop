@@ -12,6 +12,8 @@ import { GeneralOptionQuery } from '../models/generals/general-option-query.mode
 import { environment } from '../../../environments/environment';
 import { VehicleVersionFilter } from '../models/vehicles-version/vehicle-version-filter.model';
 import { GeneralOption } from '../models/generals/general-options-response.model';
+import { VehicleOptionsModelByBrandFilterRequest } from '../models/vehicles-model/vehicle-model-filters.models';
+import { VehicleModelInBrandResponse } from '../models/vehicles-model/vehicle-model-brand.model';
 
 @Injectable({
   providedIn: 'root',
@@ -34,6 +36,30 @@ export class VehicleModelService {
     return this.http.get<getAllResponse<VehicleModelResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
+  getOptions(filters: Partial<VehicleVersionFilter>): Observable<getAllResponse<GeneralOption[]>> {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
+      params,
+    });
+  }
+
+  getModelByBrand(filters: VehicleOptionsModelByBrandFilterRequest) {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<VehicleModelInBrandResponse[]>>(
+      `${this.api}/${this.flag}`,
+      {
+        params,
+      },
+    );
+  }
+
+  getOptionsModelByBrand(filters: VehicleOptionsModelByBrandFilterRequest) {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<VehicleModelResponse>>(`${this.api}/${this.flag}/options`, {
+      params,
+    });
+  }
+
   create(payload: VehicleModelRequest): Observable<getAllResponse<VehicleModelResponse>> {
     return this.http.post<getAllResponse<VehicleModelResponse>>(
       `${this.api}/${this.flag}`,
@@ -53,12 +79,5 @@ export class VehicleModelService {
 
   delete(id: string): Observable<getAllResponse<VehicleModelResponse>> {
     return this.http.delete<getAllResponse<VehicleModelResponse>>(`${this.api}/${this.flag}/${id}`);
-  }
-
-  getOptions(filters: Partial<VehicleVersionFilter>): Observable<getAllResponse<GeneralOption[]>> {
-    const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
-      params,
-    });
   }
 }

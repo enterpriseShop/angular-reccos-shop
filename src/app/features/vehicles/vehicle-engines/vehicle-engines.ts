@@ -5,6 +5,7 @@ import {
   signal,
   computed,
   inject,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehicleEngineFormComponent } from './vehicle-engine-form/vehicle-engine-form';
@@ -32,6 +33,7 @@ import {
 } from '../../../core/models/vehicles-engine/vehicle-engine.model';
 import { VehicleVersionStore } from '../../../core/store/vehicles/vehicle-version/vehicle-version-store';
 import { GeneralStatusParams } from '../../../utils/general-simplify-status';
+import { VehicleEngineStore } from '../../../core/store/vehicles/vehicle-engine/vehicle-engine-store';
 
 @Component({
   selector: 'app-vehicle-engines-page',
@@ -55,9 +57,11 @@ import { GeneralStatusParams } from '../../../utils/general-simplify-status';
 })
 export class VehicleEnginesPageComponent implements OnInit {
   private toastService = inject(ToastService);
+  private vehicleEngineStore = inject(VehicleEngineStore);
   private vehicleVersionStore = inject(VehicleVersionStore);
   private vehicleEngineService = inject(VehicleEngineService);
 
+  readonly mode = input<'create' | 'edit' | 'view'>('create');
   // State Signals
   readonly Math = Math;
   readonly allEngines = signal<VehicleEngineResponse[]>([]);
@@ -268,8 +272,25 @@ export class VehicleEnginesPageComponent implements OnInit {
       list.unshift(savedEngine);
     }
     this.allEngines.set(list);
-    this.
+    this.updateVehicleStore(savedEngine);
     this.loadEngines();
+  }
+
+  private updateVehicleStore(response: VehicleEngineResponse): void {
+    console.log('[updateVehicleStore] ->', response);
+    const option: SelectOption = {
+      label: response.name,
+      value: response.id,
+      sublabel: response.displacement || ' - ',
+      module: '',
+      disabled: false,
+    };
+
+    if (this.mode() === 'edit') {
+      this.vehicleEngineStore.updateOption(option);
+    } else {
+      this.vehicleEngineStore.addOption(option);
+    }
   }
 
   confirmDelete(engine: VehicleEngineResponse): void {

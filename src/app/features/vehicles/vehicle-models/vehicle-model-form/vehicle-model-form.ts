@@ -20,7 +20,7 @@ import {
   VehicleModelResponse,
 } from '../../../../core/models/vehicles-model/vehicle-model.model';
 import { VehicleBrandOption } from '../../../../core/models/vehicles-brands/vehicle-brand-response.model';
-import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
+import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicle-brand/vehicle-brand-store';
 import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
 
 @Component({

@@ -34,7 +34,7 @@ import {
   vehicleVersionsTableColumns,
 } from '../../../utils/vehicle-versions-table-collums';
 import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/vehicle-model-store';
-import { VehicleBrandStore } from '../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
+import { VehicleBrandStore } from '../../../core/store/vehicles/vehicle-brand/vehicle-brand-store';
 import { GeneralStatusParams } from '../../../utils/general-simplify-status';
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';

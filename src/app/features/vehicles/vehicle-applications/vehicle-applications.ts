@@ -24,11 +24,15 @@ import {
   vehicleApplicationTableActions,
   vehicleApplicationTableColumns,
 } from '../../../utils/vehicle-application-table-collums';
-import { SelectOption } from '../../../core/models/design-system/select-option.model';
 import {
   VehicleApplicationFilters,
   VehicleApplicationResponse,
 } from '../../../core/models/vehicle-application/vehicle-application.model';
+import { VehicleBrandStore } from '../../../core/store/vehicles/vehicle-brand/vehicle-brand-store';
+import { SelectOption } from '../../../core/models/design-system/select-option.model';
+import { GeneralStatusParams } from '../../../utils/general-simplify-status';
+import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
+import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 
 @Component({
   selector: 'app-vehicle-applications-page',
@@ -54,6 +58,9 @@ export class VehicleApplicationsPageComponent implements OnInit {
   private vehicleBrandService = inject(VehicleBrandService);
   private vehicleAppService = inject(VehicleApplicationService);
 
+  // data store
+  private vehicleBrandStore = inject(VehicleBrandStore);
+
   readonly loading = signal<boolean>(false);
   readonly searchQuery = signal<string>('');
   readonly selectedBrand = signal<string>('');
@@ -72,7 +79,6 @@ export class VehicleApplicationsPageComponent implements OnInit {
   readonly isDeleting = signal<boolean>(false);
 
   readonly allApplications = signal<VehicleApplicationResponse[]>([]);
-  readonly brandFilterOptions = signal<SelectOption[]>([]);
 
   readonly columns: TableColumn<VehicleApplicationResponse>[] = vehicleApplicationTableColumns;
   readonly actions: TableAction<VehicleApplicationResponse>[] = vehicleApplicationTableActions;
@@ -97,52 +103,12 @@ export class VehicleApplicationsPageComponent implements OnInit {
     return models.size;
   });
 
-  // Filtered & Paginated signals
-  readonly filteredApplications = computed(() => {
-    let result = this.allApplications();
-    const query = this.searchQuery().trim().toLowerCase();
-    const status = this.selectedStatus();
-    const brand = this.selectedBrand();
+  // pagination
+  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
-    if (query) {
-      result = result.filter((a) => {
-        const brandName = a.brand?.name?.toLowerCase() || '';
-        const modelName = a.model?.name?.toLowerCase() || '';
-        const versionName = a.version?.name?.toLowerCase() || '';
-        const engineName = a.engine?.name?.toLowerCase() || '';
-        const notes = a.notes?.toLowerCase() || '';
-        const yearFrom = String(a.year_from || '');
-        const yearTo = String(a.year_to || '');
-
-        return (
-          brandName.includes(query) ||
-          modelName.includes(query) ||
-          versionName.includes(query) ||
-          engineName.includes(query) ||
-          notes.includes(query) ||
-          yearFrom.includes(query) ||
-          yearTo.includes(query)
-        );
-      });
-    }
-
-    if (status === 'active') {
-      result = result.filter((a) => a.active);
-    } else if (status === 'inactive') {
-      result = result.filter((a) => !a.active);
-    }
-
-    if (brand) {
-      result = result.filter((a) => a.vehicle_brand_id === brand);
-    }
-
-    return result;
-  });
-
-  readonly paginatedApplications = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize();
-    return this.filteredApplications().slice(start, start + this.pageSize());
-  });
+  // update data stores
+  readonly statusOptions = signal<SelectOption[]>(GeneralStatusParams);
+  readonly brandOptions = computed(() => this.vehicleBrandStore.optionList());
 
   params: Partial<VehicleApplicationFilters> = {
     page: 1,
@@ -151,12 +117,11 @@ export class VehicleApplicationsPageComponent implements OnInit {
     vehicle_brand_id: null,
     vehicle_model_id: null,
     year: null,
-    active: false,
+    active: null,
   };
 
   ngOnInit(): void {
     this.loadApplications(this.params);
-    this.loadBrandFilterOptions(this.params);
   }
 
   loadApplications(params: Partial<VehicleApplicationFilters>): void {
@@ -168,25 +133,10 @@ export class VehicleApplicationsPageComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro de Conexão',
-          'Não foi possível carregar as aplicações veiculares.',
-        );
-      },
-    });
-  }
-
-  loadBrandFilterOptions(params: Partial<VehicleApplicationFilters>): void {
-    this.vehicleBrandService.getOptions(params as any).subscribe({
-      next: (res) => {
-        const options = (res.data || []).map((b) => ({
-          label: b.label,
-          value: b.value,
-          module: '',
-          sublabel: b.sublabel,
-          disabled: false,
-        }));
-        this.brandFilterOptions.set(options);
+        // this.toastService.error(
+        //   'Erro de Conexão',
+        //   'Não foi possível carregar as aplicações veiculares.',
+        // );
       },
     });
   }
@@ -275,6 +225,16 @@ export class VehicleApplicationsPageComponent implements OnInit {
   }
 
   onApplicationSaved(): void {
+    this.loadApplications(this.params);
+  }
+
+  onPaginationChange(meta: PaginationMeta): void {
+    this.pagination.set(meta);
+    this.params = {
+      ...this.params,
+      page: meta.current_page,
+      per_page: meta.per_page,
+    };
     this.loadApplications(this.params);
   }
 }

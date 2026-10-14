@@ -14,6 +14,8 @@ import { AppIconComponent } from '../../../../design-system/icon/app-icon';
 import { DrawerComponent } from '../../../../design-system/drawer/drawer';
 import { VehicleBrandService } from '../../../../core/services/vehicle-brand';
 import { ToastService } from '../../../../core/services/toast';
+import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicle-brand/vehicle-brand-store';
+import { SelectOption } from '../../../../core/models/design-system/select-option.model';
 import {
   VehicleBrandPayloadRequest,
   VehicleBrandResponse,
@@ -31,6 +33,7 @@ import { initialValuesPagination } from '../../../../design-system/pagination/ut
 })
 export class VehicleBrandFormComponent {
   private vehicleBrandService = inject(VehicleBrandService);
+  private vehicleBrandStore = inject(VehicleBrandStore);
   private toastService = inject(ToastService);
 
   readonly isOpen = input<boolean>(false);
@@ -243,57 +246,83 @@ export class VehicleBrandFormComponent {
 
     if (this.mode() === 'edit' && this.brand()?.id) {
       const id = this.brand()!.id;
-      this.vehicleBrandService.update(id, payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Montadora Atualizada',
-            `A marca "${response.data.name}" foi atualizada com sucesso.`,
-          );
-          this.brandSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao atualizar marca de veículo.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
-          }
-        },
-      });
+      this.updateBrand(id, payload);
     } else {
-      this.vehicleBrandService.create(payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Montadora Cadastrada',
-            `A marca "${response.data.name}" foi cadastrada com sucesso.`,
-          );
-          this.brandSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao cadastrar marca de veículo.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
+      this.createbrand(payload);
+    }
+  }
+
+  createbrand(payload: VehicleBrandPayloadRequest): void {
+    this.vehicleBrandService.create(payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Montadora Cadastrada',
+          `A marca "${response.data.name}" foi cadastrada com sucesso.`,
+        );
+        this.updateVehicleBrandStore(response.data);
+        this.brandSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao cadastrar marca de veículo.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
           }
-        },
-      });
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
+  }
+
+  updateBrand(id: string, payload: VehicleBrandPayloadRequest): void {
+    this.vehicleBrandService.update(id, payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Montadora Atualizada',
+          `A marca "${response.data.name}" foi atualizada com sucesso.`,
+        );
+        this.updateVehicleBrandStore(response.data);
+        this.brandSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao atualizar marca de veículo.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
+          }
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
+  }
+
+  private updateVehicleBrandStore(response: VehicleBrandResponse): void {
+    const option: SelectOption = {
+      label: response.name,
+      value: response.id,
+      sublabel: response.slug,
+      module: '',
+      disabled: false,
+    };
+
+    if (this.mode() === 'edit') {
+      this.vehicleBrandStore.updateOption(option);
+    } else {
+      this.vehicleBrandStore.addOption(option);
     }
   }
 

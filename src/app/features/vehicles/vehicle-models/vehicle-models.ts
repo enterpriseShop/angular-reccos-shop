@@ -37,7 +37,7 @@ import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/ve
 import { VehicleBrandService } from '../../../core/services/vehicle-brand';
 import { VehicleModelFiltersResponse } from '../../../core/models/vehicles-model/vehicle-model-filters.models';
 import { GeneralStatusParams } from '../../../utils/general-simplify-status';
-import { VehicleBrandStore } from '../../../core/store/vehicles/vehicles-brand/vehicle-brand-store';
+import { VehicleBrandStore } from '../../../core/store/vehicles/vehicle-brand/vehicle-brand-store';
 
 @Component({
   selector: 'app-vehicle-models-page',
@@ -337,8 +337,25 @@ export class VehicleModelsPageComponent implements OnInit {
     });
   }
 
-  onModelSaved(): void {
+  onModelSaved(response: VehicleModelResponse): void {
+    this.updateVehicleStore(response);
     this.loadModels(this.params);
+  }
+
+  private updateVehicleStore(response: VehicleModelResponse): void {
+    const option: SelectOption = {
+      label: response.name,
+      value: response.id,
+      sublabel: response.slug,
+      module: '',
+      disabled: false,
+    };
+
+    if (this.formMode() === 'edit') {
+      this.vehicleModelStore.updateOption(option);
+    } else {
+      this.vehicleModelStore.addOption(option);
+    }
   }
 
   closeForm(): void {

@@ -168,7 +168,11 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
    * Adiciona uma nova opção ao cache inicial e atualiza o Signal.
    */
   async addOption(option: TOption): Promise<void> {
-    const current = this._options();
+    let current = this._options();
+
+    if (!current) {
+      current = (await this.cache.get<getAllResponse<TOption[]>>(this.INITIAL_KEY)) ?? null;
+    }
 
     if (!current) {
       return;
@@ -188,7 +192,12 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
    * Atualiza uma opção existente no cache inicial e atualiza o Signal.
    */
   async updateOption(option: TOption): Promise<void> {
-    const current = this._options();
+    let current = this._options();
+
+    if (!current) {
+      current = (await this.cache.get<getAllResponse<TOption[]>>(this.INITIAL_KEY)) ?? null;
+    }
+
     if (!current) return;
 
     const optionKey = this.getOptionKey(option);
