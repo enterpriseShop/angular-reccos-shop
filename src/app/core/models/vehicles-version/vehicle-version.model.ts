@@ -12,6 +12,15 @@ export interface VehicleVersion {
   vehicle_version_id: string;
 }
 
+export interface VehicleVersionEngineItem {
+  id: string;
+  name: string;
+  displacement?: string | null;
+  fuel?: string | null;
+  horsepower?: number | null;
+  active?: boolean;
+}
+
 export interface VehicleVersionResponse extends Record<string, unknown> {
   id: string;
   name: string;
@@ -20,10 +29,11 @@ export interface VehicleVersionResponse extends Record<string, unknown> {
   updated_at: string;
   vehicle_model_id: string;
   model: VehicleModelVersion;
-  engines_count: number;
-  applications_count: number;
-  engines: VehicleVersion[];
+  engines_count?: number;
+  applications_count?: number;
+  engines?: VehicleVersionEngineItem[];
 }
+
 
 export interface VehicleVersionFilters {
   page: number;

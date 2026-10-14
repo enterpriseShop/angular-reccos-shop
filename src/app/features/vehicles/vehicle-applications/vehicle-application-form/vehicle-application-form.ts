@@ -207,21 +207,26 @@ export class VehicleApplicationFormComponent {
   private loadEnginesForVersion(versionId: string, callback?: () => void): void {
     if (!versionId) {
       this.engineOptions.set([]);
+      this.engineId.set('');
       return;
     }
     this.loadingEngines.set(true);
-    if (callback) callback();
-    // this.vehicleAppService.getEngines().subscribe({
-    //   next: (res) => {
-    //     this.loadingEngines.set(false);
-    //     this.engineOptions.set(res.data);
-    //     if (callback) callback();
-    //   },
-    //   error: () => {
-    //     this.loadingEngines.set(false);
-    //     this.engineOptions.set([]);
-    //   },
-    // });
+    this.vehicleAppService.getEngines(versionId).subscribe({
+      next: (res) => {
+        this.loadingEngines.set(false);
+        const options = (res.data || []).map((item) => ({
+          id: (item as any).value || (item as any).id,
+          label: item.label,
+          sublabel: (item as any).sublabel,
+        }));
+        this.engineOptions.set(options as any);
+        if (callback) callback();
+      },
+      error: () => {
+        this.loadingEngines.set(false);
+        this.engineOptions.set([]);
+      },
+    });
   }
 
   // Cascading Handlers

@@ -113,7 +113,7 @@ export class VehicleModelsPageComponent implements OnInit {
   readonly isDeleting = signal<boolean>(false);
 
   // Filter Dropdown Options
-  readonly statusOptions: SelectOption[] = GeneralStatusParams;
+  readonly statusOptions = signal<SelectOption[]>(GeneralStatusParams);
 
   // Table Columns Definition
   readonly columns: TableColumn<VehicleModelResponse>[] = vehicleModelTableColumns;

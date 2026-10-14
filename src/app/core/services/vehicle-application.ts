@@ -11,6 +11,7 @@ import {
   VehicleApplicationRequest,
   VehicleApplicationResponse,
 } from '../models/vehicle-application/vehicle-application.model';
+import { GeneralOption } from '../models/generals/general-options-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -79,10 +80,13 @@ export class VehicleApplicationService {
     });
   }
 
-  getEngines(): Observable<getAllResponse<VehicleApplicationResponse>> {
-    // const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<VehicleApplicationResponse>>(
-      '/api/vehicle-engines/options',
-    );
+  getEngines(versionId?: string): Observable<getAllResponse<GeneralOption[]>> {
+    let params = new HttpParams();
+    if (versionId) {
+      params = params.set('vehicle_version_id', versionId);
+    }
+    return this.http.get<getAllResponse<GeneralOption[]>>('/api/vehicle-engines/options', {
+      params,
+    });
   }
 }

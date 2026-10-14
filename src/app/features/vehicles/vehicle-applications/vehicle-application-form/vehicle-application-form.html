@@ -217,16 +217,19 @@
           (change)="onEngineChange($event)"
           class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
         >
-          <option value="">Nenhum / Todas as motorizações desta versão</option>
+          <option value="">
+            {{ !versionId() ? 'Selecione a versão primeiro' : (engineOptions().length === 0 ? 'Nenhum motor vinculado a esta versão' : 'Todas as motorizações vinculadas a esta versão') }}
+          </option>
           @for (engine of engineOptions(); track engine.id) {
           <option [value]="engine.id">
-            {{ engine.label }} @if (engine.label) { ({{ engine.label }}) }
+            {{ engine.label }} {{ engine.sublabel ? '— ' + engine.sublabel : '' }}
           </option>
           }
         </select>
         <p class="text-[10px] text-gray-400 dark:text-slate-500">
           Deixe em branco caso a peça seja compatível com qualquer motorização desta versão.
         </p>
+
       </div>
     </div>
 

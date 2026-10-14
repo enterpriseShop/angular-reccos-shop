@@ -106,25 +106,18 @@
 
 <!-- Filter Toolbar -->
 <app-toolbar>
-  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full">
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full">
     <app-search-input
       [value]="searchQuery()"
       (valueChange)="onSearchChange($event)"
-      placeholder="Filtrar por motor, versão, modelo ou combustível..."
+      placeholder="Buscar por nome, cilindrada ou código..."
     />
 
     <app-select
-      [value]="selectedBrandId()"
-      (valueChange)="onBrandFilterChange($event)"
-      [options]="brandSelectOptions()"
-      placeholder="Todas as Marcas"
-    />
-
-    <app-select
-      [value]="selectedModelId()"
-      (valueChange)="onModelFilterChange($event)"
-      [options]="modelSelectOptions()"
-      placeholder="Todos os Modelos"
+      [value]="selectedVersionId()"
+      (valueChange)="onVersionFilterChange($event)"
+      [options]="versionSelectOptions()"
+      placeholder="Todas as Versões"
     />
 
     <app-select
@@ -137,10 +130,11 @@
     <app-select
       [value]="selectedStatus()"
       (valueChange)="onStatusChange($event)"
-      [options]="statusOptions"
+      [options]="statusOptions()"
       placeholder="Todos os Status"
     />
   </div>
+
 
   <div end class="flex items-center gap-2 shrink-0">
     <app-button
@@ -165,6 +159,7 @@
     [data]="paginatedEngines()"
     [actions]="actions"
     [loading]="loading()"
+    (actionClick)="onActionClick($event)"
     emptyMessage="Nenhum motor de veículo encontrado com os filtros selecionados."
     emptySubMessage="Cadastre uma nova motorização ou ajuste os termos de busca."
   />

@@ -18,8 +18,6 @@ import { ButtonComponent } from '../../../design-system/button/button';
 import { AppIconComponent } from '../../../design-system/icon/app-icon';
 import { SelectComponent } from '../../../design-system/select/select';
 import { ToastService } from '../../../core/services/toast';
-import { VehicleBrandService } from '../../../core/services/vehicle-brand';
-import { VehicleModelService } from '../../../core/services/vehicle-model';
 import { VehicleEngineService } from '../../../core/services/vehicle-engine';
 import { SelectOption } from '../../../core/models/design-system/select-option.model';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
@@ -32,9 +30,8 @@ import {
   VehicleEngineFilters,
   VehicleEngineResponse,
 } from '../../../core/models/vehicles-engine/vehicle-engine.model';
-import { VehicleModelOption } from '../../../core/models/vehicles-model/vehicle-model.model';
-import { VehicleVersionOption } from '../../../core/models/vehicles-version/vehicle-version.model';
-import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/vehicle-model-store';
+import { VehicleVersionStore } from '../../../core/store/vehicles/vehicle-version/vehicle-version-store';
+import { GeneralStatusParams } from '../../../utils/general-simplify-status';
 
 @Component({
   selector: 'app-vehicle-engines-page',
@@ -58,20 +55,15 @@ import { VehicleModelStore } from '../../../core/store/vehicles/vehicle-model/ve
 })
 export class VehicleEnginesPageComponent implements OnInit {
   private toastService = inject(ToastService);
-  private vehicleModelService = inject(VehicleModelService);
-  private vehicleBrandService = inject(VehicleBrandService);
+  private vehicleVersionStore = inject(VehicleVersionStore);
   private vehicleEngineService = inject(VehicleEngineService);
-  private vehicleModelStore = inject(VehicleModelStore);
 
   // State Signals
   readonly Math = Math;
   readonly allEngines = signal<VehicleEngineResponse[]>([]);
-  readonly modelOptions = signal<VehicleModelOption[]>([]);
-  readonly versionOptions = signal<VehicleVersionOption[]>([]);
 
   readonly searchQuery = signal<string>('');
-  readonly selectedBrandId = signal<string>('');
-  readonly selectedModelId = signal<string>('');
+  readonly selectedVersionId = signal<string>('');
   readonly selectedFuel = signal<string>('');
   readonly selectedStatus = signal<string>('');
 
@@ -92,54 +84,20 @@ export class VehicleEnginesPageComponent implements OnInit {
   readonly isDeleting = signal<boolean>(false);
 
   // Filter Dropdown Options
-  readonly statusOptions: SelectOption[] = [];
+  readonly statusOptions = signal<SelectOption[]>(GeneralStatusParams);
 
-  readonly fuelFilterOptions: SelectOption[] = [];
+  readonly fuelFilterOptions: SelectOption[] = [
+    { value: '', label: 'Todos os Combustíveis', sublabel: '', disabled: false, module: '' },
+    { value: 'Flex', label: 'Flex', sublabel: '', disabled: false, module: '' },
+    { value: 'Gasolina', label: 'Gasolina', sublabel: '', disabled: false, module: '' },
+    { value: 'Diesel', label: 'Diesel', sublabel: '', disabled: false, module: '' },
+    { value: 'Etanol', label: 'Etanol', sublabel: '', disabled: false, module: '' },
+    { value: 'Híbrido', label: 'Híbrido', sublabel: '', disabled: false, module: '' },
+    { value: 'Elétrico', label: 'Elétrico', sublabel: '', disabled: false, module: '' },
+  ];
 
-  readonly brandOptions = computed(() => {
-    const options = this.vehicleModelStore.optionList();
-    return options;
-  });
-
-  readonly brandSelectOptions = computed<SelectOption[]>(() => {
-    const defaultOpt: SelectOption = {
-      value: '',
-      label: '',
-      sublabel: '',
-      disabled: true,
-      module: '',
-    };
-    const mapped = this.brandOptions().map((b) => ({
-      value: b.value,
-      label: b.label,
-      sublabel: b.sublabel,
-      disabled: b.disabled,
-      module: '',
-    }));
-    return [defaultOpt, ...mapped];
-  });
-
-  readonly modelSelectOptions = computed<SelectOption[]>(() => {
-    const defaultOpt: SelectOption = {
-      value: '',
-      label: '',
-      sublabel: '',
-      disabled: true,
-      module: '',
-    };
-    const brandId = this.selectedBrandId();
-    let list = this.modelOptions();
-    if (brandId) {
-      list = list.filter((m) => m.vehicle_brand_id === brandId);
-    }
-    const mapped = list.map((m) => ({
-      value: m.id,
-      label: m.label,
-      sublabel: m.label,
-      disabled: false,
-      module: '',
-    }));
-    return [defaultOpt, ...mapped];
+  readonly versionSelectOptions = computed<SelectOption[]>(() => {
+    return this.vehicleVersionStore.optionList();
   });
 
   // Table Columns Definition
@@ -150,8 +108,17 @@ export class VehicleEnginesPageComponent implements OnInit {
   readonly totalCount = computed(() => this.allEngines().length);
   readonly activeCount = computed(() => this.allEngines().filter((e) => e.active).length);
   readonly coveredVersionsCount = computed(() => {
-    const versionsSet = new Set(this.allEngines().map((e) => e.vehicle_version_id));
-    return versionsSet.size;
+    const versionIds = new Set<string>();
+    for (const e of this.allEngines()) {
+      if (e.versions) {
+        for (const v of e.versions) {
+          versionIds.add(v.id);
+        }
+      } else if (e.vehicle_version_id) {
+        versionIds.add(e.vehicle_version_id);
+      }
+    }
+    return versionIds.size;
   });
   readonly totalApplicationsCount = computed(() => {
     return this.allEngines().reduce((acc, curr) => acc + (curr.applications_count || 0), 0);
@@ -160,41 +127,37 @@ export class VehicleEnginesPageComponent implements OnInit {
   // Filtered & Paginated Display Data
   readonly filteredEngines = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
-    const brandId = this.selectedBrandId();
+    const versionId = this.selectedVersionId();
+    const fuelVal = this.selectedFuel().toLowerCase().trim();
+    const status = this.selectedStatus();
 
     return this.allEngines().filter((engine) => {
       // Search text filter
       if (query) {
         const textMatches =
-          engine.name.toLowerCase().includes(query) ||
+          engine.name?.toLowerCase().includes(query) ||
           (engine.displacement && engine.displacement.toLowerCase().includes(query)) ||
           (engine.fuel && engine.fuel.toLowerCase().includes(query));
 
         if (!textMatches) return false;
       }
 
-      // Brand filter
-      if (brandId) {
-        const brand = engine.name;
-        if (!brand || brand !== brandId) return false;
+      // Version filter
+      if (versionId) {
+        const hasVersion =
+          (engine.versions && engine.versions.some((v) => v.id === versionId)) ||
+          engine.vehicle_version_id === versionId;
+        if (!hasVersion) return false;
       }
 
-      // Model filter
-      // if (modelId) {
-      //   const version = engine.name;
-      //   if (!version || ('vehicle_model_id' in version && version.vehicle_model_id !== modelId)) {
-      //     return false;
-      //   }
-      // }
+      // Fuel filter
+      if (fuelVal) {
+        if (!engine.fuel || !engine.fuel.toLowerCase().includes(fuelVal)) return false;
+      }
 
-      // // Fuel filter
-      // if (fuelVal) {
-      //   if (!engine.fuel || !engine.fuel.toLowerCase().includes(fuelVal)) return false;
-      // }
-
-      // // Status filter
-      // if (status === 'active' && !engine.active) return false;
-      // if (status === 'inactive' && engine.active) return false;
+      // Status filter
+      if (status === '1' && !engine.active) return false;
+      if (status === '0' && engine.active) return false;
 
       return true;
     });
@@ -202,7 +165,6 @@ export class VehicleEnginesPageComponent implements OnInit {
 
   readonly paginatedEngines = computed(() => {
     const list = this.filteredEngines();
-    this.totalItems.set(list.length);
     const page = this.currentPage();
     const size = this.pageSize();
     const start = (page - 1) * size;
@@ -219,40 +181,28 @@ export class VehicleEnginesPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadEngines();
-    this.loadModelOptions();
-    this.loadVersionOptions();
   }
 
   loadEngines(): void {
     this.loading.set(true);
     const filters: Partial<VehicleEngineFilters> = {
-      page: 1,
-      per_page: 200,
+      page: this.currentPage(),
+      per_page: this.pageSize(),
+      search: this.searchQuery() || undefined,
+      vehicle_version_id: this.selectedVersionId() || undefined,
+      active: this.selectedStatus() !== '' ? this.selectedStatus() : undefined,
     };
 
     this.vehicleEngineService.getAll(filters).subscribe({
       next: (response) => {
         this.allEngines.set(response.data);
-        this.totalItems.set(response.meta.total);
+        this.totalItems.set(response.meta?.total || response.data?.length || 0);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error(err?.error?.message || 'Falha ao carregar lista de motores.');
       },
     });
-  }
-
-  private loadModelOptions(): void {
-    this.vehicleModelService.getOptions(this.params).subscribe({
-      // next: (res) => this.modelOptions.set(res.data || []),
-    });
-  }
-
-  private loadVersionOptions(): void {
-    // this.vehicleVersionService.getOptions(this.params).subscribe({
-    //   next: (res) => this.versionOptions.set(res.data || []),
-    // });
   }
 
   // Filter actions
@@ -261,19 +211,8 @@ export class VehicleEnginesPageComponent implements OnInit {
     this.currentPage.set(1);
   }
 
-  onBrandFilterChange(brandId: string): void {
-    this.selectedBrandId.set(brandId);
-    if (brandId && this.selectedModelId()) {
-      const model = this.modelOptions().find((m) => m.id === this.selectedModelId());
-      if (model && model.vehicle_brand_id !== brandId) {
-        this.selectedModelId.set('');
-      }
-    }
-    this.currentPage.set(1);
-  }
-
-  onModelFilterChange(modelId: string): void {
-    this.selectedModelId.set(modelId);
+  onVersionFilterChange(versionId: string): void {
+    this.selectedVersionId.set(versionId);
     this.currentPage.set(1);
   }
 
@@ -329,6 +268,7 @@ export class VehicleEnginesPageComponent implements OnInit {
       list.unshift(savedEngine);
     }
     this.allEngines.set(list);
+    this.
     this.loadEngines();
   }
 
@@ -360,5 +300,19 @@ export class VehicleEnginesPageComponent implements OnInit {
         this.toastService.error(err?.error?.message || 'Erro ao excluir motor de veículo.');
       },
     });
+  }
+
+  onActionClick(event: { actionId: string; row: VehicleEngineResponse }): void {
+    switch (event.actionId) {
+      case 'view':
+        this.viewEngine(event.row);
+        break;
+      case 'edit':
+        this.editEngine(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
   }
 }

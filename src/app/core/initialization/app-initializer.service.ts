@@ -8,6 +8,8 @@ import { WarehouseStore } from '../store/warehouse/warehouse-store';
 import { PartOriginStore } from '../store/part-origin/part-origin-store';
 import { VehicleBrandStore } from '../store/vehicles/vehicles-brand/vehicle-brand-store';
 import { VehicleModelStore } from '../store/vehicles/vehicle-model/vehicle-model-store';
+import { VehicleVersionStore } from '../store/vehicles/vehicle-version/vehicle-version-store';
+import { VehicleEngineStore } from '../store/vehicles/vehicle-engine/vehicle-engine-store';
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +24,8 @@ export class AppInitializerService {
   private readonly manufacturerStore = inject(ManufacturerStore);
   private readonly vehicleBrandStore = inject(VehicleBrandStore);
   private readonly vehicleModelStore = inject(VehicleModelStore);
+  private readonly vehicleEngineStore = inject(VehicleEngineStore);
+  private readonly vehicleVersionStore = inject(VehicleVersionStore);
 
   async initialize(): Promise<void> {
     await Promise.all([
@@ -34,6 +38,8 @@ export class AppInitializerService {
       this.manufacturerStore.hydrate(),
       this.vehicleBrandStore.hydrate(),
       this.vehicleModelStore.hydrate(),
+      this.vehicleEngineStore.hydrate(),
+      this.vehicleVersionStore.hydrate(),
     ]);
   }
 }

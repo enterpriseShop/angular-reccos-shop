@@ -3,34 +3,6 @@ import { VehicleEngineResponse } from '../core/models/vehicles-engine/vehicle-en
 
 export const vehicleEngineTableColumns: TableColumn<VehicleEngineResponse>[] = [
   {
-    key: 'brand',
-    header: 'Montadora / Marca',
-    width: '170px',
-    align: 'left',
-    cellFormatter: (e: VehicleEngineResponse) => {
-      const version = e.name;
-      const brand = version;
-      return brand || '—';
-    },
-  },
-  {
-    key: 'vehicle',
-    header: 'Modelo & Versão',
-    width: '220px',
-    align: 'left',
-    cellFormatter: (e: VehicleEngineResponse) => {
-      const version = e.name;
-      const model = version;
-      const modelName = model || '';
-      const versionName = version || '';
-      if (modelName && versionName) {
-        return `${modelName} — ${versionName}`;
-      }
-      return versionName || modelName || '—';
-    },
-    sortable: true,
-  },
-  {
     key: 'name',
     header: 'Motor / Cilindrada',
     align: 'left',
@@ -42,6 +14,27 @@ export const vehicleEngineTableColumns: TableColumn<VehicleEngineResponse>[] = [
       return parts.join(' ');
     },
     sortable: true,
+  },
+  {
+    key: 'fuel',
+    header: 'Combustível',
+    width: '140px',
+    align: 'center',
+    type: 'badge',
+    badgeConfig: (e: VehicleEngineResponse) => {
+      const fuelVal = e.fuel || '—';
+      let variant: 'success' | 'warning' | 'info' | 'neutral' = 'neutral';
+      const lower = fuelVal.toLowerCase();
+      if (lower.includes('flex')) variant = 'success';
+      else if (lower.includes('diesel')) variant = 'warning';
+      else if (lower.includes('elétrico') || lower.includes('híbrido')) variant = 'info';
+
+      return {
+        text: fuelVal,
+        variant,
+        icon: 'fuel',
+      };
+    },
   },
   {
     key: 'horsepower',
@@ -65,41 +58,17 @@ export const vehicleEngineTableColumns: TableColumn<VehicleEngineResponse>[] = [
     },
   },
   {
-    key: 'fuel',
-    header: 'Combustível',
-    width: '140px',
+    key: 'versions',
+    header: 'Versões Compatíveis',
+    width: '170px',
     align: 'center',
     type: 'badge',
     badgeConfig: (e: VehicleEngineResponse) => {
-      const fuelVal = e.name || '—';
-      let variant: 'success' | 'warning' | 'info' | 'neutral' = 'neutral';
-      if (fuelVal.toLowerCase().includes('flex')) variant = 'success';
-      else if (fuelVal.toLowerCase().includes('diesel')) variant = 'warning';
-      else if (
-        fuelVal.toLowerCase().includes('elétrico') ||
-        fuelVal.toLowerCase().includes('híbrido')
-      )
-        variant = 'info';
-
+      const count = e.versions ? e.versions.length : 0;
       return {
-        text: fuelVal,
-        variant,
-        icon: 'fuel',
-      };
-    },
-  },
-  {
-    key: 'applications_count',
-    header: 'Aplicações',
-    width: '130px',
-    align: 'center',
-    type: 'badge',
-    badgeConfig: (e: VehicleEngineResponse) => {
-      const count = e.active ? 1 : 0;
-      return {
-        text: `${count} aplicações`,
-        variant: count > 0 ? 'success' : 'neutral',
-        icon: 'tool',
+        text: count === 0 ? 'Sem versão' : count === 1 ? '1 versão' : `${count} versões`,
+        variant: count > 0 ? 'info' : 'neutral',
+        icon: 'git-branch',
       };
     },
   },

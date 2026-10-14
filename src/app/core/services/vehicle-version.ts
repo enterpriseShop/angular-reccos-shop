@@ -4,14 +4,14 @@ import { Observable } from 'rxjs';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
 import {
   VehicleVersionFilters,
-  VehicleVersionOption,
   VehicleVersionResponse,
 } from '../models/vehicles-version/vehicle-version.model';
 import { buildHttpParams } from './build-http-params';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { VehicleVersionRequest } from '../models/vehicles-version/vehicle-version-request.model';
-import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
 import { environment } from '../../../environments/environment';
+import { VehicleEngineFilter } from '../models/vehicles-engine/vehicle-engine-filters.model';
+import { GeneralOption } from '../models/generals/general-options-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -29,11 +29,9 @@ export class VehicleVersionService {
     );
   }
 
-  getOptions(
-    filters: Partial<GeneralOptionQuery>,
-  ): Observable<{ success: boolean; data: VehicleVersionOption[] }> {
+  getOptions(filters: Partial<VehicleEngineFilter>): Observable<getAllResponse<GeneralOption[]>> {
     const params = buildHttpParams(filters);
-    return this.http.get<{ success: boolean; data: VehicleVersionOption[] }>(
+    return this.http.get<getAllResponse<GeneralOption[]>>(
       `${this.baseUrl}/${this.apiUrl}/options`,
       { params },
     );
