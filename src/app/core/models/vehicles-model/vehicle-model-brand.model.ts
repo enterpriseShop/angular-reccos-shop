@@ -3,13 +3,23 @@ export interface VehicleModelInBrandResponse {
   name: string;
   slug: string;
   active: boolean;
-  brand: Brand;
+  brand: BrandInModelResponse;
   versions: VehicleVersion[];
   created_at: string;
   updated_at: string;
+  model: ModelInBrandResponse | null;
 }
 
-export interface Brand {
+export interface ModelInBrandResponse {
+  id: string;
+  name: string;
+  slug: string;
+  active: boolean;
+  brand_name: string;
+  vehicle_brand_id: string;
+}
+
+export interface BrandInModelResponse {
   id: string;
   name: string;
   slug: string;

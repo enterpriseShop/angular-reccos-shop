@@ -4,8 +4,8 @@ import { VehicleVersionResponse } from '../vehicles-version/vehicle-version.mode
 
 export interface VehicleApplicationResponse extends Record<string, unknown> {
   id: string;
-  vehicle_brand_id: string;
-  vehicle_model_id: string;
+  vehicle_brand_id?: string;
+  vehicle_model_id?: string;
   vehicle_version_id: string;
   vehicle_engine_id: string | null;
   year_from: number | null;
@@ -18,20 +18,18 @@ export interface VehicleApplicationResponse extends Record<string, unknown> {
   engine: VehicleEngineResponse | null;
   version: VehicleVersionResponse | null;
 
-  products_count: number;
+  products_count?: number;
   created_at: string;
   updated_at: string;
 }
 
 export interface VehicleApplicationRequest {
-  vehicle_brand_id: string;
-  vehicle_model_id: string;
   vehicle_version_id: string;
-  vehicle_engine_id: string | null;
-  year_from: number | null;
-  year_to: number | null;
-  notes: string | null;
-  active: boolean;
+  vehicle_engine_id?: string | null;
+  year_from?: number | null;
+  year_to?: number | null;
+  notes?: string | null;
+  active?: boolean;
 }
 
 export interface VehicleApplicationFilters {

@@ -45,12 +45,6 @@ export const vehicleApplicationTableColumns: TableColumn<VehicleApplicationRespo
     },
   },
   {
-    key: 'notes',
-    header: 'Observações Técnicas',
-    width: '200px',
-    valueGetter: (app: VehicleApplicationResponse) => app.notes || '-',
-  },
-  {
     key: 'active',
     header: 'Status',
     width: '110px',

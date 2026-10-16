@@ -8,41 +8,46 @@ import { buildHttpParams } from './build-http-params';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { WarehouseRequest } from '../models/warehouses/warehouse-request.model';
 import { WarehouseOption } from '../models/warehouses/warehouse-options.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WarehouseService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/warehouse';
+  private api = environment.apiUrl;
+  private flag = 'warehouse';
 
   getAll(filters: GeneralOptionQuery): Observable<PaginatedResponse<WarehouseResponse>> {
     const params = buildHttpParams(filters);
-    return this.http.get<PaginatedResponse<WarehouseResponse>>(`${this.apiUrl}`, {
+    return this.http.get<PaginatedResponse<WarehouseResponse>>(`${this.api}/${this.flag}`, {
       params,
     });
   }
 
   getOptions(filters: GeneralOptionQuery): Observable<getAllResponse<WarehouseOption[]>> {
     const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<WarehouseOption[]>>(`${this.apiUrl}/options`, {
+    return this.http.get<getAllResponse<WarehouseOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
     });
   }
 
   getById(id: string): Observable<getAllResponse<WarehouseResponse>> {
-    return this.http.get<getAllResponse<WarehouseResponse>>(`${this.apiUrl}/${id}`);
+    return this.http.get<getAllResponse<WarehouseResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
   create(payload: WarehouseRequest): Observable<getAllResponse<WarehouseResponse>> {
-    return this.http.post<getAllResponse<WarehouseResponse>>(this.apiUrl, payload);
+    return this.http.post<getAllResponse<WarehouseResponse>>(`${this.api}/${this.flag}`, payload);
   }
 
   update(id: string, payload: WarehouseRequest): Observable<getAllResponse<WarehouseResponse>> {
-    return this.http.put<getAllResponse<WarehouseResponse>>(`${this.apiUrl}/${id}`, payload);
+    return this.http.put<getAllResponse<WarehouseResponse>>(
+      `${this.api}/${this.flag}/${id}`,
+      payload,
+    );
   }
 
   delete(id: string): Observable<getAllResponse<WarehouseResponse>> {
-    return this.http.delete<getAllResponse<WarehouseResponse>>(`${this.apiUrl}/${id}`);
+    return this.http.delete<getAllResponse<WarehouseResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 }

@@ -8,7 +8,9 @@ export interface VehicleModelFiltersResponse {
   per_page: number;
 }
 
-export interface VehicleOptionsModelByBrandFilterRequest {
+export interface VehicleGeneralFiltersRequest {
   model: string | null;
   vehicle_brand_id: string | null;
+  vehicle_model_id: string | null;
+  vehicle_version_id: string | null;
 }

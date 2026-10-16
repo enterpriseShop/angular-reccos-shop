@@ -13,6 +13,8 @@ import {
 
 import { GeneralOption } from '../models/generals/general-options-response.model';
 import { VehicleEngineFilter } from '../models/vehicles-engine/vehicle-engine-filters.model';
+import { VehicleGeneralFiltersRequest } from '../models/vehicles-model/vehicle-model-filters.models';
+import { VersionInVehicleEngine } from '../models/vehicles-engine/vehicle-engine-version.model';
 
 @Injectable({
   providedIn: 'root',
@@ -33,6 +35,13 @@ export class VehicleEngineService {
 
   getById(id: string): Observable<getAllResponse<VehicleEngineResponse>> {
     return this.http.get<getAllResponse<VehicleEngineResponse>>(`${this.api}/${this.flag}/${id}`);
+  }
+
+  getEngineByVersion(filters: Partial<VehicleGeneralFiltersRequest>) {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<VersionInVehicleEngine[]>>(`${this.api}/${this.flag}`, {
+      params,
+    });
   }
 
   create(payload: VehicleEngineRequest): Observable<getAllResponse<VehicleEngineResponse>> {

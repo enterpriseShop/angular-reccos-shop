@@ -19,9 +19,11 @@
           <app-icon name="car" size="w-5 h-5" />
         </div>
         <div class="min-w-0">
-          <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate">
-            @if (application(); as app) { {{ app.brand?.name || 'Aplicação' }} {{ app.model?.name ||
-            '' }} {{ app.version?.name || '' }} } @else { Nova Aplicação Veicular }
+          <span
+            class="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate"
+            [title]="previewDisplayName()"
+          >
+            {{ previewDisplayName() }}
           </span>
           <div class="flex items-center gap-2 mt-0.5">
             <span class="text-[11px] text-gray-500 dark:text-slate-400 font-mono truncate">
@@ -86,7 +88,7 @@
           class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
         >
           <option value="">Selecione uma montadora...</option>
-          @for (brand of brandOptions(); track brand) {
+          @for (brand of brandOptions(); track brand.value) {
           <option [value]="brand.value">{{ brand.label }}</option>
           }
         </select>
@@ -130,8 +132,8 @@
             {{ brandId() ? (loadingModels() ? 'Carregando modelos...' : 'Selecione um modelo...') :
             'Selecione a montadora primeiro' }}
           </option>
-          @for (model of modelOptions(); track model.value) {
-          <option [value]="model.value">{{ model.label }}</option>
+          @for (model of modelOptions(); track model.id) {
+          <option [value]="model.id">{{ model.name }}</option>
           }
         </select>
         @if (formErrors()['vehicle_model_id']) {
@@ -178,7 +180,7 @@
             : 'Selecione o modelo primeiro' }}
           </option>
           @for (version of versionOptions(); track version.id) {
-          <option [value]="version.id">{{ version.label }}</option>
+          <option [value]="version.id">{{ version.name }}</option>
           }
         </select>
         @if (formErrors()['vehicle_version_id']) {
@@ -217,19 +219,15 @@
           (change)="onEngineChange($event)"
           class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
         >
-          <option value="">
-            {{ !versionId() ? 'Selecione a versão primeiro' : (engineOptions().length === 0 ?
-            'Nenhum motor vinculado a esta versão' : 'Todas as motorizações vinculadas a esta
-            versão') }}
-          </option>
-          @for (engine of engineOptions(); track engine.value) {
-          <option [value]="engine.value">
-            {{ engine.label }} {{ engine.sublabel ? '— ' + engine.sublabel : '' }}
+          <option value="">Todas as motorizações desta versão (compatibilidade genérica)</option>
+          @for (engine of engineOptions(); track engine.id) {
+          <option [value]="engine.id">
+            {{ formatEngineLabel(engine) }}
           </option>
           }
         </select>
         <p class="text-[10px] text-gray-400 dark:text-slate-500">
-          Deixe em branco caso a peça seja compatível com qualquer motorização desta versão.
+          Deixe sem motor selecionado para indicar compatibilidade genérica com toda a versão.
         </p>
       </div>
     </div>

@@ -13,7 +13,6 @@ import { ButtonComponent } from '../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../design-system/icon/app-icon';
 import { DrawerComponent } from '../../../../design-system/drawer/drawer';
 import { VehicleApplicationService } from '../../../../core/services/vehicle-application';
-import { VehicleBrandService } from '../../../../core/services/vehicle-brand';
 import { ToastService } from '../../../../core/services/toast';
 import {
   VehicleApplicationRequest,
@@ -23,16 +22,13 @@ import { VehicleBrandStore } from '../../../../core/store/vehicles/vehicle-brand
 import { VehicleModelStore } from '../../../../core/store/vehicles/vehicle-model/vehicle-model-store';
 import { VehicleEngineStore } from '../../../../core/store/vehicles/vehicle-engine/vehicle-engine-store';
 import { VehicleVersionStore } from '../../../../core/store/vehicles/vehicle-version/vehicle-version-store';
-import {
-  VehicleModelOption,
-  VehicleModelResponse,
-} from '../../../../core/models/vehicles-model/vehicle-model.model';
-import { VehicleEngineOption } from '../../../../core/models/vehicles-engine/vehicle-engine.model';
-import { VehicleVersionOption } from '../../../../core/models/vehicles-version/vehicle-version.model';
-import { VehicleOptionsModelByBrandFilterRequest } from '../../../../core/models/vehicles-model/vehicle-model-filters.models';
+import { VehicleGeneralFiltersRequest } from '../../../../core/models/vehicles-model/vehicle-model-filters.models';
 import { VehicleModelService } from '../../../../core/services/vehicle-model';
-import { GeneralOption } from '../../../../core/models/generals/general-options-response.model';
 import { VehicleModelInBrandResponse } from '../../../../core/models/vehicles-model/vehicle-model-brand.model';
+import { VehicleVersionService } from '../../../../core/services/vehicle-version';
+import { ModelInVehicleVersion } from '../../../../core/models/vehicles-version/vehicle-version-model.model';
+import { VehicleEngineService } from '../../../../core/services/vehicle-engine';
+import { VersionInVehicleEngine } from '../../../../core/models/vehicles-engine/vehicle-engine-version.model';
 
 @Component({
   selector: 'app-vehicle-application-form',
@@ -44,9 +40,10 @@ import { VehicleModelInBrandResponse } from '../../../../core/models/vehicles-mo
 })
 export class VehicleApplicationFormComponent {
   private toastService = inject(ToastService);
-  private vehicleBrandService = inject(VehicleBrandService);
   private vehicleModelService = inject(VehicleModelService);
+  private vehicleEngineService = inject(VehicleEngineService);
   private vehicleAppService = inject(VehicleApplicationService);
+  private vehicleVersionService = inject(VehicleVersionService);
 
   // data store
   private vehicleBrandStore = inject(VehicleBrandStore);
@@ -61,25 +58,24 @@ export class VehicleApplicationFormComponent {
   readonly closeForm = output<void>();
   readonly applicationSaved = output<VehicleApplicationResponse>();
 
-  // State Signals
+  readonly active = signal<boolean>(true);
   readonly isSubmitting = signal<boolean>(false);
   readonly loadingModels = signal<boolean>(false);
   readonly loadingEngines = signal<boolean>(false);
   readonly loadingVersions = signal<boolean>(false);
 
   // Form Field Signals matching CreateVehicleApplicationRequest
+  readonly notes = signal<string>('');
   readonly brandId = signal<string>('');
   readonly modelId = signal<string>('');
-  readonly versionId = signal<string>('');
   readonly engineId = signal<string>('');
-  readonly yearFrom = signal<number | null>(null);
+  readonly versionId = signal<string>('');
   readonly yearTo = signal<number | null>(null);
-  readonly notes = signal<string>('');
-  readonly active = signal<boolean>(true);
+  readonly yearFrom = signal<number | null>(null);
 
-  readonly modelOptions = signal<VehicleModelOption[]>([]);
-  readonly engineOptions = signal<VehicleEngineOption[]>([]);
-  readonly versionOptions = signal<VehicleVersionOption[]>([]);
+  readonly versionOptions = signal<ModelInVehicleVersion[]>([]);
+  readonly engineOptions = signal<VersionInVehicleEngine[]>([]);
+  readonly modelOptions = signal<VehicleModelInBrandResponse[]>([]);
 
   // Validation Errors (matching Laravel request rules)
   readonly formErrors = signal<Record<string, string>>({});
@@ -89,6 +85,34 @@ export class VehicleApplicationFormComponent {
   // readonly modelOptions = computed(() => this.vehicleModelStore.optionList());
   // readonly engineOptions = computed(() => this.vehicleEngineStore.optionList());
   // readonly versionOptions = computed(() => this.vehicleVersionStore.optionList());
+
+  formatEngineLabel(engine: VersionInVehicleEngine): string {
+    const parts: string[] = [engine.name];
+    if (engine.displacement) parts.push(engine.displacement);
+    if (engine.fuel) parts.push(`(${engine.fuel})`);
+    if (engine.horsepower) parts.push(`${engine.horsepower}cv`);
+    return parts.join(' - ');
+  }
+
+  readonly previewDisplayName = computed(() => {
+    const b = this.brandOptions().find((o) => o.value === this.brandId())?.label;
+    const m = this.modelOptions().find((o) => o.id === this.modelId())?.name;
+    const v = this.versionOptions().find((o) => o.id === this.versionId())?.name;
+    const engineObj = this.engineOptions().find((o) => o.id === this.engineId());
+    const e = engineObj
+      ? this.formatEngineLabel(engineObj)
+      : this.engineId()
+        ? 'Motor específico'
+        : 'Todas as motorizações';
+    const yFrom = this.yearFrom();
+    const yTo = this.yearTo();
+    const years = yFrom || yTo ? `${yFrom || ''}–${yTo || 'Atual'}` : 'Anos não especificados';
+
+    if (!b && !m && !v) {
+      return this.mode() === 'edit' ? 'Editar Aplicação' : 'Nova Aplicação Veicular';
+    }
+    return `${b || 'Marca'} / ${m || 'Modelo'} / ${v || 'Versão'} / ${e} / ${years}`;
+  });
 
   constructor() {
     effect(() => {
@@ -100,41 +124,43 @@ export class VehicleApplicationFormComponent {
         this.formErrors.set({});
 
         if ((currentMode === 'edit' || currentMode === 'view') && item) {
-          this.brandId.set(item.vehicle_brand_id || '');
-          this.yearFrom.set(item.year_from);
-          this.yearTo.set(item.year_to);
+          const brandId = item.vehicle_brand_id || item.brand?.id || '';
+          const modelId = item.vehicle_model_id || item.model?.id || '';
+          const versionId = item.vehicle_version_id || item.version?.id || '';
+          const engineId = item.vehicle_engine_id || item.engine?.id || '';
+
+          this.brandId.set(brandId);
+          this.modelId.set(modelId);
+          this.versionId.set(versionId);
+          this.engineId.set(engineId);
+          this.yearFrom.set(item.year_from !== undefined ? item.year_from : null);
+          this.yearTo.set(item.year_to !== undefined ? item.year_to : null);
           this.notes.set(item.notes || '');
           this.active.set(item.active !== undefined ? Boolean(item.active) : true);
 
           // Populate cascade for edit mode
-          if (item.vehicle_brand_id) {
-            // this.loadModelsForBrand(item.vehicle_brand_id, () => {
-            //   this.modelId.set(item.vehicle_model_id || '');
-            //   if (item.vehicle_model_id) {
-            //     this.loadVersionsForModel(item.vehicle_model_id, () => {
-            //       this.versionId.set(item.vehicle_version_id || '');
-            //       if (item.vehicle_version_id) {
-            //         this.loadEnginesForVersion(item.vehicle_version_id, () => {
-            //           this.engineId.set(item.vehicle_engine_id || '');
-            //         });
-            //       }
-            //     });
-            //   }
-            // });
+          if (brandId) {
+            this.loadModelsForBrand({ vehicle_brand_id: brandId });
+          }
+          if (modelId) {
+            this.loadVersionsForModel({ vehicle_model_id: modelId });
+          }
+          if (versionId) {
+            this.loadEnginesForVersion({ vehicle_version_id: versionId });
           }
         } else {
           // Reset for create
-          // this.brandId.set('');
-          // this.modelId.set('');
-          // this.versionId.set('');
-          // this.engineId.set('');
-          // this.yearFrom.set(null);
-          // this.yearTo.set(null);
-          // this.notes.set('');
-          // this.active.set(true);
-          // this.modelOptions.set([]);
-          // this.versionOptions.set([]);
-          // this.engineOptions.set([]);
+          this.brandId.set('');
+          this.modelId.set('');
+          this.versionId.set('');
+          this.engineId.set('');
+          this.yearFrom.set(null);
+          this.yearTo.set(null);
+          this.notes.set('');
+          this.active.set(true);
+          this.modelOptions.set([]);
+          this.versionOptions.set([]);
+          this.engineOptions.set([]);
         }
       }
     });
@@ -154,79 +180,14 @@ export class VehicleApplicationFormComponent {
 
   readonly isReadOnly = computed(() => this.mode() === 'view');
 
-  // private loadModelsForBrand(brandId: string, callback?: () => void): void {
-  //   if (!brandId) {
-  //     this.modelOptions.set([]);
-  //     return;
-  //   }
-  //   this.loadingModels.set(true);
-  //   this.vehicleAppService.getModels(brandId).subscribe({
-  //     next: (res) => {
-  //       this.loadingModels.set(false);
-  //       this.modelOptions.set(res.data || []);
-  //       if (callback) callback();
-  //     },
-  //     error: () => {
-  //       this.loadingModels.set(false);
-  //       this.modelOptions.set([]);
-  //     },
-  //   });
-  // }
-
-  // private loadVersionsForModel(modelId: string, callback?: () => void): void {
-  //   if (!modelId) {
-  //     this.versionOptions.set([]);
-  //     return;
-  //   }
-  //   this.loadingVersions.set(true);
-  //   this.vehicleAppService.getVersions(modelId).subscribe({
-  //     next: (res) => {
-  //       this.loadingVersions.set(false);
-  //       this.versionOptions.set(res.data || []);
-  //       if (callback) callback();
-  //     },
-  //     error: () => {
-  //       this.loadingVersions.set(false);
-  //       this.versionOptions.set([]);
-  //     },
-  //   });
-  // }
-
-  // private loadEnginesForVersion(versionId: string, callback?: () => void): void {
-  //   if (!versionId) {
-  //     this.engineOptions.set([]);
-  //     this.engineId.set('');
-  //     return;
-  //   }
-  //   this.loadingEngines.set(true);
-  //   this.vehicleAppService.getEngines(versionId).subscribe({
-  //     next: (res) => {
-  //       this.loadingEngines.set(false);
-  //       const options = (res.data || []).map((item) => ({
-  //         id: (item as any).value || (item as any).id,
-  //         label: item.label,
-  //         sublabel: (item as any).sublabel,
-  //       }));
-  //       this.engineOptions.set(options as any);
-  //       if (callback) callback();
-  //     },
-  //     error: () => {
-  //       this.loadingEngines.set(false);
-  //       this.engineOptions.set([]);
-  //     },
-  //   });
-  // }
-
   // Cascading Handlers
   onBrandChange(event: Event): void {
     if (this.isReadOnly()) return;
     const value = (event.target as HTMLSelectElement).value;
     this.brandId.set(value);
 
-    const brand = this.brandOptions().find((brand) => brand.value === value);
-
-    const params: VehicleOptionsModelByBrandFilterRequest = {
-      vehicle_brand_id: brand?.value || '',
+    const params: Partial<VehicleGeneralFiltersRequest> = {
+      vehicle_brand_id: this.brandId() || '',
       model: null,
     };
 
@@ -253,53 +214,87 @@ export class VehicleApplicationFormComponent {
     if (this.isReadOnly()) return;
     const value = (event.target as HTMLSelectElement).value;
     this.modelId.set(value);
+
+    const params: Partial<VehicleGeneralFiltersRequest> = {
+      vehicle_model_id: this.modelId() || '',
+    };
     // Reset version & engine cascade
     this.versionId.set('');
     this.engineId.set('');
     this.engineOptions.set([]);
     this.clearFieldError('vehicle_model_id');
-    this.clearFieldError('vehicle_version_id');
     this.clearFieldError('vehicle_engine_id');
-    // if (value) {
-    //   this.loadVersionsForModel(value);
-    // } else {
-    //   this.versionOptions.set([]);
-    // }
+    this.clearFieldError('vehicle_version_id');
+    if (value) {
+      this.loadVersionsForModel(params);
+    } else {
+      this.versionOptions.set([]);
+    }
   }
 
   onVersionChange(event: Event): void {
-    // if (this.isReadOnly()) return;
-    // const value = (event.target as HTMLSelectElement).value;
-    // this.versionId.set(value);
-    // // Reset engine cascade
-    // this.engineId.set('');
-    // this.clearFieldError('vehicle_version_id');
-    // this.clearFieldError('vehicle_engine_id');
-    // if (value) {
-    //   this.loadEnginesForVersion(value);
-    // } else {
-    //   this.engineOptions.set([]);
-    // }
+    if (this.isReadOnly()) return;
+    const value = (event.target as HTMLSelectElement).value;
+    this.versionId.set(value);
+
+    const params: Partial<VehicleGeneralFiltersRequest> = {
+      vehicle_version_id: this.versionId() || '',
+    };
+
+    // Reset engine cascade
+    this.engineId.set('');
+    this.clearFieldError('vehicle_version_id');
+    this.clearFieldError('vehicle_engine_id');
+    if (value) {
+      this.loadEnginesForVersion(params);
+    } else {
+      this.engineOptions.set([]);
+    }
   }
 
-  loadModelsForBrand(params: VehicleOptionsModelByBrandFilterRequest) {
+  loadModelsForBrand(params: Partial<VehicleGeneralFiltersRequest>) {
+    this.loadingModels.set(true);
     this.vehicleModelService.getModelByBrand(params).subscribe({
       next: (response) => {
-        const data = response.data.map((item: VehicleModelInBrandResponse) => {
-          return {
-            id: item.id,
-            name: item.name,
-            slug: item.slug,
-            brand_name: item.brand.name,
-            vehicle_brand_id: item.brand.id,
-            active: item.active,
-          };
-        });
-        this.modelOptions.set(data);
-        console.log('[RESPONSE VEHICLE MODEL]: ', data);
+        this.modelOptions.set(response.data);
       },
-      error: (error) => {
-        console.log('[ERROR VEHICLE MODEL]: ', error);
+      error: () => {
+        this.modelOptions.set([]);
+      },
+      complete: () => {
+        this.loadingModels.set(false);
+      },
+    });
+  }
+
+  loadVersionsForModel(params: Partial<VehicleGeneralFiltersRequest>) {
+    this.loadingVersions.set(true);
+    this.vehicleVersionService.getVersionByModel(params).subscribe({
+      next: (response) => {
+        console.log('[load Versions]', response.data);
+        this.versionOptions.set(response.data);
+      },
+      error: () => {
+        this.versionOptions.set([]);
+      },
+      complete: () => {
+        this.loadingVersions.set(false);
+      },
+    });
+  }
+
+  loadEnginesForVersion(params: Partial<VehicleGeneralFiltersRequest>) {
+    this.loadingEngines.set(true);
+    this.vehicleEngineService.getEngineByVersion(params).subscribe({
+      next: (response) => {
+        console.log('[load Engines]', response.data);
+        this.engineOptions.set(response.data);
+      },
+      error: () => {
+        this.engineOptions.set([]);
+      },
+      complete: () => {
+        this.loadingEngines.set(false);
       },
     });
   }
@@ -353,7 +348,7 @@ export class VehicleApplicationFormComponent {
     });
   }
 
-  // Client-side Validation strictly adhering to Laravel CreateVehicleApplicationRequest
+  // Client-side Validation strictly adhering to Laravel VehicleApplicationRequest
   validateForm(): boolean {
     const errors: Record<string, string> = {};
     const bId = this.brandId();
@@ -363,11 +358,11 @@ export class VehicleApplicationFormComponent {
     const yTo = this.yearTo();
 
     if (!bId) {
-      errors['vehicle_brand_id'] = 'A marca do veículo é obrigatória.';
+      errors['vehicle_brand_id'] = 'Selecione a montadora para filtrar os modelos.';
     }
 
     if (!mId) {
-      errors['vehicle_model_id'] = 'O modelo do veículo é obrigatório.';
+      errors['vehicle_model_id'] = 'Selecione o modelo para filtrar as versões.';
     }
 
     if (!vId) {
@@ -409,8 +404,6 @@ export class VehicleApplicationFormComponent {
     this.isSubmitting.set(true);
 
     const payload: VehicleApplicationRequest = {
-      vehicle_brand_id: this.brandId(),
-      vehicle_model_id: this.modelId(),
       vehicle_version_id: this.versionId(),
       vehicle_engine_id: this.engineId() || null,
       year_from: this.yearFrom(),

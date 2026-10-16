@@ -12,7 +12,7 @@ import { GeneralOptionQuery } from '../models/generals/general-option-query.mode
 import { environment } from '../../../environments/environment';
 import { VehicleVersionFilter } from '../models/vehicles-version/vehicle-version-filter.model';
 import { GeneralOption } from '../models/generals/general-options-response.model';
-import { VehicleOptionsModelByBrandFilterRequest } from '../models/vehicles-model/vehicle-model-filters.models';
+import { VehicleGeneralFiltersRequest } from '../models/vehicles-model/vehicle-model-filters.models';
 import { VehicleModelInBrandResponse } from '../models/vehicles-model/vehicle-model-brand.model';
 
 @Injectable({
@@ -43,7 +43,7 @@ export class VehicleModelService {
     });
   }
 
-  getModelByBrand(filters: VehicleOptionsModelByBrandFilterRequest) {
+  getModelByBrand(filters: Partial<VehicleGeneralFiltersRequest>) {
     const params = buildHttpParams(filters);
     return this.http.get<getAllResponse<VehicleModelInBrandResponse[]>>(
       `${this.api}/${this.flag}`,
@@ -53,7 +53,7 @@ export class VehicleModelService {
     );
   }
 
-  getOptionsModelByBrand(filters: VehicleOptionsModelByBrandFilterRequest) {
+  getOptionsModelByBrand(filters: Partial<VehicleGeneralFiltersRequest>) {
     const params = buildHttpParams(filters);
     return this.http.get<getAllResponse<VehicleModelResponse>>(`${this.api}/${this.flag}/options`, {
       params,

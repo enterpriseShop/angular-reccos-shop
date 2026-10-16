@@ -12,40 +12,55 @@ import { VehicleVersionRequest } from '../models/vehicles-version/vehicle-versio
 import { environment } from '../../../environments/environment';
 import { VehicleEngineFilter } from '../models/vehicles-engine/vehicle-engine-filters.model';
 import { GeneralOption } from '../models/generals/general-options-response.model';
+import { VehicleGeneralFiltersRequest } from '../models/vehicles-model/vehicle-model-filters.models';
+import { ModelInVehicleVersion } from '../models/vehicles-version/vehicle-version-model.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehicleVersionService {
   private http = inject(HttpClient);
-  private baseUrl = environment.apiUrl;
-  private apiUrl = 'vehicle-versions';
+  private api = environment.apiUrl;
+  private flag = 'vehicle-versions';
 
   getAll(filters: VehicleVersionFilters): Observable<PaginatedResponse<VehicleVersionResponse>> {
     const params = buildHttpParams(filters);
-    return this.http.get<PaginatedResponse<VehicleVersionResponse>>(
-      `${this.baseUrl}/${this.apiUrl}`,
-      { params },
-    );
+    return this.http.get<PaginatedResponse<VehicleVersionResponse>>(`${this.api}/${this.flag}`, {
+      params,
+    });
   }
 
   getOptions(filters: Partial<VehicleEngineFilter>): Observable<getAllResponse<GeneralOption[]>> {
     const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<GeneralOption[]>>(
-      `${this.baseUrl}/${this.apiUrl}/options`,
-      { params },
-    );
+    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
+      params,
+    });
   }
 
   getById(id: string): Observable<getAllResponse<VehicleVersionResponse>> {
-    return this.http.get<getAllResponse<VehicleVersionResponse>>(
-      `${this.baseUrl}/${this.apiUrl}/${id}`,
+    return this.http.get<getAllResponse<VehicleVersionResponse>>(`${this.api}/${this.flag}/${id}`);
+  }
+
+  getVersionByModel(filters: Partial<VehicleGeneralFiltersRequest>) {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<ModelInVehicleVersion[]>>(`${this.api}/${this.flag}`, {
+      params,
+    });
+  }
+
+  getOptionsVersionByModel(filters: Partial<VehicleGeneralFiltersRequest>) {
+    const params = buildHttpParams(filters);
+    return this.http.get<getAllResponse<ModelInVehicleVersion[]>>(
+      `${this.api}/${this.flag}/options`,
+      {
+        params,
+      },
     );
   }
 
   create(payload: VehicleVersionRequest): Observable<getAllResponse<VehicleVersionResponse>> {
     return this.http.post<getAllResponse<VehicleVersionResponse>>(
-      `${this.baseUrl}/${this.apiUrl}`,
+      `${this.api}/${this.flag}`,
       payload,
     );
   }
@@ -55,14 +70,14 @@ export class VehicleVersionService {
     payload: VehicleVersionRequest,
   ): Observable<getAllResponse<VehicleVersionResponse>> {
     return this.http.put<getAllResponse<VehicleVersionResponse>>(
-      `${this.baseUrl}/${this.apiUrl}/${id}`,
+      `${this.api}/${this.flag}/${id}`,
       payload,
     );
   }
 
   delete(id: string): Observable<getAllResponse<VehicleVersionResponse>> {
     return this.http.delete<getAllResponse<VehicleVersionResponse>>(
-      `${this.baseUrl}/${this.apiUrl}/${id}`,
+      `${this.api}/${this.flag}/${id}`,
     );
   }
 }

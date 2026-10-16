@@ -144,32 +144,68 @@ export class VehicleApplicationsPageComponent implements OnInit {
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
     this.currentPage.set(1);
+
+    this.loadApplications(this.params);
   }
 
   onStatusChange(status: string): void {
     this.selectedStatus.set(status);
     this.currentPage.set(1);
+    const currentStatus =
+      this.selectedStatus() === 'active' ? 1 : this.selectedStatus() === 'inactive' ? 0 : null;
+    this.params = {
+      ...this.params,
+      active: currentStatus,
+    };
+    this.loadApplications(this.params);
   }
 
   onBrandFilterChange(brandId: string): void {
     this.selectedBrand.set(brandId);
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      vehicle_brand_id: this.selectedBrand(),
+    };
+    this.loadApplications(this.params);
   }
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
+    this.params = {
+      ...this.params,
+      page: this.currentPage(),
+    };
+    this.loadApplications(this.params);
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      per_page: this.pageSize(),
+      page: this.currentPage(),
+    };
+    this.loadApplications(this.params);
   }
 
   resetFilters(): void {
     this.searchQuery.set('');
-    this.selectedStatus.set('');
     this.selectedBrand.set('');
+    this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.params = {
+      ...this.params,
+      page: this.currentPage(),
+      per_page: this.pageSize(),
+      search: null,
+      vehicle_brand_id: null,
+      vehicle_model_id: null,
+      year: null,
+      active: null,
+    };
+    this.loadApplications(this.params);
   }
 
   newApplication(): void {
@@ -236,5 +272,19 @@ export class VehicleApplicationsPageComponent implements OnInit {
       per_page: meta.per_page,
     };
     this.loadApplications(this.params);
+  }
+
+  onActionClick(event: { actionId: string; row: VehicleApplicationResponse }): void {
+    switch (event.actionId) {
+      case 'view':
+        this.viewApplication(event.row);
+        break;
+      case 'edit':
+        this.editApplication(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
   }
 }

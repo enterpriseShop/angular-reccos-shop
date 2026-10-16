@@ -136,6 +136,7 @@
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
+    (actionClick)="onActionClick($event)"
   />
   <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
 </div>
