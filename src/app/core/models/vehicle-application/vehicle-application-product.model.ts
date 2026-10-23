@@ -8,7 +8,7 @@ export interface ProductVehicleApplication {
   year_to: number | null;
   engine: string | null;
   details: string | null;
-  created_at?: string;
-  updated_at?: string;
-  status?: boolean; // remover possivelmente
+  created_at: string;
+  updated_at: string;
+  status: boolean;
 }

@@ -13,7 +13,6 @@
           <app-icon name="box" size="w-5 h-5" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
           Códigos OEM Registrados
         </h3>
-
         <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
           Selecione um ou mais códigos de montadoras de referência para vincular a este produto
         </p>
@@ -24,8 +23,14 @@
           class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A] border border-[#4F8A6B]/20"
         >
           <app-icon name="check-circle" size="w-3.5 h-3.5" />
-          {{ selectedOemCodeIds().length }} de {{ oemTotalItens() }} selecionados
+          {{ currentSelectedOemIds().length }} de {{ availableOemCodes().length }} selecionados
         </span>
+
+        @if (!isReadOnly()) {
+        <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openNewOemDrawer()">
+          Novo Código OEM
+        </app-button>
+        }
       </div>
     </div>
 
@@ -39,7 +44,6 @@
           >
             <app-icon name="search" size="w-4 h-4" />
           </div>
-
           <input
             type="text"
             [value]="oemSearchQuery()"
@@ -47,7 +51,6 @@
             placeholder="Buscar por código OEM ou montadora..."
             class="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B] dark:focus:ring-[#5BAE6A]"
           />
-
           @if (oemSearchQuery()) {
           <button
             type="button"
@@ -65,8 +68,7 @@
           <button
             type="button"
             (click)="selectAllVisibleOem()"
-            [disabled]="areAllVisibleSelected() || oemCodes().length === 0"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 transition-colors"
           >
             <app-icon name="check-square" size="w-3.5 h-3.5" />
             Selecionar Visíveis
@@ -75,8 +77,7 @@
           <button
             type="button"
             (click)="deselectAllOem()"
-            [disabled]="!hasSelectedItems()"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 transition-colors"
           >
             <app-icon name="square" size="w-3.5 h-3.5" />
             Limpar Seleção
@@ -86,7 +87,7 @@
       </div>
 
       <!-- Manufacturer Chips Filter -->
-      @if (manufacturers().length > 0) {
+      @if (uniqueManufacturers().length > 0) {
       <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pt-1 pb-1">
         <span class="text-[11px] font-semibold text-gray-500 dark:text-slate-400 shrink-0 mr-1">
           Filtrar por:
@@ -94,54 +95,25 @@
 
         <button
           type="button"
-          (click)="setMfrFilter(null)"
-          [class]="
-            selectedMfrFilter() === null
-              ? 'bg-[#4F8A6B] text-white dark:bg-[#5BAE6A] dark:text-slate-950 font-bold'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700'
-          "
-          class="px-2.5 py-1 rounded-lg text-[11px] transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5"
+          (click)="setMfrFilter('all')"
+          [class]="selectedMfrFilter() === 'all'
+                ? 'bg-[#4F8A6B] text-white dark:bg-[#5BAE6A] dark:text-slate-950 font-bold'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700'"
+          class="px-2.5 py-1 rounded-lg text-[11px] transition-colors whitespace-nowrap cursor-pointer shrink-0"
         >
-          <span>Todas Montadoras</span>
-          @if (selectedOemCodeIds().length > 0) {
-          <span
-            class="px-1.5 py-0.2 text-[10px] font-bold rounded-full"
-            [class]="
-              selectedMfrFilter() === null
-                ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
-                : 'bg-[#4F8A6B]/15 text-[#4F8A6B] dark:bg-[#5BAE6A]/20 dark:text-[#5BAE6A]'
-            "
-          >
-            {{ selectedOemCodeIds().length }}
-          </span>
-          }
+          Todas Montadoras
         </button>
 
-        @for (mfr of manufacturers(); track mfr.value) {
-        @let mfrSelectedCount = getSelectedCountForManufacturer(mfr.value);
+        @for (mfr of uniqueManufacturers(); track mfr) {
         <button
           type="button"
-          (click)="setMfrFilter(mfr.value)"
-          [class]="
-            selectedMfrFilter() === mfr.value
-              ? 'bg-[#4F8A6B] text-white dark:bg-[#5BAE6A] dark:text-slate-950 font-bold'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700'
-          "
-          class="px-2.5 py-1 rounded-lg text-[11px] transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5"
+          (click)="setMfrFilter(mfr)"
+          [class]="selectedMfrFilter().toLowerCase() === mfr.toLowerCase()
+                  ? 'bg-[#4F8A6B] text-white dark:bg-[#5BAE6A] dark:text-slate-950 font-bold'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700'"
+          class="px-2.5 py-1 rounded-lg text-[11px] transition-colors whitespace-nowrap cursor-pointer shrink-0"
         >
-          <span>{{ mfr.label }}</span>
-          @if (mfrSelectedCount > 0) {
-          <span
-            class="px-1.5 py-0.2 text-[10px] font-bold rounded-full"
-            [class]="
-              selectedMfrFilter() === mfr.value
-                ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
-                : 'bg-[#4F8A6B]/15 text-[#4F8A6B] dark:bg-[#5BAE6A]/20 dark:text-[#5BAE6A]'
-            "
-          >
-            {{ mfrSelectedCount }}
-          </span>
-          }
+          {{ mfr }}
         </button>
         }
       </div>
@@ -160,26 +132,21 @@
             <th class="px-4 py-3 w-10 text-center">
               <span class="sr-only">Seleção</span>
             </th>
-
             <th class="px-4 py-3">Código OEM</th>
             <th class="px-4 py-3">Fabricante / Montadora</th>
             <th class="px-4 py-3 text-center">Data Registro</th>
             <th class="px-4 py-3 text-center">Status do Vínculo</th>
           </tr>
         </thead>
-
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
-          @for (oem of oemCodes(); track oem.id) { @let selected = isOemSelected(oem.id);
-
+          @for (oem of oemPaginated(); track oem.id) { @let selected = isOemSelected(oem.id);
           <tr
             (click)="toggleOemSelection(oem.id)"
-            [class]="
-              selected
-                ? 'bg-[#EAF4EE]/60 dark:bg-[#4F8A6B]/15 hover:bg-[#EAF4EE]/90 dark:hover:bg-[#4F8A6B]/25'
-                : 'hover:bg-gray-50/80 dark:hover:bg-slate-700/40'
-            "
+            [class]="selected
+                  ? 'bg-[#EAF4EE]/60 dark:bg-[#4F8A6B]/15 hover:bg-[#EAF4EE]/90 dark:hover:bg-[#4F8A6B]/25'
+                  : 'hover:bg-gray-50/80 dark:hover:bg-slate-700/40'"
             class="transition-colors cursor-pointer select-none"
           >
             <!-- Checkbox -->
@@ -201,7 +168,6 @@
                 >
                   {{ oem.oem_code }}
                 </span>
-
                 @if (selected) {
                 <span
                   class="text-[10px] font-semibold text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center gap-0.5"
@@ -218,7 +184,7 @@
               <span
                 class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold"
               >
-                {{ oem.manufacturer.name || 'Montadora' }}
+                {{ oem.manufacturer?.name || 'Montadora' }}
               </span>
             </td>
 
@@ -252,14 +218,12 @@
             <td colspan="5" class="px-4 py-8 text-center text-gray-400 dark:text-slate-500">
               <div class="flex flex-col items-center justify-center gap-2">
                 <app-icon name="search" size="w-8 h-8" class="text-gray-300 dark:text-slate-600" />
-
                 <p class="text-xs font-semibold">
                   Nenhum código OEM encontrado para o filtro aplicado.
                 </p>
-
                 <button
                   type="button"
-                  (click)="clearOemSearch(); setMfrFilter(null)"
+                  (click)="clearOemSearch(); setMfrFilter('all')"
                   class="text-xs text-[#4F8A6B] hover:underline font-bold mt-1"
                 >
                   Limpar Filtros de Busca
@@ -273,13 +237,14 @@
     </div>
 
     <!-- Pagination -->
-    @if (oemTotalItens() > 0) {
+    @if (filteredOemCodes().length > 0) {
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
       <app-pagination
-        [currentPage]="oemPagination().page"
-        [totalItems]="oemTotalItens()"
-        (pageChange)="onOemPageChange($event)"
-        (pageSizeChange)="onOemPageSizeChange($event)"
+        [currentPage]="oemPage()"
+        [pageSize]="oemPageSize()"
+        [totalItems]="filteredOemCodes().length"
+        (pageChange)="oemPage.set($event)"
+        (pageSizeChange)="oemPageSize.set($event)"
       />
     </div>
     }
@@ -297,7 +262,6 @@
           <app-icon name="tag" size="w-5 h-5 text-[#5A8DEE]" />
           Códigos do Produto (Product Codes)
         </h3>
-
         <p class="text-xs text-gray-500 dark:text-slate-400">
           EAN, DUN, Código do fabricante, Código paralelo e Código interno auxiliar
         </p>
@@ -324,7 +288,6 @@
             <th class="px-4 py-2.5 text-right">Ações</th>
           </tr>
         </thead>
-
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
@@ -333,11 +296,20 @@
             <td class="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
               {{ codeItem.type }}
             </td>
-
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300 font-bold">
               {{ codeItem.code }}
             </td>
-
+            <td class="px-4 py-3 text-center">
+              <button
+                type="button"
+                [disabled]="isReadOnly()"
+                (click)="onToggleProductCodeStatus(codeItem.id)"
+                [class]="(codeItem.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+              >
+                {{ codeItem.status || 'Ativo' }}
+              </button>
+            </td>
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
               <button
@@ -365,6 +337,7 @@
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
       <app-pagination
         [currentPage]="productCodesPage()"
+        [pageSize]="productCodesPageSize()"
         [totalItems]="productCodes().length"
         (pageChange)="productCodesPage.set($event)"
         (pageSizeChange)="productCodesPageSize.set($event)"
@@ -385,7 +358,6 @@
           <app-icon name="copy" size="w-5 h-5 text-purple-500" />
           Produtos Equivalentes
         </h3>
-
         <p class="text-xs text-gray-500 dark:text-slate-400">
           Relacionamento entre produtos equivalentes e marcas cruzadas
         </p>
@@ -412,36 +384,28 @@
             <th class="px-4 py-2.5 text-right">Ações</th>
           </tr>
         </thead>
-
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
           @for (eq of equivalentPaginated(); track eq.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-semibold text-gray-900 dark:text-slate-100">
-              {{ eq.product.name }}
+              {{ eq.productName }}
             </td>
-
             <td class="px-4 py-3 text-gray-600 dark:text-slate-400">
-              {{ eq.observation || 'Sem observações' }}
+              {{ eq.notes || 'Sem observações' }}
             </td>
-
             <td class="px-4 py-3 text-center">
               <button
                 type="button"
                 [disabled]="isReadOnly()"
                 (click)="onToggleEquivalentStatus(eq.id)"
-                [class]="
-                  (eq.status || 'Ativo') === 'Ativo'
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                    : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
-                "
+                [class]="(eq.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
               >
                 {{ eq.status || 'Ativo' }}
               </button>
             </td>
-
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
               <button
@@ -469,6 +433,7 @@
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
       <app-pagination
         [currentPage]="equivalentPage()"
+        [pageSize]="equivalentPageSize()"
         [totalItems]="equivalentProducts().length"
         (pageChange)="equivalentPage.set($event)"
         (pageSizeChange)="equivalentPageSize.set($event)"
@@ -489,21 +454,25 @@
           <app-icon name="car" size="w-5 h-5 text-amber-500" />
           Compatibilidade Veicular
         </h3>
-
         <p class="text-xs text-gray-500 dark:text-slate-400">
           Relacionamento entre o produto e suas aplicações veiculares
         </p>
       </div>
 
       @if (!isReadOnly()) {
-      <app-button
-        variant="outline"
-        size="sm"
-        iconStart="plus"
-        (btnClick)="onAddVehicleApplication()"
-      >
-        Adicionar Aplicação Veicular
-      </app-button>
+      <div class="flex items-center gap-2">
+        <app-button
+          variant="outline"
+          size="sm"
+          iconStart="plus"
+          (btnClick)="openVehicleLinkDrawer()"
+        >
+          Vincular Aplicação
+        </app-button>
+        <app-button variant="ghost" size="sm" iconStart="plus" (btnClick)="openNewVehicleDrawer()">
+          Nova Aplicação
+        </app-button>
+      </div>
       }
     </div>
 
@@ -523,41 +492,31 @@
             <th class="px-4 py-2.5 text-right">Ações</th>
           </tr>
         </thead>
-
         <tbody
           class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
         >
           @for (veh of vehiclePaginated(); track veh.id) {
           <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
             <td class="px-4 py-3 font-semibold">
-              {{ veh.manufacturer.name }} {{ veh.model }}
-              <span class="text-gray-500 font-normal">({{ veh.model }})</span>
+              {{ veh.brand }} {{ veh.model }}
+              <span class="text-gray-500 font-normal">({{ veh.version }})</span>
             </td>
-
             <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">{{ veh.engine }}</td>
-
             <td class="px-4 py-3 text-center font-medium">
-              {{ veh.year_from }} - {{ veh.year_to || 'Atual' }}
+              {{ veh.startYear }} - {{ veh.endYear || 'Atual' }}
             </td>
-
-            <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ veh.details || '-' }}</td>
-
+            <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ veh.notes || '-' }}</td>
             <td class="px-4 py-3 text-center">
               <button
                 type="button"
                 [disabled]="isReadOnly()"
                 (click)="onToggleVehicleStatus(veh.id)"
-                [class]="
-                  (veh.status || 'Ativo') === 'Ativo'
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                    : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
-                "
+                [class]="(veh.status || 'Ativo') === 'Ativo' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
               >
                 {{ veh.status || 'Ativo' }}
               </button>
             </td>
-
             <td class="px-4 py-3 text-right">
               @if (!isReadOnly()) {
               <button
@@ -583,16 +542,159 @@
 
     @if (vehicleApplications().length > 0) {
     <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
-      <p>pagination</p>
-      <!-- <app-pagination
+      <app-pagination
         [currentPage]="vehiclePage()"
         [pageSize]="vehiclePageSize()"
         [totalItems]="vehicleApplications().length"
         (pageChange)="vehiclePage.set($event)"
         (pageSizeChange)="vehiclePageSize.set($event)"
-      /> -->
+      />
     </div>
     }
   </div>
   }
+
+  <!-- Quick OEM Code Registration Drawer -->
+  <app-oem-code-form
+    [isOpen]="isOemDrawerOpen()"
+    mode="create"
+    (closeForm)="closeOemDrawer()"
+    (oemCodeSaved)="onNewOemSaved($event)"
+  />
+
+  <!-- Quick Vehicle Application Registration Drawer -->
+  <app-vehicle-application-form
+    [isOpen]="isNewVehicleDrawerOpen()"
+    mode="create"
+    (closeForm)="closeNewVehicleDrawer()"
+    (applicationSaved)="onNewVehicleSaved($event)"
+  />
+
+  <!-- Drawer de Seleção e Vínculo de Aplicações Veiculares -->
+  <app-drawer
+    [isOpen]="isVehicleLinkDrawerOpen()"
+    title="Vincular Aplicações Veiculares"
+    icon="car"
+    width="lg"
+    (closeDrawer)="closeVehicleLinkDrawer()"
+  >
+    <div class="space-y-4 pb-2">
+      <div
+        class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-700/80"
+      >
+        <div>
+          <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block">
+            Catálogo de Compatibilidade
+          </span>
+          <p class="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+            Selecione as configurações veiculares compatíveis com este produto.
+          </p>
+        </div>
+        <app-button
+          variant="primary"
+          size="sm"
+          iconStart="plus"
+          (btnClick)="openNewVehicleDrawer()"
+        >
+          Nova Aplicação
+        </app-button>
+      </div>
+
+      <!-- Filtros no Drawer -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input
+          type="text"
+          [value]="vehicleSearchQuery()"
+          (input)="vehicleSearchQuery.set($any($event.target).value); linkDrawerPage.set(1)"
+          placeholder="Buscar montadora, modelo, motor..."
+          class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B]"
+        />
+
+        <select
+          [value]="selectedVehicleBrandFilter()"
+          (change)="selectedVehicleBrandFilter.set($any($event.target).value); linkDrawerPage.set(1)"
+          class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B]"
+        >
+          <option value="all">Todas as Montadoras</option>
+          @for (b of vehicleBrandOptions(); track b.id) {
+          <option [value]="b.id">{{ b.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Lista de Aplicações para Vínculo -->
+      <div
+        class="overflow-hidden rounded-xl border border-gray-200 dark:border-slate-700/80 divide-y divide-gray-100 dark:divide-slate-700/60 max-h-[380px] overflow-y-auto"
+      >
+        @if (loadingVehicleApplications()) {
+        <div class="p-8 text-center text-xs text-gray-500">Carregando aplicações veiculares...</div>
+        } @else { @for (app of paginatedAvailableVehicleApps(); track app.id) {
+        <button
+          type="button"
+          (click)="toggleVehicleLink(app)"
+          (keydown.enter)="toggleVehicleLink(app)"
+          class="w-full p-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors"
+          [class.bg-emerald-50/50]="isVehicleAppLinked(app.id)"
+          [class.dark:bg-emerald-950/20]="isVehicleAppLinked(app.id)"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <input
+              type="checkbox"
+              [checked]="isVehicleAppLinked(app.id)"
+              (click)="$event.stopPropagation(); toggleVehicleLink(app)"
+              class="rounded border-gray-300 text-[#4F8A6B] focus:ring-[#4F8A6B] cursor-pointer"
+            />
+            <div class="min-w-0">
+              <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate">
+                {{ app.display_name || ((app.brand?.name || 'Montadora') + ' / ' + (app.model?.name
+                || 'Modelo') + ' / ' + (app.version?.name || 'Versão')) }}
+              </span>
+              <div
+                class="flex items-center gap-2 mt-0.5 text-[11px] text-gray-500 dark:text-slate-400"
+              >
+                <span class="font-mono">{{ app.engine?.name || 'Todas as motorizações' }}</span>
+                <span>•</span>
+                <span>{{ app.year_from || 'Início' }} — {{ app.year_to || 'Atual' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="shrink-0 ml-3">
+            @if (isVehicleAppLinked(app.id)) {
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+            >
+              <app-icon name="check" size="w-3 h-3" />
+              Vinculado
+            </span>
+            } @else {
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+            >
+              Vincular
+            </span>
+            }
+          </div>
+        </button>
+        } @empty {
+        <div class="p-8 text-center text-xs text-gray-400">
+          Nenhuma aplicação encontrada no filtro.
+        </div>
+        } }
+      </div>
+
+      <!-- Paginação do Drawer -->
+      @if (filteredAvailableVehicleApps().length > 0) {
+      <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
+      }
+
+      <div
+        class="flex items-center justify-end pt-3 border-t border-gray-100 dark:border-slate-700"
+      >
+        <app-button variant="primary" size="md" (btnClick)="closeVehicleLinkDrawer()">
+          Concluir Vínculos ({{ vehicleApplications().length }} vinculadas)
+        </app-button>
+      </div>
+    </div>
+  </app-drawer>
 </div>
