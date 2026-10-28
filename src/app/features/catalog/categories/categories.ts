@@ -24,10 +24,15 @@ import { ToastService } from '../../../core/services/toast';
 import { CategoryService } from '../../../core/services/category-service';
 import { CategoryResponse } from '../../../core/models/catetories/categories.model';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
-import { categoryTableActions, categoryTableColumns } from '../../../utils/category-table-collums';
+import {
+  categoryStatusOptions,
+  categoryTableActions,
+  categoryTableColumns,
+} from '../../../utils/category-table-collums';
 import { CategoryDefaultQuery } from '../../../core/models/catetories/categories-default-query';
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
+import { SelectOption } from '../../../core/models/design-system/select-option.model';
 
 @Component({
   selector: 'app-categories-page',
@@ -85,11 +90,12 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
     return map;
   });
 
+  readonly categotyStatus = signal<SelectOption[]>(categoryStatusOptions);
   readonly columns: TableColumn<CategoryResponse>[] = categoryTableColumns;
   readonly actions: TableAction<CategoryResponse>[] = categoryTableActions;
 
   readonly totalItens = signal<number>(0);
-  query: CategoryDefaultQuery = {
+  params: CategoryDefaultQuery = {
     search: null,
     active: null,
     parent_id: null,
@@ -99,19 +105,19 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // 1. Busca inicial
-    this.getPaginationAllCategories(this.query);
+    this.getPaginationAllCategories(this.params);
 
     // 2. Inscrição para escutar a busca com debounce de 400ms
     this.searchSubscription = this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged())
       .subscribe((queryText) => {
         this.currentPage.set(1);
-        this.query = {
-          ...this.query,
+        this.params = {
+          ...this.params,
           search: queryText || null,
           page: 1,
         };
-        this.getPaginationAllCategories(this.query);
+        this.getPaginationAllCategories(this.params);
       });
   }
 
@@ -127,12 +133,9 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
         this.loading.set(false);
         this.pagination.set(response.meta);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro ao buscar categorias',
-          error.message || 'Falha ao carregar lista de categorias.',
-        );
+        this.allCategories.set([]);
       },
     });
   }
@@ -150,22 +153,22 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
     this.selectedStatus.set(status);
     this.currentPage.set(1);
 
-    this.query = {
-      ...this.query,
+    this.params = {
+      ...this.params,
       active: activeValue,
       page: 1,
     };
-    this.getPaginationAllCategories(this.query);
+    this.getPaginationAllCategories(this.params);
   }
 
   onPaginationChange(meta: PaginationMeta): void {
     this.pagination.set(meta);
-    this.query = {
-      ...this.query,
+    this.params = {
+      ...this.params,
       page: meta.current_page,
       per_page: meta.per_page,
     };
-    this.getPaginationAllCategories(this.query);
+    this.getPaginationAllCategories(this.params);
   }
 
   onActionClick(event: { actionId: string; row: CategoryResponse }): void {
@@ -187,14 +190,14 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
     this.selectedStatus.set('');
     this.currentPage.set(1);
 
-    this.query = {
+    this.params = {
       search: null,
       active: null,
       parent_id: null,
       page: 1,
       per_page: this.perPage(),
     };
-    this.getPaginationAllCategories(this.query);
+    this.getPaginationAllCategories(this.params);
     this.toastService.info('Filtros limpos', 'Todos os parâmetros de busca foram resetados.');
   }
 
@@ -222,7 +225,7 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
   }
 
   onCategorySaved(): void {
-    this.getPaginationAllCategories(this.query);
+    this.getPaginationAllCategories(this.params);
   }
 
   confirmDelete(cat: CategoryResponse): void {
@@ -239,7 +242,7 @@ export class CategoriesPageComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.isDeleting.set(false);
         this.deleteDialogOpen.set(false);
-        this.getPaginationAllCategories(this.query);
+        this.getPaginationAllCategories(this.params);
         this.toastService.success(
           response.message,
           `A categoria "${cat.name}" foi removida com sucesso.`,

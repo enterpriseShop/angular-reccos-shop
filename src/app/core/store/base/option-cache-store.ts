@@ -21,7 +21,9 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
    * O Store concreto pode sobrescrever o retorno do serviço,
    * realizando aqui a adaptação necessária para TOption.
    */
-  protected abstract fetchOptions(query: GeneralOptionQuery): Observable<getAllResponse<TOption[]>>;
+  protected abstract fetchOptions(
+    query: Partial<GeneralOptionQuery>,
+  ): Observable<getAllResponse<TOption[]>>;
 
   protected readonly _options = signal<getAllResponse<TOption[]> | null>(null);
 
@@ -34,16 +36,21 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
 
   protected readonly defaultQuery = createDefaultQuery();
 
-  protected currentQuery = this.defaultQuery;
+  protected currentQuery: Partial<GeneralOptionQuery> = this.defaultQuery;
 
-  protected abstract isSameCachedQuery(cached: TQueryCache, query: GeneralOptionQuery): boolean;
+  protected abstract isSameCachedQuery(
+    cached: TQueryCache,
+    query: Partial<GeneralOptionQuery>,
+  ): boolean;
 
   protected abstract getCachedResponse(cached: TQueryCache): getAllResponse<TOption[]>;
 
   protected abstract createQueryCache(
-    query: GeneralOptionQuery,
+    query: Partial<GeneralOptionQuery>,
     response: getAllResponse<TOption[]>,
   ): TQueryCache;
+
+  protected abstract getOptionKey(option: TOption): string;
 
   constructor() {
     this.subscribeToCacheChanges();
@@ -73,7 +80,7 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
    * Quando a consulta é a consulta padrão, volta a utilizar
    * os dados iniciais.
    */
-  async loadOptions(query: GeneralOptionQuery): Promise<void> {
+  async loadOptions(query: Partial<GeneralOptionQuery>): Promise<void> {
     this.currentQuery = query;
 
     if (isDefaultQuery(query)) {
@@ -88,7 +95,7 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
   /**
    * Carrega uma consulta específica.
    */
-  private async loadQuery(query: GeneralOptionQuery): Promise<void> {
+  private async loadQuery(query: Partial<GeneralOptionQuery>): Promise<void> {
     const cached = await this.cache.get<TQueryCache>(this.QUERY_KEY);
 
     if (cached && this.isSameCachedQuery(cached, query)) {
@@ -115,7 +122,7 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
   /**
    * Busca dados na API e persiste no cache.
    */
-  private async loadFromApi(query: GeneralOptionQuery, cacheKey: string): Promise<void> {
+  private async loadFromApi(query: Partial<GeneralOptionQuery>, cacheKey: string): Promise<void> {
     this.fetchOptions(query).subscribe({
       next: async (response) => {
         this._options.set(response);
@@ -155,5 +162,53 @@ export abstract class OptionCacheStore<TOption, TQueryCache> {
 
     await this.cache.remove(this.INITIAL_KEY);
     await this.cache.remove(this.QUERY_KEY);
+  }
+
+  /**
+   * Adiciona uma nova opção ao cache inicial e atualiza o Signal.
+   */
+  async addOption(option: TOption): Promise<void> {
+    let current = this._options();
+
+    if (!current) {
+      current = (await this.cache.get<getAllResponse<TOption[]>>(this.INITIAL_KEY)) ?? null;
+    }
+
+    if (!current) {
+      return;
+    }
+
+    const updatedResponse: getAllResponse<TOption[]> = {
+      ...current,
+      data: [...current.data, option],
+    };
+
+    this._options.set(updatedResponse);
+
+    await this.cache.set(this.INITIAL_KEY, updatedResponse, this.CACHE_TTL);
+  }
+
+  /**
+   * Atualiza uma opção existente no cache inicial e atualiza o Signal.
+   */
+  async updateOption(option: TOption): Promise<void> {
+    let current = this._options();
+
+    if (!current) {
+      current = (await this.cache.get<getAllResponse<TOption[]>>(this.INITIAL_KEY)) ?? null;
+    }
+
+    if (!current) return;
+
+    const optionKey = this.getOptionKey(option);
+
+    const updatedResponse: getAllResponse<TOption[]> = {
+      ...current,
+      data: current.data.map((item) => (this.getOptionKey(item) === optionKey ? option : item)),
+    };
+
+    this._options.set(updatedResponse);
+
+    await this.cache.set(this.INITIAL_KEY, updatedResponse, this.CACHE_TTL);
   }
 }

@@ -42,7 +42,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
 
   readonly valueChange = output<string>();
   readonly optionSelect = output<AutocompleteOption>();
-  readonly searchQueryChange = output<GeneralOptionQuery>();
+  readonly searchQueryChange = output<Partial<GeneralOptionQuery>>();
 
   readonly isOpen = signal<boolean>(false);
   readonly filterQuery = signal<string>('');
@@ -54,7 +54,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
   readonly selectedOption = computed(() => {
     const val = this.value();
     if (val === undefined || val === null || val === '') return null;
-    const found = this.options().find((opt) => String(opt.label) === String(val));
+    const found = this.options().find((opt) => String(opt.value) === String(val));
     if (found) return found;
 
     // Fallback: search by label if value was populated as label
@@ -131,8 +131,8 @@ export class AutocompleteSelectComponent implements OnDestroy {
     const text = target.value;
     this.filterQuery.set(text);
 
-    const result: GeneralOptionQuery = {
-      search: null,
+    const result: Partial<GeneralOptionQuery> = {
+      search: text.trim() || null,
       active: null,
       per_page: null,
       page: null,
@@ -158,7 +158,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     }
     if (opt.disabled) return;
 
-    this.valueChange.emit(String(opt.label));
+    this.valueChange.emit(String(opt.value));
     this.optionSelect.emit(opt);
     this.closeDropdown();
   }
@@ -171,7 +171,7 @@ export class AutocompleteSelectComponent implements OnDestroy {
     event.stopPropagation();
     this.valueChange.emit('');
     this.filterQuery.set('');
-    const result: GeneralOptionQuery = {
+    const result: Partial<GeneralOptionQuery> = {
       search: null,
       active: null,
       per_page: null,

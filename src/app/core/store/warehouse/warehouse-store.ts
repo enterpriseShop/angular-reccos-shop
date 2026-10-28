@@ -25,11 +25,12 @@ export class WarehouseStore extends OptionCacheStore<SelectOption, WarehouseQuer
       map((response: getAllResponse<GeneralOption[]>) => {
         return {
           ...response,
-          data: response.data.map((option: any) => ({
-            value: option.id ?? option.value,
+          data: response.data.map((option) => ({
+            value: option.value,
             label: option.label,
-            sublabel: option.description ?? option.sublabel ?? '',
+            sublabel: option.sublabel ?? '',
             disabled: false,
+            module: '',
           })),
         };
       }),
@@ -52,5 +53,9 @@ export class WarehouseStore extends OptionCacheStore<SelectOption, WarehouseQuer
       query,
       response,
     };
+  }
+
+  protected getOptionKey(option: SelectOption): string {
+    return option.value;
   }
 }

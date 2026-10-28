@@ -1,0 +1,138 @@
+<!-- Page Header -->
+<app-page-header
+  title="Origens de Peças"
+  subtitle="Classificação de procedência, produção nacional, importação e procedência OEM no catálogo."
+  [breadcrumbs]="[
+    { label: 'Catálogo', route: '/catalog/products' },
+    { label: 'Origem da Peça' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newOrigin()">
+      Nova Origem
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick KPI Summary Strip -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
+      >
+        <app-icon name="map-pin" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Origens
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalCount() }} cadastradas
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
+      >
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Origens Ativas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ activeCount() }} ativas
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="info" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Com Descrição Detalhada
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ withDescriptionCount() }} especificadas
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por nome ou descrição..."
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="[]"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="allOrigins()"
+    [actions]="actions"
+    [loading]="loading()"
+    [roundedBottom]="false"
+    (actionClick)="onActionClick($event)"
+  />
+
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Origem da Peça"
+  [message]="'Tem certeza de que deseja remover a origem ' + (selectedOriginForDelete()?.name || '') + '?'"
+  type="danger"
+  confirmText="Excluir Origem"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- Part Origin Create / Edit / View Drawer Form -->
+<app-part-origin-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [partOrigin]="selectedOrigin()"
+  [pagination]="pagination()"
+  (closeForm)="closeForm()"
+  (partOriginSaved)="onOriginSaved()"
+/>

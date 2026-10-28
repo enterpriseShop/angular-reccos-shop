@@ -29,6 +29,7 @@ export class PartOriginStore extends OptionCacheStore<SelectOption, PartOriginQu
           value: item.id,
           disabled: false,
           sublabel: item.description,
+          module: '',
         })),
       })),
     );
@@ -50,5 +51,9 @@ export class PartOriginStore extends OptionCacheStore<SelectOption, PartOriginQu
       query,
       response,
     };
+  }
+
+  protected getOptionKey(option: SelectOption): string {
+    return option.value;
   }
 }

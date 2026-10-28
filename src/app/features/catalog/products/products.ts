@@ -1,11 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  signal,
-  computed,
-  inject,
-  OnInit,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
 import { ToolbarComponent } from '../../../design-system/toolbar/toolbar';
@@ -17,12 +10,15 @@ import { PaginationComponent } from '../../../design-system/pagination/paginatio
 import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
 import { AppIconComponent } from '../../../design-system/icon/app-icon';
 import { ToastService } from '../../../core/services/toast';
-import { ProductResponse } from '../../../core/models/products/product-response.model';
+import {
+  ProductResponse,
+} from '../../../core/models/products/product-response.model';
 import { ProductService } from '../../../core/services/product-service';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
 import { productTableActions, productTableColumns } from '../../../utils/product-table-collum';
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
+import { ProductFilterRequest } from '../../../core/models/products/product-filter-request.model';
 
 export interface ProductItem extends Record<string, unknown> {
   id: string;
@@ -76,35 +72,21 @@ export class ProductsPageComponent implements OnInit {
   readonly actions: TableAction<ProductResponse>[] = productTableActions;
   readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
-  readonly filteredProducts = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const cat = this.selectedCategory().toLowerCase();
-    // const st = this.selectedStatus();
-
-    return this.allProducts().filter((p) => {
-      // const matchesQ = !q || p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.oemCode.toLowerCase().includes(q);
-      const matchesQ = !q || p.name.toLowerCase().includes(q);
-      const matchesCat = !cat || p.category.name.toLowerCase().includes(cat);
-      const matchesSt = 'active';
-      return matchesQ && matchesCat && matchesSt;
-    });
-  });
-
-  readonly paginatedProducts = computed(() => {
-    const all = this.filteredProducts();
-    const page = this.currentPage();
-    const size = this.pageSize();
-    const start = (page - 1) * size;
-    return all.slice(start, start + size);
+  readonly params = signal<ProductFilterRequest>({
+    page: null,
+    per_page: null,
+    search: null,
+    active: null,
+    parent_id: null,
   });
 
   ngOnInit(): void {
-    this.getPaginationAllProducts();
+    this.getPaginationAllProducts(this.params());
   }
 
-  getPaginationAllProducts(): void {
+  getPaginationAllProducts(params: ProductFilterRequest): void {
     this.loading.set(true);
-    this.productService.getAll().subscribe({
+    this.productService.getAll(params).subscribe({
       next: (response) => {
         this.allProducts.set(response.data);
         if (response.meta) {
@@ -117,9 +99,8 @@ export class ProductsPageComponent implements OnInit {
         this.pagination.set(response.meta);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error('Erro ao buscar produtos', error.message || 'Falha na requisição.');
       },
     });
   }
@@ -197,3 +178,4 @@ export class ProductsPageComponent implements OnInit {
     }
   }
 }
+

@@ -57,12 +57,53 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'catalog/origins',
+    loadComponent: () =>
+      import('./features/catalog/part-origin/origins').then((m) => m.OriginsPageComponent),
+  },
+  {
+    path: 'compatibility/oem-codes',
+    loadComponent: () =>
+      import('./features/catalog/oem-code/oem-codes').then((m) => m.OemCodesPageComponent),
+  },
+  {
     path: 'compatibility/:sub',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },
   {
-    path: 'vehicles/:sub',
-    loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
+    path: 'vehicles/brands',
+    loadComponent: () =>
+      import('./features/vehicles/vehicle-brands/vehicle-brands').then(
+        (m) => m.VehicleBrandsPageComponent,
+      ),
+  },
+  {
+    path: 'vehicles/models',
+    loadComponent: () =>
+      import('./features/vehicles/vehicle-models/vehicle-models').then(
+        (m) => m.VehicleModelsPageComponent,
+      ),
+  },
+  {
+    path: 'vehicles/versions',
+    loadComponent: () =>
+      import('./features/vehicles/vehicle-versions/vehicle-versions').then(
+        (m) => m.VehicleVersionsPageComponent,
+      ),
+  },
+  {
+    path: 'vehicles/engines',
+    loadComponent: () =>
+      import('./features/vehicles/vehicle-engines/vehicle-engines').then(
+        (m) => m.VehicleEnginesPageComponent,
+      ),
+  },
+  {
+    path: 'vehicles/applications',
+    loadComponent: () =>
+      import('./features/vehicles/vehicle-applications/vehicle-applications').then(
+        (m) => m.VehicleApplicationsPageComponent,
+      ),
   },
   {
     path: 'commercial/:sub',

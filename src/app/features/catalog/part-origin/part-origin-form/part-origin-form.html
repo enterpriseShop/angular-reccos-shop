@@ -1,0 +1,256 @@
+<app-drawer
+  [isOpen]="isOpen()"
+  [title]="formTitle()"
+  [icon]="mode() === 'edit' ? 'edit' : (mode() === 'view' ? 'eye' : 'map-pin')"
+  width="lg"
+  (closeDrawer)="close()"
+>
+  <!-- Main Form Body -->
+  <form (submit)="$event.preventDefault(); onSubmit()" class="space-y-6 pb-4">
+    <!-- Header Badge & Quick Context -->
+    <div
+      class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-700/80"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center font-bold overflow-hidden border border-emerald-200/60 dark:border-emerald-800/40 shrink-0"
+        >
+          <app-icon name="map-pin" size="w-5 h-5" />
+        </div>
+        <div class="min-w-0">
+          <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate">
+            {{ name() ? name() : 'Nova Origem da Peça' }}
+          </span>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-[11px] text-gray-500 dark:text-slate-400 truncate">
+              {{ description() ? description() : 'Classificação de procedência para autopeças' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shrink-0 ml-2">
+        @if (active()) {
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          Ativo
+        </span>
+        } @else {
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+          Inativo
+        </span>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 1: Identificação da Origem -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4"
+    >
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="tag" size="w-4 h-4" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Dados da Origem
+        </h4>
+      </div>
+
+      <!-- Nome (max 100, required) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label
+            for="part-origin-name"
+            class="text-xs font-semibold text-gray-800 dark:text-slate-200"
+          >
+            Nome da Origem
+            <span class="text-red-500">*</span>
+          </label>
+          <span class="text-[10px] text-gray-400">{{ name().length }}/100</span>
+        </div>
+        <input
+          id="part-origin-name"
+          type="text"
+          [value]="name()"
+          [disabled]="isReadOnly()"
+          (input)="onNameChange($event)"
+          placeholder="Ex: Nacional, Original OEM, Importado Direto, Aftermarket Premium"
+          maxlength="100"
+          [class.border-red-500]="formErrors()['name']"
+          [class.focus:border-red-500]="formErrors()['name']"
+          class="w-full px-3.5 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+        />
+        @if (formErrors()['name']) {
+        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+          {{ formErrors()['name'] }}
+        </p>
+        } @else {
+        <p class="text-[10px] text-gray-400 dark:text-slate-500">
+          Nome exclusivo da procedência da peça (máx. 100 caracteres).
+        </p>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2: Descrição e Detalhes da Procedência -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4"
+    >
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="info" size="w-4 h-4" class="text-[#5A8DEE]" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Descrição e Especificação
+        </h4>
+      </div>
+
+      <!-- Descrição (nullable, string) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label
+            for="part-origin-description"
+            class="text-xs font-semibold text-gray-800 dark:text-slate-200"
+          >
+            Descrição Detalhada
+          </label>
+          <span class="text-[10px] text-gray-400">{{ description().length }}/500</span>
+        </div>
+        <textarea
+          id="part-origin-description"
+          rows="3"
+          [value]="description()"
+          [disabled]="isReadOnly()"
+          (input)="onDescriptionChange($event)"
+          placeholder="Ex: Peça genuína de linha de montagem das montadoras com certificação internacional..."
+          maxlength="500"
+          [class.border-red-500]="formErrors()['description']"
+          [class.focus:border-red-500]="formErrors()['description']"
+          class="w-full px-3.5 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors resize-none"
+        ></textarea>
+        @if (formErrors()['description']) {
+        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+          {{ formErrors()['description'] }}
+        </p>
+        } @else {
+        <p class="text-[10px] text-gray-400 dark:text-slate-500">
+          Opcional. Informações complementares sobre regulamentações, fabricação e garantia da
+          origem.
+        </p>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 3: Ordenação & Exibição -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 space-y-4"
+    >
+      <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-slate-700/60">
+        <app-icon name="list-ordered" size="w-4 h-4" class="text-amber-500" />
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+          Ordem de Exibição
+        </h4>
+      </div>
+
+      <!-- Ordem de Exibição (integer, min 0) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label
+            for="part-origin-display-order"
+            class="text-xs font-semibold text-gray-800 dark:text-slate-200"
+          >
+            Ordem de Exibição
+          </label>
+        </div>
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"
+          >
+            <app-icon name="hash" size="w-3.5 h-3.5" />
+          </div>
+          <input
+            id="part-origin-display-order"
+            type="number"
+            min="0"
+            step="1"
+            [value]="displayOrder()"
+            [disabled]="isReadOnly()"
+            (input)="onDisplayOrderChange($event)"
+            placeholder="1"
+            [class.border-red-500]="formErrors()['display_order']"
+            [class.focus:border-red-500]="formErrors()['display_order']"
+            class="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] disabled:bg-gray-50 dark:disabled:bg-slate-800/60 disabled:cursor-not-allowed transition-colors"
+          />
+        </div>
+        @if (formErrors()['display_order']) {
+        <p class="text-[11px] text-red-500 font-medium flex items-center gap-1 mt-1">
+          <app-icon name="alert-circle" size="w-3.5 h-3.5" />
+          {{ formErrors()['display_order'] }}
+        </p>
+        } @else {
+        <p class="text-[10px] text-gray-400 dark:text-slate-500">
+          Define a posição sequencial desta origem nas listagens e selects de produtos (menor número
+          = maior prioridade).
+        </p>
+        }
+      </div>
+    </div>
+
+    <!-- SEÇÃO 4: Status de Ativação -->
+    <div
+      class="bg-white dark:bg-slate-800/80 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80"
+    >
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block">
+            Status da Origem
+          </span>
+          <span class="text-[11px] text-gray-500 dark:text-slate-400 block mt-0.5">
+            {{ active() ? 'Origem ativa e visível para seleção no cadastro de produtos e tabelas de
+            compatibilidade.' : 'Origem inativa. Produtos existentes mantêm a origem, mas fica
+            oculta para novas seleções.' }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          [disabled]="isReadOnly()"
+          (click)="onActiveToggle()"
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ml-4"
+          [class]="active() ? 'bg-[#4F8A6B] dark:bg-[#5BAE6A]' : 'bg-gray-200 dark:bg-slate-700'"
+          role="switch"
+          [attr.aria-checked]="active()"
+          aria-label="Alternar status ativo da origem"
+        >
+          <span
+            class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+            [class]="active() ? 'translate-x-5' : 'translate-x-0'"
+          ></span>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Drawer Footer Actions -->
+  <div footer class="flex items-center justify-end gap-2.5 w-full">
+    <app-button variant="outline" size="sm" (btnClick)="close()" [disabled]="isSubmitting()">
+      {{ isReadOnly() ? 'Fechar' : 'Cancelar' }}
+    </app-button>
+
+    @if (!isReadOnly()) {
+    <app-button
+      variant="primary"
+      size="sm"
+      [iconStart]="mode() === 'edit' ? 'check' : 'plus'"
+      [loading]="isSubmitting()"
+      [disabled]="isSubmitting()"
+      (btnClick)="onSubmit()"
+    >
+      {{ mode() === 'edit' ? 'Salvar Alterações' : 'Cadastrar Origem' }}
+    </app-button>
+    }
+  </div>
+</app-drawer>

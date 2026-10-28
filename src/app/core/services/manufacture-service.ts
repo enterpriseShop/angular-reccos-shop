@@ -25,7 +25,7 @@ export class ManufacturerService {
     });
   }
 
-  getOptions(filters: GeneralOptionQuery) {
+  getOptions(filters: Partial<GeneralOptionQuery>) {
     const params = buildHttpParams(filters);
     return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
       params,

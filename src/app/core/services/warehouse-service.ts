@@ -7,6 +7,8 @@ import { GeneralOptionQuery } from '../models/generals/general-option-query.mode
 import { WarehouseOption } from '../models/warehouses/warehouse-options.model';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { GeneralOption } from '../models/generals/general-options-response.model';
+import { WarehouseRequest } from '../models/warehouses/warehouse-request.model';
+import { WarehouseResponse } from '../models/warehouses/warehouses.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -16,9 +18,9 @@ export class WarehouseService {
   private api = environment.apiUrl;
   private flag = 'warehouses';
 
-  getAll(filters: GeneralOptionQuery) {
+  getAll(filters: Partial<GeneralOptionQuery>) {
     const params = buildHttpParams(filters);
-    return this.http.get<PaginatedResponse<WarehouseOption[]>>(`${this.api}/${this.flag}`, {
+    return this.http.get<PaginatedResponse<WarehouseResponse>>(`${this.api}/${this.flag}`, {
       params,
     });
   }
@@ -28,5 +30,20 @@ export class WarehouseService {
     return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
     });
+  }
+
+  createWarehouse(form: WarehouseRequest) {
+    return this.http.post<PaginatedResponse<WarehouseOption>>(`${this.api}/${this.flag}`, form);
+  }
+
+  updateWarehouse(id: string, form: WarehouseRequest) {
+    return this.http.put<PaginatedResponse<WarehouseOption>>(
+      `${this.api}/${this.flag}/${id}`,
+      form,
+    );
+  }
+
+  deleteWarehouse(id: string) {
+    return this.http.delete<PaginatedResponse<WarehouseOption>>(`${this.api}/${this.flag}/${id}`);
   }
 }

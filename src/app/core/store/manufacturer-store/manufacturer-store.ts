@@ -56,4 +56,8 @@ export class ManufacturerStore extends OptionCacheStore<
       response,
     };
   }
+
+  protected getOptionKey(option: AutocompleteOption): string {
+    return option.value;
+  }
 }

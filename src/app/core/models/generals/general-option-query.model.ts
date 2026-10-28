@@ -1,9 +1,10 @@
 export interface GeneralOptionQuery {
-  search: string | null;
-  active: boolean | null;
-  per_page: number | null;
   page: number | null;
+  search: string | null;
+  active: number | null;
+  per_page: number | null;
   manufacturer_id: string | null;
+  vehicle_brand_id: string | null;
 }
 
 // ALTERNATIVA PRA PAGINAÇÃO

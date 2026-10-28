@@ -80,7 +80,7 @@
               <button
                 type="button"
                 (click)="onActionClick(act, row, $event)"
-                [class]="'p-1.5 rounded transition-colors ' + (act.colorClass || 'text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700')"
+                [class]="'p-1.5 rounded transition-colors cursor-pointer ' + (act.colorClass || 'text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700')"
                 [title]="act.title || act.label"
               >
                 <app-icon [name]="act.icon" size="w-4 h-4" />

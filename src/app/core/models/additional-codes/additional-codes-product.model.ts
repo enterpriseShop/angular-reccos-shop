@@ -1,6 +1,6 @@
 export interface ProductAdditionalCodeSummary {
   id: string;
   code: string;
-  active: boolean;
+  active: number;
   type: string; // remover possivelmente
 }

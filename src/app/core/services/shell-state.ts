@@ -73,6 +73,7 @@ export class ShellStateService {
         { id: 'models', label: 'Modelos', route: '/vehicles/models' },
         { id: 'versions', label: 'Versões', route: '/vehicles/versions' },
         { id: 'engines', label: 'Motores', route: '/vehicles/engines' },
+        { id: 'applications', label: 'Aplicações', route: '/vehicles/applications' },
       ],
     },
     {

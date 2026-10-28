@@ -1,6 +1,6 @@
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
 
-export function createDefaultQuery(): GeneralOptionQuery {
+export function createDefaultQuery(): Partial<GeneralOptionQuery> {
   return {
     search: null,
     active: null,
@@ -10,7 +10,7 @@ export function createDefaultQuery(): GeneralOptionQuery {
   };
 }
 
-export function isDefaultQuery(query: GeneralOptionQuery): boolean {
+export function isDefaultQuery(query: Partial<GeneralOptionQuery>): boolean {
   return (
     query.search === null &&
     query.active === null &&
@@ -20,7 +20,10 @@ export function isDefaultQuery(query: GeneralOptionQuery): boolean {
   );
 }
 
-export function isSameQuery(first: GeneralOptionQuery, second: GeneralOptionQuery): boolean {
+export function isSameQuery(
+  first: Partial<GeneralOptionQuery>,
+  second: Partial<GeneralOptionQuery>,
+): boolean {
   return (
     first.search === second.search &&
     first.active === second.active &&

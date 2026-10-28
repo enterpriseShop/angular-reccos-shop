@@ -1,0 +1,144 @@
+<!-- Page Header -->
+<app-page-header
+  title="Códigos OEM"
+  subtitle="Catálogo de numerações originais de fábrica (Original Equipment Manufacturer) e montadoras correspondentes."
+  [breadcrumbs]="[
+    { label: 'Catálogo', route: '/catalog/products' },
+    { label: 'Compatibilidade' },
+    { label: 'Códigos OEM' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newOemCode()">
+      Novo Código OEM
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick KPI Summary Strip -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
+      >
+        <app-icon name="barcode" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Códigos OEM
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalCount() }} cadastrados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="truck" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Montadoras Atendidas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ uniqueManufacturersCount() }} montadoras
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
+      >
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Vínculos com Produtos
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ linkedProductsCount() }} associações
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      (searchSubmit)="onSearchSubmit()"
+      placeholder="Filtrar por código OEM..."
+    />
+
+    <app-select
+      [value]="selectedManufacturerId()"
+      (valueChange)="onManufacturerChange($event)"
+      [options]="manufacturerFilterOptions()"
+      placeholder="Todas as Montadoras"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="allOemCodes()"
+    [actions]="actions"
+    [loading]="loading()"
+    [roundedBottom]="false"
+    (actionClick)="onActionClick($event)"
+  />
+
+  <app-pagination
+    [pagination]="pagination()"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Código OEM"
+  [message]="'Tem certeza de que deseja remover o código OEM ' + (selectedOemCodeForDelete()?.oem_code || '') + (selectedOemCodeForDelete()?.manufacturer?.name ? ' da montadora ' + selectedOemCodeForDelete()?.manufacturer?.name : '') + '?'"
+  type="danger"
+  confirmText="Excluir Código"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- OEM Code Create / Edit / View Drawer Form -->
+<app-oem-code-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [oemCode]="selectedOemCode()"
+  [options]="manufacturerFilterOptions()"
+  (closeForm)="closeForm()"
+  (oemCodeSaved)="onOemCodeSaved()"
+/>

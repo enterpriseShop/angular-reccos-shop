@@ -37,7 +37,6 @@ import {
 } from '../../models/product-workspace.model';
 import { initialProductPayload } from '../../../../core/utils/product-initial-payload';
 import { OemCodeService } from '../../../../core/services/code-oem-service';
-import { ManufacturerOption } from '../../../../core/models/manufactureres/manufaturer-options.model';
 import { OemCode } from '../../../../core/models/oem-codes/oem-codes.model';
 import { ProductByIdService } from '../../../../core/services/product-by-id-service';
 import { StatusStore } from '../../../../core/store/status-store/status-store';
@@ -46,6 +45,7 @@ import { UnitSaleStore } from '../../../../core/store/unit-sale/unit-sale-store'
 import { WarehouseStore } from '../../../../core/store/warehouse/warehouse-store';
 import { ManufacturerStore } from '../../../../core/store/manufacturer-store/manufacturer-store';
 import { PartOriginStore } from '../../../../core/store/part-origin/part-origin-store';
+import { ProductVehicleApplication } from '../../../../core/models/vehicle-application/vehicle-application-product.model';
 
 @Component({
   selector: 'app-product-workspace',
@@ -94,9 +94,10 @@ export class ProductWorkspaceComponent implements OnInit {
   readonly productCreatedSuccessBanner = signal<boolean>(false);
 
   readonly oemCodeIds = signal<string[]>([]);
+  readonly totalOemCodes = signal<number>(0);
   readonly errors = signal<Record<string, string>>({});
 
-  readonly manufacturers = signal<ManufacturerOption[]>([]);
+  readonly manufacturers = computed(() => this.manufacturerStore.optionList());
   readonly manufacturersByProduct = signal<OemCode[]>([]);
   readonly selectedImageForDelete = signal<MediaImageItem | null>(null);
 
@@ -153,7 +154,7 @@ export class ProductWorkspaceComponent implements OnInit {
     { label: this.headerTitle() },
   ]);
 
-  private queries: GeneralOptionQuery = {
+  private params: Partial<GeneralOptionQuery> = {
     search: null,
     active: null,
     per_page: null,
@@ -171,9 +172,9 @@ export class ProductWorkspaceComponent implements OnInit {
     this.productCreatedSuccessBanner.set(!!state?.['productJustCreated']);
 
     setTimeout(() => {
-      this.queries.per_page = 10;
-      this.queries.page = 1;
-      this.getOemCodeByManufacturer(this.queries);
+      this.params.per_page = 10;
+      this.params.page = 1;
+      this.getOemCodeByManufacturer(this.params);
     }, 100);
 
     if (id) {
@@ -182,17 +183,30 @@ export class ProductWorkspaceComponent implements OnInit {
     }
   }
 
-  getOemCodeByManufacturer(query: GeneralOptionQuery) {
+  getOemCodeByManufacturer(query: Partial<GeneralOptionQuery>) {
     this.oemCodeService.getByManufacturer(query).subscribe({
       next: (response) => {
         const codes = response.data || [];
         this.manufacturersByProduct.set(codes);
+        this.totalOemCodes.set(
+          (response as any).meta?.total ?? (response as any).total ?? codes.length,
+        );
       },
       error: (err) => {
         this.manufacturersByProduct.set([]);
-        this.toastService.error('Erro', err.error.data.messsage);
+        this.totalOemCodes.set(0);
+        this.toastService.error(
+          'Erro',
+          err.error?.data?.message || err.error?.message || 'Erro ao buscar códigos OEM',
+        );
       },
     });
+  }
+
+  onOemSelectionChange(ids: string[]): void {
+    this.oemCodeIds.set(ids);
+    this.productForm.update((pf) => ({ ...pf, oem_code_ids: ids }));
+    this.markCurrentTabAsModified();
   }
 
   productById(productId: string): void {
@@ -451,7 +465,7 @@ export class ProductWorkspaceComponent implements OnInit {
     const type = prompt('Digite o Tipo (Ex.: EAN-13, Código Fábrica):', 'EAN-13') || 'Geral';
 
     const newId = 'pc-' + Date.now();
-    const newCode = { id: newId, type, code, active: true };
+    const newCode = { id: newId, type, code, active: 1 };
 
     this.product.update((p) => ({
       ...p,
@@ -538,27 +552,27 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   openAddVehicleModal(): void {
-    const brand = prompt('Marca do Veículo:', 'Volkswagen') || 'Volkswagen';
-    const model = prompt('Modelo:', 'Gol') || 'Modelo';
-    const engine = prompt('Motorização:', '1.6 8V') || '1.0';
+    // const brand = prompt('Marca do Veículo:', 'Volkswagen') || 'Volkswagen';
+    // const model = prompt('Modelo:', 'Gol') || 'Modelo';
+    // const engine = prompt('Motorização:', '1.6 8V') || '1.0';
 
     const newId = 'veh-' + Date.now();
-    const newApplication = {
-      id: newId,
-      manufacturer: { id: '', name: brand, slug: '' },
-      model,
-      year_from: 2015,
-      year_to: 2022,
-      engine,
-      details: 'Flex',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    // const newApplication = {
+    //   id: newId,
+    //   manufacturer: { id: '', name: brand, slug: '' },
+    //   model,
+    //   year_from: 2015,
+    //   year_to: 2022,
+    //   engine,
+    //   details: 'Flex',
+    //   created_at: new Date().toISOString(),
+    //   updated_at: new Date().toISOString(),
+    // };
 
-    this.product.update((p) => ({
-      ...p,
-      applications: [...p.applications, newApplication],
-    }));
+    // this.product.update((p) => ({
+    //   ...p,
+    //   applications: [...p.applications, newApplication],
+    // }));
 
     this.productForm.update((pf) => ({
       ...pf,
@@ -585,6 +599,17 @@ export class ProductWorkspaceComponent implements OnInit {
     }));
 
     this.markCurrentTabAsModified();
+  }
+
+  /** Atualiza a lista de aplicações veiculares quando o filho (drawer de vínculo) emite a lista completa atualizada. */
+  onVehicleApplicationsChange(applications: ProductVehicleApplication[]): void {
+    this.product.update((p) => ({ ...p, applications }));
+    this.markCurrentTabAsModified();
+  }
+
+  /** Atualiza somente os IDs de aplicação no payload de salvar. */
+  onVehicleApplicationIdsChange(ids: string[]): void {
+    this.productForm.update((pf) => ({ ...pf, application_ids: ids }));
   }
 
   toggleVehicleStatus(id: string): void {
@@ -723,11 +748,11 @@ export class ProductWorkspaceComponent implements OnInit {
 
   // toggleNoteStatus(id: string): void {}
 
-  onCategorySearch(query: GeneralOptionQuery): void {
+  onCategorySearch(query: Partial<GeneralOptionQuery>): void {
     this.categoryStore.loadOptions(query);
   }
 
-  onManufacturerSearch(query: GeneralOptionQuery): void {
+  onManufacturerSearch(query: Partial<GeneralOptionQuery>): void {
     this.manufacturerStore.loadOptions(query);
   }
 
@@ -933,7 +958,7 @@ export class ProductWorkspaceComponent implements OnInit {
     this.deleteProductDialogOpen.set(true);
   }
 
-  onOemFiltersChange(filters: GeneralOptionQuery): void {
+  onOemFiltersChange(filters: Partial<GeneralOptionQuery>): void {
     console.log('filters', filters);
     this.getOemCodeByManufacturer(filters);
   }

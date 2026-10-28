@@ -36,8 +36,8 @@ export class ProductGeneralTabComponent {
   readonly fieldChange = output<{ field: string; value: string }>();
   readonly numberFieldChange = output<{ field: string; value: string }>();
   readonly booleanFieldChange = output<{ field: string; value: boolean }>();
-  readonly categorySearch = output<GeneralOptionQuery>();
-  readonly manufacturerSearch = output<GeneralOptionQuery>();
+  readonly categorySearch = output<Partial<GeneralOptionQuery>>();
+  readonly manufacturerSearch = output<Partial<GeneralOptionQuery>>();
   readonly descriptionChange = output<string>();
 
   onFieldChange(field: string, value: string): void {

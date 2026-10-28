@@ -1,4 +1,4 @@
-export interface PartOriginResponse {
+export interface PartOriginResponse extends Record<string, unknown> {
   id: string;
   name: string;
   active: boolean;

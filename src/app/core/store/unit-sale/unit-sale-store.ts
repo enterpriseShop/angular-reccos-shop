@@ -25,9 +25,12 @@ export class UnitSaleStore extends OptionCacheStore<SelectOption, UnitSaleQueryC
       map((response: getAllResponse<GeneralOption[]>) => {
         return {
           ...response,
-          data: response.data.map((option: GeneralOption) => ({
-            ...option,
+          data: response.data.map((item: GeneralOption) => ({
+            label: item.label,
+            value: item.value,
             disabled: false,
+            sublabel: item.sublabel,
+            module: '',
           })),
         };
       }),
@@ -50,5 +53,9 @@ export class UnitSaleStore extends OptionCacheStore<SelectOption, UnitSaleQueryC
       query,
       response,
     };
+  }
+
+  protected getOptionKey(option: SelectOption): string {
+    return option.value;
   }
 }

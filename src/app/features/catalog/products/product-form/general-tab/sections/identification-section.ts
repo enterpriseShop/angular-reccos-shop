@@ -112,6 +112,6 @@ export class ProductIdentificationSectionComponent {
   readonly statusOptions = input<SelectOption[]>([]);
 
   readonly fieldChange = output<{ field: string; value: string }>();
-  readonly categorySearch = output<GeneralOptionQuery>();
-  readonly manufacturerSearch = output<GeneralOptionQuery>();
+  readonly categorySearch = output<Partial<GeneralOptionQuery>>();
+  readonly manufacturerSearch = output<Partial<GeneralOptionQuery>>();
 }

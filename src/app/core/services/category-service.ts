@@ -2,16 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { environment } from '../../../environments/environment';
-import {
-  CategoryResponse,
-  CreateCategoryPayload,
-  UpdateCategoryPayload,
-} from '../models/catetories/categories.model';
+import { CategoryRequest, CategoryResponse } from '../models/catetories/categories.model';
 import { buildHttpParams } from './build-http-params';
-import { CategoryOption } from '../models/catetories/category-options.model';
 import { GeneralOptionQuery } from '../models/generals/general-option-query.model';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { CategoryDefaultQuery } from '../models/catetories/categories-default-query';
+import { CategoryOption } from '../models/catetories/category-options.model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,7 +24,7 @@ export class CategoryService {
     });
   }
 
-  getOptions(filters: GeneralOptionQuery) {
+  getOptions(filters: Partial<GeneralOptionQuery>) {
     const params = buildHttpParams(filters);
     return this.http.get<getAllResponse<CategoryOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
@@ -39,11 +35,11 @@ export class CategoryService {
     return this.http.get<CategoryResponse>(`${this.api}/${this.flag}/${id}`);
   }
 
-  create(data: CreateCategoryPayload) {
+  create(data: CategoryRequest) {
     return this.http.post<getAllResponse<CategoryResponse>>(`${this.api}/${this.flag}`, data);
   }
 
-  update(id: string, data: UpdateCategoryPayload) {
+  update(id: string, data: CategoryRequest) {
     return this.http.put<getAllResponse<CategoryResponse>>(`${this.api}/${this.flag}/${id}`, data);
   }
 

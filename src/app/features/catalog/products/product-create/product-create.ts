@@ -108,7 +108,7 @@ export class ProductCreateComponent implements OnInit {
     { label: 'Novo Produto' },
   ];
 
-  private queries: GeneralOptionQuery = {
+  private queries: Partial<GeneralOptionQuery> = {
     search: null,
     active: null,
     per_page: null,
@@ -122,7 +122,7 @@ export class ProductCreateComponent implements OnInit {
     this.loadInitialOptions(this.queries);
   }
 
-  loadInitialOptions(query: GeneralOptionQuery): void {
+  loadInitialOptions(query: Partial<GeneralOptionQuery>): void {
     this.categoryLoading.set(true);
     this.categoryService.getOptions(query).subscribe({
       next: (res) => {
@@ -162,6 +162,7 @@ export class ProductCreateComponent implements OnInit {
           value: p.id,
           sublabel: p.description,
           disabled: false,
+          module: '',
         }));
         this.fetchedPartOrigins.set(opts);
       },
@@ -183,6 +184,7 @@ export class ProductCreateComponent implements OnInit {
           value: u.value,
           sublabel: u.sublabel,
           disabled: false,
+          module: '',
         }));
         this.unitOptions.set(opts);
       },
@@ -259,7 +261,7 @@ export class ProductCreateComponent implements OnInit {
     this.createForm.update((p) => ({ ...p, description: val }));
   }
 
-  onCategorySearch(query: GeneralOptionQuery): void {
+  onCategorySearch(query: Partial<GeneralOptionQuery>): void {
     this.categoryLoading.set(true);
     this.categoryService.getOptions(query).subscribe({
       next: (res) => {
@@ -279,7 +281,7 @@ export class ProductCreateComponent implements OnInit {
     });
   }
 
-  onManufacturerSearch(query: GeneralOptionQuery): void {
+  onManufacturerSearch(query: Partial<GeneralOptionQuery>): void {
     this.manufacturerLoading.set(true);
     this.manufacturerService.getOptions(query).subscribe({
       next: (res) => {
@@ -346,7 +348,7 @@ export class ProductCreateComponent implements OnInit {
           '✔ Produto criado com sucesso.',
           'Entidade principal cadastrada. Você já pode enriquecer as informações complementares.',
         );
-        const newId = response.id || '1';
+        const newId = response.data.id;
         this.router.navigate(['/catalog/products', newId, 'edit'], {
           replaceUrl: true,
           state: { productJustCreated: true },
