@@ -20,11 +20,22 @@ import {
 } from '../../../../core/models/oem-codes/oem-codes.model';
 import { ManufacturerStore } from '../../../../core/store/manufacturer-store/manufacturer-store';
 import { SelectOption } from '../../../../core/models/design-system/select-option.model';
+import { AutocompleteSelectComponent } from '../../../../design-system/autocomplete-select/autocomplete-select';
+import { AutocompleteOption } from '../../../../core/models/design-system/auto-complete.model';
+import { GeneralOptionQuery } from '../../../../core/models/generals/general-option-query.model';
+import { ProductService } from '../../../../core/services/product-service';
+import { ProductFilterRequest } from '../../../../core/models/products/product-filter-request.model';
 
 @Component({
   selector: 'app-oem-code-form',
   standalone: true,
-  imports: [CommonModule, ButtonComponent, AppIconComponent, DrawerComponent],
+  imports: [
+    CommonModule,
+    ButtonComponent,
+    AppIconComponent,
+    DrawerComponent,
+    AutocompleteSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './oem-code-form.html',
   styleUrl: './oem-code-form.css',
@@ -33,11 +44,23 @@ export class OemCodeFormComponent {
   private toastService = inject(ToastService);
   private oemCodeService = inject(OemCodeService);
   private manufacturerStore = inject(ManufacturerStore);
+  private productsService = inject(ProductService);
 
   readonly isOpen = input<boolean>(false);
   readonly mode = input<'create' | 'edit' | 'view'>('create');
   readonly oemCode = input<ProductOemCodeResource | null>(null);
   readonly options = input<SelectOption[]>([]);
+  readonly productOptions = signal<AutocompleteOption[]>([]);
+
+  readonly productId = computed(() => this.oemCode()?.product?.id || '');
+  readonly errors = input<Record<string, string>>({});
+  readonly fieldChange = output<{ field: string; value: string }>();
+  readonly productSearch = output<Partial<GeneralOptionQuery>>();
+  readonly selectedProductName = computed(() => {
+    const id = this.productId();
+    const found = this.productOptions().find((p) => p.value === id);
+    return found ? found.label : this.oemCode()?.product?.name || 'Não selecionado';
+  });
 
   readonly closeForm = output<void>();
   readonly oemCodeSaved = output<ProductOemCodeResource>();
@@ -51,27 +74,6 @@ export class OemCodeFormComponent {
 
   // Validation Errors
   readonly formErrors = signal<Record<string, string>>({});
-
-  constructor() {
-    effect(() => {
-      const open = this.isOpen();
-      const item = this.oemCode();
-      const currentMode = this.mode();
-
-      if (open) {
-        this.formErrors.set({});
-
-        if ((currentMode === 'edit' || currentMode === 'view') && item) {
-          this.manufacturerId.set(item.manufacturer.id);
-          this.code.set(item.oem_code);
-        } else {
-          // Create Mode Reset
-          this.manufacturerId.set('');
-          this.code.set('');
-        }
-      }
-    });
-  }
 
   // Derived Title & Read-only Mode
   readonly formTitle = computed(() => {
@@ -93,6 +95,59 @@ export class OemCodeFormComponent {
     const found = this.options().find((m) => m.value === id);
     return found ? found.label : this.oemCode()?.manufacturer?.name || 'Não selecionado';
   });
+
+  readonly params = signal<ProductFilterRequest>({
+    page: null,
+    per_page: null,
+    search: null,
+    active: null,
+    parent_id: null,
+  });
+
+  constructor() {
+    effect(() => {
+      const open = this.isOpen();
+      const item = this.oemCode();
+      const currentMode = this.mode();
+
+      if (open) {
+        this.formErrors.set({});
+
+        // Carrega produtos sob demanda apenas na primeira vez que o drawer abrir
+        if (this.productOptions().length === 0) {
+          this.getAllProducts(this.params());
+        }
+
+        if ((currentMode === 'edit' || currentMode === 'view') && item) {
+          this.manufacturerId.set(item.manufacturer.id);
+          this.code.set(item.oem_code);
+        } else {
+          this.manufacturerId.set('');
+          this.code.set('');
+        }
+      }
+    });
+  }
+
+  getAllProducts(params: ProductFilterRequest) {
+    this.productsService.getAll(params).subscribe({
+      next: (response) => {
+        const productsList = response.data;
+        const formattedProducts: AutocompleteOption[] = productsList.map((p) => {
+          return {
+            value: p.id,
+            label: p.name,
+            sublabel: p.slug,
+            icon: 'pi pi-box',
+            disabled: false,
+            is_parent: false,
+            description: p.description,
+          };
+        });
+        this.productOptions.set(formattedProducts);
+      },
+    });
+  }
 
   // Input event handlers
   onManufacturerChange(event: Event): void {

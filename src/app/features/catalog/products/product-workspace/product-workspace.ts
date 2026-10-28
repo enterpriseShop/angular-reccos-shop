@@ -45,6 +45,7 @@ import { UnitSaleStore } from '../../../../core/store/unit-sale/unit-sale-store'
 import { WarehouseStore } from '../../../../core/store/warehouse/warehouse-store';
 import { ManufacturerStore } from '../../../../core/store/manufacturer-store/manufacturer-store';
 import { PartOriginStore } from '../../../../core/store/part-origin/part-origin-store';
+import { ProductVehicleApplication } from '../../../../core/models/vehicle-application/vehicle-application-product.model';
 
 @Component({
   selector: 'app-product-workspace',
@@ -551,27 +552,27 @@ export class ProductWorkspaceComponent implements OnInit {
   }
 
   openAddVehicleModal(): void {
-    const brand = prompt('Marca do Veículo:', 'Volkswagen') || 'Volkswagen';
-    const model = prompt('Modelo:', 'Gol') || 'Modelo';
-    const engine = prompt('Motorização:', '1.6 8V') || '1.0';
+    // const brand = prompt('Marca do Veículo:', 'Volkswagen') || 'Volkswagen';
+    // const model = prompt('Modelo:', 'Gol') || 'Modelo';
+    // const engine = prompt('Motorização:', '1.6 8V') || '1.0';
 
     const newId = 'veh-' + Date.now();
-    const newApplication = {
-      id: newId,
-      manufacturer: { id: '', name: brand, slug: '' },
-      model,
-      year_from: 2015,
-      year_to: 2022,
-      engine,
-      details: 'Flex',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    // const newApplication = {
+    //   id: newId,
+    //   manufacturer: { id: '', name: brand, slug: '' },
+    //   model,
+    //   year_from: 2015,
+    //   year_to: 2022,
+    //   engine,
+    //   details: 'Flex',
+    //   created_at: new Date().toISOString(),
+    //   updated_at: new Date().toISOString(),
+    // };
 
-    this.product.update((p) => ({
-      ...p,
-      applications: [...p.applications, newApplication],
-    }));
+    // this.product.update((p) => ({
+    //   ...p,
+    //   applications: [...p.applications, newApplication],
+    // }));
 
     this.productForm.update((pf) => ({
       ...pf,
@@ -598,6 +599,17 @@ export class ProductWorkspaceComponent implements OnInit {
     }));
 
     this.markCurrentTabAsModified();
+  }
+
+  /** Atualiza a lista de aplicações veiculares quando o filho (drawer de vínculo) emite a lista completa atualizada. */
+  onVehicleApplicationsChange(applications: ProductVehicleApplication[]): void {
+    this.product.update((p) => ({ ...p, applications }));
+    this.markCurrentTabAsModified();
+  }
+
+  /** Atualiza somente os IDs de aplicação no payload de salvar. */
+  onVehicleApplicationIdsChange(ids: string[]): void {
+    this.productForm.update((pf) => ({ ...pf, application_ids: ids }));
   }
 
   toggleVehicleStatus(id: string): void {

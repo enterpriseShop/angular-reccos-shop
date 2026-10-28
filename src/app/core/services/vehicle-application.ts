@@ -7,12 +7,12 @@ import { getAllResponse } from '../models/generals/general-responses-list.model'
 import { VehicleModelOption } from '../models/vehicles-model/vehicle-model.model';
 import { VehicleVersionOption } from '../models/vehicles-version/vehicle-version.model';
 import {
-  VehicleApplicationFilters,
   VehicleApplicationRequest,
   VehicleApplicationResponse,
 } from '../models/vehicle-application/vehicle-application.model';
 import { GeneralOption } from '../models/generals/general-options-response.model';
 import { environment } from '../../../environments/environment';
+import { VehicleApplicationFilters } from '../models/vehicle-application/vehicle-application-filter-request.models';
 
 @Injectable({
   providedIn: 'root',

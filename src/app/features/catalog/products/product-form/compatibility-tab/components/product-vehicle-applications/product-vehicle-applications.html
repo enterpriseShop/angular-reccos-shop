@@ -1,0 +1,238 @@
+<div
+  class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
+>
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+        <app-icon name="car" size="w-5 h-5 text-amber-500" />
+        Compatibilidade Veicular
+      </h3>
+      <p class="text-xs text-gray-500 dark:text-slate-400">
+        Relacionamento entre o produto e suas aplicações veiculares
+      </p>
+    </div>
+
+    @if (!isReadOnly()) {
+    <div class="flex items-center gap-2">
+      <app-button variant="outline" size="sm" iconStart="plus" (btnClick)="openVehicleLinkDrawer()">
+        Vincular Aplicação
+      </app-button>
+      <app-button variant="ghost" size="sm" iconStart="plus" (btnClick)="openNewVehicleDrawer()">
+        Nova Aplicação
+      </app-button>
+    </div>
+    }
+  </div>
+
+  <div
+    class="overflow-x-auto custom-scrollbar rounded-lg border border-gray-200 dark:border-slate-700/80"
+  >
+    <table class="w-full text-left text-xs">
+      <thead
+        class="bg-gray-50 dark:bg-slate-900/60 text-gray-600 dark:text-slate-400 font-semibold border-b border-gray-200 dark:border-slate-700/80"
+      >
+        <tr>
+          <th class="px-4 py-2.5">Aplicação Veicular (Marca/Modelo/Versão)</th>
+          <th class="px-4 py-2.5">Motor</th>
+          <th class="px-4 py-2.5 text-center">Anos</th>
+          <th class="px-4 py-2.5">Observações</th>
+          <th class="px-4 py-2.5 text-center">Situação</th>
+          <th class="px-4 py-2.5 text-right">Ações</th>
+        </tr>
+      </thead>
+      <tbody
+        class="divide-y divide-gray-100 dark:divide-slate-700/60 text-gray-800 dark:text-slate-200"
+      >
+        @for (veh of vehiclePaginated(); track veh.id) {
+        <tr class="hover:bg-gray-50/60 dark:hover:bg-slate-700/30">
+          <td class="px-4 py-3 font-semibold">
+            {{ veh.manufacturer.name }} {{ veh.model }} @if (veh.details) {
+            <span class="text-gray-500 font-normal">({{ veh.details }})</span>
+            }
+          </td>
+          <td class="px-4 py-3 font-mono text-gray-700 dark:text-slate-300">
+            {{ veh.engine || '—' }}
+          </td>
+          <td class="px-4 py-3 text-center font-medium">
+            {{ veh.year_from }} - {{ veh.year_to || 'Atual' }}
+          </td>
+          <td class="px-4 py-3 text-gray-600 dark:text-slate-400">{{ veh.details || '-' }}</td>
+          <td class="px-4 py-3 text-center">
+            <button
+              type="button"
+              [disabled]="isReadOnly()"
+              (click)="onToggleVehicleStatus(veh.id)"
+              [class]="veh.status !== false ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
+              class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+            >
+              {{ veh.status !== false ? 'Ativo' : 'Inativo' }}
+            </button>
+          </td>
+          <td class="px-4 py-3 text-right">
+            @if (!isReadOnly()) {
+            <button
+              type="button"
+              (click)="onRemoveVehicleApplication(veh.id)"
+              class="text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40"
+            >
+              <app-icon name="trash-2" size="w-4 h-4" />
+            </button>
+            }
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="6" class="px-4 py-6 text-center text-gray-400">
+            Nenhuma aplicação veicular vinculada.
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (vehicleApplications().length > 0) {
+  <div class="mt-4 pt-3 border-t border-gray-100 dark:border-slate-700/60">
+    <app-pagination
+      [currentPage]="vehiclePage()"
+      [totalItems]="vehicleApplications().length"
+      (pageChange)="vehiclePage.set($event)"
+      (pageSizeChange)="vehiclePageSize.set($event)"
+    />
+  </div>
+  }
+</div>
+
+<!-- Quick Vehicle Application Registration Drawer -->
+<app-vehicle-application-form
+  [isOpen]="isNewVehicleDrawerOpen()"
+  mode="create"
+  (closeForm)="closeNewVehicleDrawer()"
+  (applicationSaved)="onNewVehicleSaved($event)"
+/>
+
+<!-- Drawer de Seleção e Vínculo de Aplicações Veiculares -->
+<app-drawer
+  [isOpen]="isVehicleLinkDrawerOpen()"
+  title="Vincular Aplicações Veiculares"
+  icon="car"
+  width="lg"
+  (closeDrawer)="closeVehicleLinkDrawer()"
+>
+  <div class="space-y-4 pb-2">
+    <div
+      class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-gray-100 dark:border-slate-700/80"
+    >
+      <div>
+        <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block">
+          Catálogo de Compatibilidade
+        </span>
+        <p class="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+          Selecione as configurações veiculares compatíveis com este produto.
+        </p>
+      </div>
+      <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="openNewVehicleDrawer()">
+        Nova Aplicação
+      </app-button>
+    </div>
+
+    <!-- Filtros no Drawer -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <input
+        type="text"
+        [value]="vehicleSearchQuery()"
+        (input)="vehicleSearchQuery.set($any($event.target).value); linkDrawerPage.set(1)"
+        placeholder="Buscar montadora, modelo, motor..."
+        class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B]"
+      />
+
+      <select
+        [value]="selectedVehicleBrandFilter()"
+        (change)="selectedVehicleBrandFilter.set($any($event.target).value); linkDrawerPage.set(1)"
+        class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B]"
+      >
+        <option value="all">Todas as Montadoras</option>
+        @for (b of vehicleBrandOptions(); track b.value) {
+        <option [value]="b.value">{{ b.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Lista de Aplicações para Vínculo -->
+    <div
+      class="overflow-hidden rounded-xl border border-gray-200 dark:border-slate-700/80 divide-y divide-gray-100 dark:divide-slate-700/60 max-h-[380px] overflow-y-auto"
+    >
+      @if (loadingVehicleApplications()) {
+      <div class="p-8 text-center text-xs text-gray-500">Carregando aplicações veiculares...</div>
+      } @else { @for (app of paginatedAvailableVehicleApps(); track app.id) {
+      <button
+        type="button"
+        (click)="toggleVehicleLink(app)"
+        (keydown.enter)="toggleVehicleLink(app)"
+        class="w-full p-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors"
+        [class.bg-emerald-50/50]="isVehicleAppLinked(app.id)"
+        [class.dark:bg-emerald-950/20]="isVehicleAppLinked(app.id)"
+      >
+        <div class="flex items-center gap-3 min-w-0">
+          <input
+            type="checkbox"
+            [checked]="isVehicleAppLinked(app.id)"
+            (click)="$event.stopPropagation(); toggleVehicleLink(app)"
+            class="rounded border-gray-300 text-[#4F8A6B] focus:ring-[#4F8A6B] cursor-pointer"
+          />
+          <div class="min-w-0">
+            <span class="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate">
+              {{ app.brand?.name || ((app.brand?.name || 'Montadora') + ' / ' + (app.model?.name ||
+              'Modelo') + ' / ' + (app.version?.name || 'Versão')) }}
+            </span>
+            <div
+              class="flex items-center gap-2 mt-0.5 text-[11px] text-gray-500 dark:text-slate-400"
+            >
+              <span class="font-mono">{{ app.engine?.name || 'Todas as motorizações' }}</span>
+              <span>•</span>
+              <span>{{ app.year_from || 'Início' }} — {{ app.year_to || 'Atual' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="shrink-0 ml-3">
+          @if (isVehicleAppLinked(app.id)) {
+          <span
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+          >
+            <app-icon name="check" size="w-3 h-3" />
+            Vinculado
+          </span>
+          } @else {
+          <span
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
+          >
+            Vincular
+          </span>
+          }
+        </div>
+      </button>
+      } @empty {
+      <div class="p-8 text-center text-xs text-gray-400">
+        Nenhuma aplicação encontrada no filtro.
+      </div>
+      } }
+    </div>
+
+    <!-- Paginação do Drawer -->
+    @if (filteredAvailableVehicleApps().length > linkDrawerPageSize()) {
+    <app-pagination
+      [currentPage]="linkDrawerPage()"
+      [totalItems]="filteredAvailableVehicleApps().length"
+      (pageChange)="linkDrawerPage.set($event)"
+      (pageSizeChange)="linkDrawerPageSize.set($event)"
+    />
+    }
+
+    <div class="flex items-center justify-end pt-3 border-t border-gray-100 dark:border-slate-700">
+      <app-button variant="primary" size="md" (btnClick)="closeVehicleLinkDrawer()">
+        Concluir Vínculos ({{ vehicleApplications().length }} vinculadas)
+      </app-button>
+    </div>
+  </div>
+</app-drawer>

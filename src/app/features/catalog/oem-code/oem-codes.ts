@@ -18,12 +18,17 @@ import { ButtonComponent } from '../../../design-system/button/button';
 import { SelectComponent } from '../../../design-system/select/select';
 import { ToastService } from '../../../core/services/toast';
 import { OemCodeService } from '../../../core/services/code-oem-service';
-import { ManufacturerService } from '../../../core/services/manufacture-service';
 import { ProductOemCodeResource } from '../../../core/models/oem-codes/oem-codes.model';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
 import { ManufacturerStore } from '../../../core/store/manufacturer-store/manufacturer-store';
 import { SelectOption } from '../../../core/models/design-system/select-option.model';
 import { oemCodesTableActions, oemCodesTableColumns } from '../../../utils/oem-code-table-collums';
+import { OemCodeFilterRequest } from '../../../core/models/oem-codes/oem-codes-filter-request.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
+import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 
 @Component({
   selector: 'app-oem-codes-page',
@@ -47,15 +52,17 @@ import { oemCodesTableActions, oemCodesTableColumns } from '../../../utils/oem-c
 export class OemCodesPageComponent implements OnInit {
   private toastService = inject(ToastService);
   private oemCodeService = inject(OemCodeService);
-  private manufacturerService = inject(ManufacturerService);
   private manufacturerStore = inject(ManufacturerStore);
+
+  private searchSubject = new Subject<string>();
 
   readonly loading = signal<boolean>(false);
   readonly searchQuery = signal<string>('');
   readonly selectedManufacturerId = signal<string>('');
-  readonly currentPage = signal<number>(1);
   readonly pageSize = signal<number>(10);
   readonly totalItems = signal<number>(0);
+  readonly currentPage = signal<number>(1);
+  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
   // Form Drawer State
   readonly isFormOpen = signal<boolean>(false);
@@ -94,17 +101,35 @@ export class OemCodesPageComponent implements OnInit {
     })),
   );
 
-  ngOnInit(): void {
-    this.loadOemCodes();
+  params = signal<OemCodeFilterRequest>({
+    search: null,
+    page: this.currentPage(),
+    per_page: this.pageSize(),
+    manufacturer_id: null,
+  });
+
+  constructor() {
+    this.searchSubject
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((query) => {
+        this.executeSearch(query);
+      });
   }
 
-  loadOemCodes(): void {
+  ngOnInit(): void {
+    this.loadOemCodes(this.params());
+  }
+
+  loadOemCodes(params: OemCodeFilterRequest): void {
     this.loading.set(true);
-    this.oemCodeService.getAll().subscribe({
+    this.oemCodeService.getAll(params).subscribe({
       next: (response) => {
         this.allOemCodes.set(response.data || []);
         if (response.meta) {
           this.totalItems.set(response.meta.total);
+          this.currentPage.set(response.meta.current_page);
+          this.pageSize.set(response.meta.per_page);
+          this.pagination.set(response.meta);
         } else {
           this.totalItems.set((response.data || []).length);
         }
@@ -120,53 +145,70 @@ export class OemCodesPageComponent implements OnInit {
     });
   }
 
-  readonly filteredOemCodes = computed(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const mfrId = this.selectedManufacturerId();
-
-    return this.allOemCodes().filter((o) => {
-      const code = (o.oem_code || '').toLowerCase();
-      const mfrName = (o.manufacturer?.name || '').toLowerCase();
-      const currentMfrId = o.manufacturer?.id || '';
-
-      const matchesQ = !q || code.includes(q) || mfrName.includes(q);
-      const matchesMfr = !mfrId || currentMfrId === mfrId;
-
-      return matchesQ && matchesMfr;
-    });
-  });
-
-  readonly paginatedOemCodes = computed(() => {
-    const all = this.filteredOemCodes();
-    const page = this.currentPage();
-    const size = this.pageSize();
-    const start = (page - 1) * size;
-    return all.slice(start, start + size);
-  });
-
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
+    this.searchSubject.next(query);
+  }
+
+  onSearchSubmit(): void {
+    this.executeSearch(this.searchQuery());
+  }
+
+  private executeSearch(query: string): void {
+    const trimmed = query.trim();
+    const searchVal = trimmed.length > 0 ? trimmed : null;
     this.currentPage.set(1);
+    this.params.update((params) => ({
+      ...params,
+      search: searchVal,
+      page: 1,
+    }));
+    this.loadOemCodes(this.params());
   }
 
   onManufacturerChange(mfrId: string): void {
     this.selectedManufacturerId.set(mfrId);
     this.currentPage.set(1);
+    this.params.update((params) => ({
+      ...params,
+      manufacturer_id: mfrId ? mfrId : null,
+      page: 1,
+    }));
+    this.loadOemCodes(this.params());
   }
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
+    this.params.update((params) => ({
+      ...params,
+      page,
+    }));
+    this.loadOemCodes(this.params());
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(1);
+    this.params.update((params) => ({
+      ...params,
+      per_page: size,
+      page: 1,
+    }));
+    this.loadOemCodes(this.params());
   }
 
   resetFilters(): void {
     this.searchQuery.set('');
     this.selectedManufacturerId.set('');
     this.currentPage.set(1);
+    this.params.set({
+      search: null,
+      manufacturer_id: null,
+      page: 1,
+      per_page: this.pageSize(),
+    });
+    this.loadOemCodes(this.params());
+    this.toastService.info('Filtros limpos', 'Todos os parâmetros de busca foram resetados.');
   }
 
   copyCode(item: ProductOemCodeResource): void {
@@ -211,7 +253,14 @@ export class OemCodesPageComponent implements OnInit {
   }
 
   onOemCodeSaved(): void {
-    this.loadOemCodes();
+    this.pageSize.set(10);
+    this.currentPage.set(1);
+    this.params.update((params) => ({
+      ...params,
+      page: this.currentPage(),
+      per_page: this.pageSize(),
+    }));
+    this.loadOemCodes(this.params());
   }
 
   confirmDelete(item: ProductOemCodeResource): void {
@@ -233,7 +282,7 @@ export class OemCodesPageComponent implements OnInit {
           'Código OEM Excluído',
           `O código OEM "${item.oem_code}" foi removido com sucesso.`,
         );
-        this.loadOemCodes();
+        this.loadOemCodes(this.params());
       },
       error: (error) => {
         this.isDeleting.set(false);

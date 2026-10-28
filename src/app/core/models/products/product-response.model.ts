@@ -46,7 +46,6 @@ export interface ProductSummaryResponse {
 }
 
 export interface ProductResponse extends ProductSummaryResponse {
-  // Index signature para compatibilidade com DataTableComponent<T extends Record<string, unknown>>
   [key: string]: unknown;
 
   unit: ProductUnitSale | null;

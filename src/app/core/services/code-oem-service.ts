@@ -11,6 +11,7 @@ import {
   ProductOemCodeResource,
 } from '../models/oem-codes/oem-codes.model';
 import { ManufacturerOptionsQuery } from '../models/manufactureres/mnufacturer-options-query.model';
+import { OemCodeFilterRequest } from '../models/oem-codes/oem-codes-filter-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -20,8 +21,11 @@ export class OemCodeService {
   private api = environment.apiUrl;
   private flag = 'product-oem-codes';
 
-  getAll() {
-    return this.http.get<PaginatedResponse<ProductOemCodeResource>>(`${this.api}/${this.flag}`);
+  getAll(filters: Partial<OemCodeFilterRequest>) {
+    const params = buildHttpParams(filters);
+    return this.http.get<PaginatedResponse<ProductOemCodeResource>>(`${this.api}/${this.flag}`, {
+      params,
+    });
   }
 
   getOptions(filters: GeneralOptionQuery) {

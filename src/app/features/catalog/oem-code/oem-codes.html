@@ -84,7 +84,8 @@
     <app-search-input
       [value]="searchQuery()"
       (valueChange)="onSearchChange($event)"
-      placeholder="Filtrar por código OEM ou montadora..."
+      (searchSubmit)="onSearchSubmit()"
+      placeholder="Filtrar por código OEM..."
     />
 
     <app-select
@@ -106,7 +107,7 @@
 <div class="w-full">
   <app-data-table
     [columns]="columns"
-    [data]="paginatedOemCodes()"
+    [data]="allOemCodes()"
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
@@ -114,9 +115,9 @@
   />
 
   <app-pagination
-    [currentPage]="currentPage()"
-    [totalItems]="filteredOemCodes().length"
+    [pagination]="pagination()"
     (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
   />
 </div>
 

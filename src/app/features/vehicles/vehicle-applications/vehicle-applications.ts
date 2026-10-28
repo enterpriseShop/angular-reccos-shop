@@ -24,15 +24,13 @@ import {
   vehicleApplicationTableActions,
   vehicleApplicationTableColumns,
 } from '../../../utils/vehicle-application-table-collums';
-import {
-  VehicleApplicationFilters,
-  VehicleApplicationResponse,
-} from '../../../core/models/vehicle-application/vehicle-application.model';
+import { VehicleApplicationResponse } from '../../../core/models/vehicle-application/vehicle-application.model';
 import { VehicleBrandStore } from '../../../core/store/vehicles/vehicle-brand/vehicle-brand-store';
 import { SelectOption } from '../../../core/models/design-system/select-option.model';
 import { GeneralStatusParams } from '../../../utils/general-simplify-status';
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
+import { VehicleApplicationFilters } from '../../../core/models/vehicle-application/vehicle-application-filter-request.models';
 
 @Component({
   selector: 'app-vehicle-applications-page',

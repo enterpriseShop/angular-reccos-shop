@@ -32,16 +32,6 @@ export interface VehicleApplicationRequest {
   active?: boolean;
 }
 
-export interface VehicleApplicationFilters {
-  page: number;
-  per_page: number;
-  year: string | null;
-  search: string | null;
-  active: number | null;
-  vehicle_model_id: string | null;
-  vehicle_brand_id: string | null;
-}
-
 export interface VehicleModelOption {
   id: string;
   label: string;
