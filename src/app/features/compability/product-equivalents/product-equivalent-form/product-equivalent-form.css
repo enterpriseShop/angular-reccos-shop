@@ -1,0 +1,4 @@
+/* Product Equivalent Form specific styles */
+:host {
+  display: block;
+}

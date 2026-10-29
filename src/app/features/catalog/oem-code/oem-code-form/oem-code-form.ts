@@ -222,58 +222,66 @@ export class OemCodeFormComponent {
 
     if (this.mode() === 'edit' && this.oemCode()?.id) {
       const id = this.oemCode()!.id;
-      this.oemCodeService.update(id, payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Código OEM Atualizado',
-            `O código "${response.data.oem_code}" foi atualizado com sucesso.`,
-          );
-          this.oemCodeSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao atualizar código OEM.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
-          }
-        },
-      });
+      this.updateOemCode(id, payload);
     } else {
-      this.oemCodeService.create(payload).subscribe({
-        next: (response) => {
-          this.isSubmitting.set(false);
-          this.toastService.success(
-            'Código OEM Criado',
-            `O código "${response.data.oem_code}" foi registrado com sucesso.`,
-          );
-          this.oemCodeSaved.emit(response.data);
-          this.close();
-        },
-        error: (err) => {
-          this.isSubmitting.set(false);
-          const msg = err.error?.message || err.message || 'Erro ao criar código OEM.';
-          this.toastService.error('Falha ao Salvar', msg);
-          if (err.error?.errors) {
-            const serverErrors: Record<string, string> = {};
-            for (const key of Object.keys(err.error.errors)) {
-              serverErrors[key] = Array.isArray(err.error.errors[key])
-                ? err.error.errors[key][0]
-                : String(err.error.errors[key]);
-            }
-            this.formErrors.set(serverErrors);
-          }
-        },
-      });
+      this.createOemCode(payload);
     }
+  }
+
+  createOemCode(payload: ProductOemCodeRequest) {
+    this.oemCodeService.create(payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Código OEM Criado',
+          `O código "${response.data.oem_code}" foi registrado com sucesso.`,
+        );
+        this.oemCodeSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao criar código OEM.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
+          }
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
+  }
+
+  updateOemCode(id: string, payload: ProductOemCodeRequest) {
+    this.oemCodeService.update(id, payload).subscribe({
+      next: (response) => {
+        this.isSubmitting.set(false);
+        this.toastService.success(
+          'Código OEM Atualizado',
+          `O código "${response.data.oem_code}" foi atualizado com sucesso.`,
+        );
+        this.oemCodeSaved.emit(response.data);
+        this.close();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || err.message || 'Erro ao atualizar código OEM.';
+        this.toastService.error('Falha ao Salvar', msg);
+        if (err.error?.errors) {
+          const serverErrors: Record<string, string> = {};
+          for (const key of Object.keys(err.error.errors)) {
+            serverErrors[key] = Array.isArray(err.error.errors[key])
+              ? err.error.errors[key][0]
+              : String(err.error.errors[key]);
+          }
+          this.formErrors.set(serverErrors);
+        }
+      },
+    });
   }
 
   close(): void {

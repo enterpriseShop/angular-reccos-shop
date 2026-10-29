@@ -27,7 +27,7 @@ export interface ProductCreateResponse {
 
 export interface ProductCreate {
   id: string;
-  status: ProductStatus;
+  status: StatusResponse;
   internal_code: string;
   name: string;
   slug: string;
@@ -44,7 +44,7 @@ export interface ProductCreate {
   commercial_status: CommercialStatus;
 }
 
-export interface ProductStatus {
+export interface StatusResponse {
   id: string;
   module: string;
   code: string;

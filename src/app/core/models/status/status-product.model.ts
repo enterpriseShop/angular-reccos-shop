@@ -1,4 +1,4 @@
-export interface ProductStatus {
+export interface StatusResponse {
   id: string;
   module: string;
   code: string;

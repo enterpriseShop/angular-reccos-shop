@@ -1,7 +1,7 @@
 import { ProductVehicleApplication } from '../vehicle-application/vehicle-application-product.model';
 import { ProductEquivalent } from '../equivalent/equivalent-products.model';
 import { EntityReference } from '../generals/entity-reference';
-import { ProductStatus } from '../status/status-product.model';
+import { StatusResponse } from '../status/status-product.model';
 import { ProductSupplier } from '../suppliers/suppliers-product.model';
 import { ProductPricing } from '../pricing/pricing-product-model';
 import { ProductInventory } from '../inventories/inventories-product.model';
@@ -14,7 +14,7 @@ import { OemCode } from '../oem-codes/oem-codes.model';
 export interface ProductSummaryResponse {
   id: string;
 
-  status: ProductStatus;
+  status: StatusResponse;
   category: EntityReference;
   manufacturer: EntityReference;
 

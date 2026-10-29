@@ -1,0 +1,121 @@
+<!-- Page Header -->
+<app-page-header
+  title="Códigos de Produto"
+  subtitle="Gestão de identificadores secundários, códigos de barras (EAN), catálogo e códigos de fabricantes associados aos produtos."
+  [breadcrumbs]="[
+    { label: 'Compatibilidade', route: '/compatibility/product-codes' },
+    { label: 'Códigos de Produto' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button
+      variant="secondary"
+      size="sm"
+      iconStart="settings-2"
+      (btnClick)="goToCodeTypes()"
+      (clicked)="goToCodeTypes()"
+    >
+      Tipos de Código
+    </app-button>
+
+    <app-button
+      variant="primary"
+      size="sm"
+      iconStart="plus"
+      (btnClick)="newProductCode()"
+      (clicked)="newProductCode()"
+    >
+      Novo Código de Produto
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Buscar por código, produto ou tipo..."
+    />
+
+    <app-select
+      [value]="selectedProductId()"
+      (valueChange)="onProductFilterChange($event)"
+      [options]="products()"
+      placeholder="Todos os Produtos"
+    />
+
+    <app-select
+      [value]="selectedTypeId()"
+      (valueChange)="onTypeFilterChange($event)"
+      [options]="typeFilterOptions()"
+      placeholder="Todos os Tipos de Código"
+    />
+
+    <app-select
+      [value]="selectedStatusFilter()"
+      (valueChange)="onStatusFilterChange($event)"
+      [options]="statusFilterOptions"
+      placeholder="Todos os Status"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button
+      variant="ghost"
+      size="sm"
+      iconStart="refresh-cw"
+      (btnClick)="resetFilters()"
+      (clicked)="resetFilters()"
+    >
+      Limpar
+    </app-button>
+
+    <app-button
+      variant="primary"
+      size="sm"
+      iconStart="plus"
+      (btnClick)="newProductCode()"
+      (clicked)="newProductCode()"
+    >
+      Novo Código
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="allProductCodes()"
+    [actions]="actions"
+    [loading]="loading()"
+    [roundedBottom]="false"
+    emptyTitle="Nenhum código de produto encontrado"
+    emptyDescription="Cadastre códigos alternativos como EAN ou referências de fornecedores para facilitar a busca e identificação de peças."
+  />
+
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
+</div>
+
+<!-- Product Code Form Drawer -->
+<app-product-code-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [productCode]="selectedProductCode()"
+  (closeForm)="closeForm()"
+  (productCodeSaved)="onProductCodeSaved()"
+/>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Código de Produto"
+  [message]="'Tem certeza de que deseja remover o código ' + (selectedForDelete()?.code || '') + '? Esta operação apenas desassocia o código alternativo e preserva o produto no catálogo.'"
+  confirmText="Excluir Código"
+  cancelText="Cancelar"
+  type="danger"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>

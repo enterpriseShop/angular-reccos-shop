@@ -294,6 +294,16 @@ export class OemCodesPageComponent implements OnInit {
     });
   }
 
+  onPaginationChange(meta: PaginationMeta): void {
+    this.pagination.set(meta);
+    this.params.update((params) => ({
+      ...params,
+      page: this.currentPage(),
+      per_page: this.pageSize(),
+    }));
+    this.loadOemCodes(this.params());
+  }
+
   onActionClick(event: { actionId: string; row: ProductOemCodeResource }): void {
     switch (event.actionId) {
       case 'copy':

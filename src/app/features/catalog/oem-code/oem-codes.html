@@ -114,11 +114,7 @@
     (actionClick)="onActionClick($event)"
   />
 
-  <app-pagination
-    [pagination]="pagination()"
-    (pageChange)="onPageChange($event)"
-    (pageSizeChange)="onPageSizeChange($event)"
-  />
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
 </div>
 
 <!-- Delete Confirmation Dialog -->

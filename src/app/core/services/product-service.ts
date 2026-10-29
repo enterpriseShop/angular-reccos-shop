@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { CreateProductPayload } from '../models/products/product-create.model';
 import { UpdateProductPayload } from '../models/products/product-request.model';
-import { ProductResponse, ProductSummaryResponse } from '../models/products/product-response.model';
+import { ProductResponse } from '../models/products/product-response.model';
 import { environment } from '../../../environments/environment';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { ProductFilterRequest } from '../models/products/product-filter-request.model';
