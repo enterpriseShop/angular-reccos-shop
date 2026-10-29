@@ -1,55 +1,51 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ApiResponse } from '../models/api-response';
 import {
-  ProductEquivalent,
   CreateProductEquivalentDto,
   UpdateProductEquivalentDto,
-  ProductEquivalentFilterParams
 } from '../models/product-equivalent';
+import { ProductEquivalentResponse } from '../models/compatibility/product-equivalent/product-equivalent-response';
+import { ProductEquivalentFilterParams } from '../models/compatibility/product-equivalent/product-equivalent-filters.model';
+import { buildHttpParams } from './build-http-params';
+import { PaginatedResponse } from '../models/pagination/pagination.model';
+import { getAllResponse } from '../models/generals/general-responses-list.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProductEquivalentService {
   private http = inject(HttpClient);
   private apiUrl = '/api/product-equivalents';
 
-  getAll(filters?: ProductEquivalentFilterParams): Observable<ApiResponse<ProductEquivalent[]>> {
-    let params = new HttpParams();
-    if (filters?.page) {
-      params = params.set('page', filters.page.toString());
-    }
-    if (filters?.per_page) {
-      params = params.set('per_page', filters.per_page.toString());
-    }
-    if (filters?.product_id) {
-      params = params.set('product_id', filters.product_id);
-    }
-    if (filters?.equivalent_product_id) {
-      params = params.set('equivalent_product_id', filters.equivalent_product_id);
-    }
-    if (filters?.search) {
-      params = params.set('search', filters.search.trim());
-    }
-
-    return this.http.get<ApiResponse<ProductEquivalent[]>>(this.apiUrl, { params });
+  getAll(
+    filters: ProductEquivalentFilterParams,
+  ): Observable<PaginatedResponse<ProductEquivalentResponse>> {
+    const params = buildHttpParams(filters);
+    return this.http.get<PaginatedResponse<ProductEquivalentResponse>>(this.apiUrl, { params });
   }
 
-  getById(id: string): Observable<ApiResponse<ProductEquivalent>> {
-    return this.http.get<ApiResponse<ProductEquivalent>>(`${this.apiUrl}/${id}`);
+  getById(id: string): Observable<getAllResponse<ProductEquivalentResponse>> {
+    return this.http.get<getAllResponse<ProductEquivalentResponse>>(`${this.apiUrl}/${id}`);
   }
 
-  create(payload: CreateProductEquivalentDto): Observable<ApiResponse<ProductEquivalent>> {
-    return this.http.post<ApiResponse<ProductEquivalent>>(this.apiUrl, payload);
+  create(
+    payload: CreateProductEquivalentDto,
+  ): Observable<getAllResponse<ProductEquivalentResponse>> {
+    return this.http.post<getAllResponse<ProductEquivalentResponse>>(this.apiUrl, payload);
   }
 
-  update(id: string, payload: UpdateProductEquivalentDto): Observable<ApiResponse<ProductEquivalent>> {
-    return this.http.put<ApiResponse<ProductEquivalent>>(`${this.apiUrl}/${id}`, payload);
+  update(
+    id: string,
+    payload: UpdateProductEquivalentDto,
+  ): Observable<getAllResponse<ProductEquivalentResponse>> {
+    return this.http.put<getAllResponse<ProductEquivalentResponse>>(
+      `${this.apiUrl}/${id}`,
+      payload,
+    );
   }
 
-  delete(id: string): Observable<ApiResponse<null>> {
-    return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${id}`);
+  delete(id: string): Observable<getAllResponse<null>> {
+    return this.http.delete<getAllResponse<null>>(`${this.apiUrl}/${id}`);
   }
 }

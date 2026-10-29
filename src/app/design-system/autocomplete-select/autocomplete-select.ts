@@ -33,12 +33,12 @@ export class AutocompleteSelectComponent implements OnDestroy {
   readonly required = input<boolean>(false);
   readonly error = input<string | undefined>(undefined);
   readonly helperText = input<string | undefined>(undefined);
-  // readonly loading = input<boolean>(false);
+  readonly loading = input<boolean>(false);
   readonly remoteSearch = input<boolean>(false);
   readonly emptyText = input<string>('Nenhum resultado encontrado.');
   readonly selectId = input<string>('autocomplete-' + Math.random().toString(36).substring(2, 7));
 
-  readonly loading = signal<boolean>(false);
+  // readonly loading = signal<boolean>(false);
 
   readonly valueChange = output<string>();
   readonly optionSelect = output<AutocompleteOption>();

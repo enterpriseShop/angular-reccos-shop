@@ -8,12 +8,7 @@
   ]"
 >
   <div actions class="flex items-center gap-2">
-    <app-button
-      variant="primary"
-      size="sm"
-      iconStart="plus"
-      (btnClick)="newEquivalent()"
-    >
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newEquivalent()">
       Novo Relacionamento
     </app-button>
   </div>
@@ -21,38 +16,62 @@
 
 <!-- Quick KPI Summary Strip -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-  <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center">
+      <div
+        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
+      >
         <app-icon name="git-compare" size="w-4 h-4" />
       </div>
       <div>
-        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">Total de Equivalências</span>
-        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">{{ totalEquivalentsCount() }} relações</span>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Equivalências
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ totalEquivalentsCount() }} relações
+        </span>
       </div>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
+      >
         <app-icon name="box" size="w-4 h-4" />
       </div>
       <div>
-        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">Peças Origem Mapeadas</span>
-        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">{{ uniqueOriginProductsCount() }} produtos</span>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Peças Origem Mapeadas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ uniqueOriginProductsCount() }} produtos
+        </span>
       </div>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
+      >
         <app-icon name="repeat" size="w-4 h-4" />
       </div>
       <div>
-        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">Peças Alternativas</span>
-        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">{{ uniqueTargetProductsCount() }} alternativas</span>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Peças Alternativas
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100">
+          {{ uniqueTargetProductsCount() }} alternativas
+        </span>
       </div>
     </div>
   </div>
@@ -70,25 +89,20 @@
     <app-select
       [value]="selectedOriginId()"
       (valueChange)="onOriginFilterChange($event)"
-      [options]="productFilterOptions()"
+      [options]="productOptions()"
       placeholder="Produto de Origem"
     />
 
     <app-select
       [value]="selectedTargetId()"
       (valueChange)="onTargetFilterChange($event)"
-      [options]="productFilterOptions()"
+      [options]="productOptions()"
       placeholder="Produto Equivalente"
     />
   </div>
 
   <div end class="flex items-center gap-2">
-    <app-button
-      variant="ghost"
-      size="sm"
-      iconStart="refresh-cw"
-      (btnClick)="resetFilters()"
-    >
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
       Limpar
     </app-button>
   </div>
@@ -98,7 +112,7 @@
 <div class="w-full">
   <app-data-table
     [columns]="columns"
-    [data]="paginatedEquivalents()"
+    [data]="allEquivalents()"
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
@@ -106,14 +120,7 @@
     emptyDescription="Vincule produtos que podem atuar como peças intercambiáveis (ex: Filtro Tecfil PSL560 equivalente ao Filtro Mann W712/53)."
   />
 
-  <app-pagination
-    [currentPage]="currentPage()"
-    [pageSize]="pageSize()"
-    [totalItems]="filteredEquivalents().length"
-    [pageSizeOptions]="[5, 10, 25, 50]"
-    (pageChange)="onPageChange($event)"
-    (pageSizeChange)="onPageSizeChange($event)"
-  />
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
 </div>
 
 <!-- Product Equivalent Form Drawer -->

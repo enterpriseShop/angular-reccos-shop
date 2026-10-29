@@ -57,6 +57,7 @@ export class ProductCodesPageComponent implements OnInit {
   readonly selectedProductId = signal<string>('');
   readonly selectedTypeId = signal<string>('');
   readonly selectedStatusFilter = signal<string>('');
+
   readonly page = signal<number>(1);
   readonly perPage = signal<number>(10);
   readonly totalItems = signal<number>(0);
@@ -76,11 +77,11 @@ export class ProductCodesPageComponent implements OnInit {
   readonly columns: TableColumn<ProductCodeResponse>[] = productCodesTableColumns;
   readonly actions: TableAction<ProductCodeResponse>[] = productCodesTableActions;
 
-  products = signal<SelectOption[]>([]);
-  typeFilterOptions = signal<SelectOption[]>([]);
-  allProductCodes = signal<ProductCodeResponse[]>([]);
-
   readonly pagination = signal<PaginationMeta>(initialValuesPagination);
+
+  typeFilterOptions = signal<SelectOption[]>([]);
+  productOptions = signal<SelectOption[]>([]);
+  allProductCodes = signal<ProductCodeResponse[]>([]);
 
   params: ProductCodeFiltersRequest = {
     code: null,
@@ -89,8 +90,8 @@ export class ProductCodesPageComponent implements OnInit {
     product_id: null,
     status_code: null,
     code_type_id: null,
-    page: this.page(),
-    per_page: this.perPage(),
+    page: 1,
+    per_page: 10,
   };
 
   productParams: ProductFilterRequest = {
@@ -109,19 +110,23 @@ export class ProductCodesPageComponent implements OnInit {
   getProducts(params: ProductFilterRequest): void {
     this.productService.getAll(params).subscribe({
       next: (res) => {
-        if (res && res.data) {
-          const opts = [
-            { label: 'Todos os Produtos', value: '', sublabel: '', module: '', disabled: false },
-            ...res.data.map((p) => ({
-              label: `${p.name}`,
-              value: p.id,
-              sublabel: p.internal_code || 'S/C',
-              module: '',
-              disabled: false,
-            })),
-          ];
-          this.products.set(opts);
-        }
+        const opts: SelectOption[] = [
+          {
+            label: 'Todos os Produtos',
+            value: '',
+            sublabel: '',
+            disabled: false,
+            module: '',
+          },
+          ...res.data.map((p) => ({
+            value: p.id,
+            label: p.name,
+            sublabel: p.description ?? '',
+            disabled: false,
+            module: 'PRODUCT',
+          })),
+        ];
+        this.productOptions.set(opts);
       },
     });
   }
@@ -144,48 +149,28 @@ export class ProductCodesPageComponent implements OnInit {
     });
   }
 
-  normalizeParams() {
-    this.params = {
-      ...this.params,
-      product_id: this.selectedProductId(),
-      code_type_id: this.selectedTypeId(),
-      status_code: this.selectedStatusFilter(),
-      page: this.page(),
-      per_page: this.perPage(),
-    };
-    this.loadProductCodes(this.params);
-  }
-
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
     this.page.set(1);
-    setTimeout(() => {
-      this.normalizeParams();
-    }, 200);
+    this.loadProductCodes(this.params);
   }
 
   onProductFilterChange(productId: string): void {
     this.selectedProductId.set(productId);
     this.page.set(1);
-    setTimeout(() => {
-      this.normalizeParams();
-    }, 200);
+    this.loadProductCodes(this.params);
   }
 
   onTypeFilterChange(typeId: string): void {
     this.selectedTypeId.set(typeId);
     this.page.set(1);
-    setTimeout(() => {
-      this.normalizeParams();
-    }, 200);
+    this.loadProductCodes(this.params);
   }
 
   onStatusFilterChange(status: string): void {
     this.selectedStatusFilter.set(status);
     this.page.set(1);
-    setTimeout(() => {
-      this.normalizeParams();
-    }, 200);
+    this.loadProductCodes(this.params);
   }
 
   onPageChange(page: number): void {
@@ -195,21 +180,15 @@ export class ProductCodesPageComponent implements OnInit {
   onPageSizeChange(size: number): void {
     this.perPage.set(size);
     this.page.set(1);
-    setTimeout(() => {
-      this.normalizeParams();
-    }, 200);
   }
 
   resetFilters(): void {
     this.searchQuery.set('');
-    this.selectedTypeId.set('');
     this.selectedProductId.set('');
+    this.selectedTypeId.set('');
     this.selectedStatusFilter.set('');
     this.page.set(1);
-    this.perPage.set(10);
-    setTimeout(() => {
-      this.normalizeParams();
-    }, 200);
+    this.loadProductCodes(this.params);
   }
 
   copyCode(item: ProductCodeResponse): void {

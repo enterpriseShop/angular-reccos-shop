@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, input, output, signal, computed } f
 import { ButtonComponent } from '../../../../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../../../../design-system/icon/app-icon';
 import { PaginationComponent } from '../../../../../../../design-system/pagination/pagination';
-import { ProductEquivalent } from '../../../../../../../core/models/equivalent/equivalent-products.model';
+import { ProductEquivalentResponse } from '../../../../../../../core/models/compatibility/product-equivalent/product-equivalent-response';
 
 @Component({
   selector: 'app-product-equivalents',
@@ -13,7 +13,7 @@ import { ProductEquivalent } from '../../../../../../../core/models/equivalent/e
 })
 export class ProductEquivalentsComponent {
   // Inputs
-  readonly equivalentProducts = input<ProductEquivalent[]>([]);
+  readonly equivalentProducts = input<ProductEquivalentResponse[]>([]);
   readonly isReadOnly = input<boolean>(false);
 
   // Outputs

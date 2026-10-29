@@ -42,7 +42,7 @@
     <app-select
       [value]="selectedProductId()"
       (valueChange)="onProductFilterChange($event)"
-      [options]="products()"
+      [options]="productOptions()"
       placeholder="Todos os Produtos"
     />
 
@@ -103,7 +103,6 @@
 <app-product-code-form
   [isOpen]="isFormOpen()"
   [mode]="formMode()"
-  [productCode]="selectedProductCode()"
   (closeForm)="closeForm()"
   (productCodeSaved)="onProductCodeSaved()"
 />

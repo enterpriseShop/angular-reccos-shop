@@ -9,8 +9,8 @@ import {
   ProductOemCodeResource,
 } from '../../../../../core/models/oem-codes/oem-codes.model';
 import { ProductAdditionalCodeSummary } from '../../../../../core/models/additional-codes/additional-codes-product.model';
-import { ProductEquivalent } from '../../../../../core/models/equivalent/equivalent-products.model';
 import { ProductVehicleApplication } from '../../../../../core/models/vehicle-application/vehicle-application-product.model';
+import { ProductEquivalentResponse } from '../../../../../core/models/compatibility/product-equivalent/product-equivalent-response';
 
 @Component({
   selector: 'app-product-compatibility-tab',
@@ -43,7 +43,7 @@ export class ProductCompatibilityTabComponent {
   readonly toggleProductCodeStatus = output<string>();
 
   // Equivalent Products Inputs & Outputs
-  readonly equivalentProducts = input<ProductEquivalent[]>([]);
+  readonly equivalentProducts = input<ProductEquivalentResponse[]>([]);
   readonly addEquivalent = output<void>();
   readonly removeEquivalent = output<string>();
   readonly toggleEquivalentStatus = output<string>();

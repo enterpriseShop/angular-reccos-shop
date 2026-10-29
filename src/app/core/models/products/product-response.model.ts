@@ -1,5 +1,4 @@
 import { ProductVehicleApplication } from '../vehicle-application/vehicle-application-product.model';
-import { ProductEquivalent } from '../equivalent/equivalent-products.model';
 import { EntityReference } from '../generals/entity-reference';
 import { StatusResponse } from '../status/status-product.model';
 import { ProductSupplier } from '../suppliers/suppliers-product.model';
@@ -10,6 +9,7 @@ import { ProductPartOrigin } from '../part-origin/part-origin-product.model';
 import { ProductAdditionalCodeSummary } from '../additional-codes/additional-codes-product.model';
 import { ProductTag } from '../tags/tags-product.model';
 import { OemCode } from '../oem-codes/oem-codes.model';
+import { ProductEquivalentResponse } from '../compatibility/product-equivalent/product-equivalent-response';
 
 export interface ProductSummaryResponse {
   id: string;
@@ -57,6 +57,6 @@ export interface ProductResponse extends ProductSummaryResponse {
   tags: ProductTag[];
   oem_codes: OemCode[];
   suppliers: ProductSupplier[];
-  equivalents: ProductEquivalent[];
+  equivalents: ProductEquivalentResponse[];
   applications: ProductVehicleApplication[];
 }

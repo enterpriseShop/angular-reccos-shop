@@ -45,7 +45,7 @@
             {{ eq.observation || 'Sem observações' }}
           </td>
           <td class="px-4 py-3 text-center">
-            <button
+            <!-- <button
               type="button"
               [disabled]="isReadOnly()"
               (click)="onToggleEquivalentStatus(eq.id)"
@@ -53,6 +53,16 @@
               class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
             >
               {{ eq.status !== false ? 'Ativo' : 'Inativo' }}
+            </button> -->
+            <button
+              type="button"
+              [disabled]="isReadOnly()"
+              (click)="onToggleEquivalentStatus(eq.id)"
+              [class]="'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'"
+              class="px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors border border-transparent hover:border-current disabled:cursor-not-allowed"
+            >
+              <!-- {{ eq.status !== false ? 'Ativo' : 'Inativo' }} -->
+              Ativo
             </button>
           </td>
           <td class="px-4 py-3 text-right">
