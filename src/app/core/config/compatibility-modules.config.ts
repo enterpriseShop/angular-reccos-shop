@@ -1,4 +1,4 @@
-import { FormTab } from '../../features/catalog/models/product-workspace.model';
+import { FormTab } from '../models/products/product-workspace.model';
 import { SubMenuItem } from '../models/menu-item';
 
 export interface CompatibilityModuleConfig {

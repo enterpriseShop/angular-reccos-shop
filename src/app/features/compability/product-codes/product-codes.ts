@@ -139,12 +139,8 @@ export class ProductCodesPageComponent implements OnInit {
         this.totalItems.set(response.meta.total);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro ao buscar códigos',
-          error.message || 'Falha ao carregar lista de códigos de produtos.',
-        );
       },
     });
   }
@@ -206,6 +202,20 @@ export class ProductCodesPageComponent implements OnInit {
         });
     } else {
       this.toastService.info('Código', item.code);
+    }
+  }
+
+  onActionClick(event: { actionId: string; row: ProductCodeResponse }): void {
+    switch (event.actionId) {
+      case 'view':
+        this.viewProductCode(event.row);
+        break;
+      case 'edit':
+        this.editProductCode(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
     }
   }
 

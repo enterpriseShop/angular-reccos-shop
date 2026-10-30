@@ -154,12 +154,8 @@ export class ProductEquivalentsPageComponent implements OnInit {
         this.totalItems.set(response.meta.total);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro ao buscar equivalências',
-          error.message || 'Falha ao carregar lista de produtos equivalentes.',
-        );
       },
     });
   }
@@ -191,6 +187,20 @@ export class ProductEquivalentsPageComponent implements OnInit {
     return [];
     // });
   });
+
+  onActionClick(event: { actionId: string; row: ProductEquivalentResponse }): void {
+    switch (event.actionId) {
+      case 'view':
+        this.viewEquivalent(event.row);
+        break;
+      case 'edit':
+        this.editEquivalent(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
+  }
 
   normalizeParams(): void {
     this.params = {

@@ -92,15 +92,17 @@ export class ProductCodeFormComponent {
   };
 
   constructor() {
-    this.loadCodeTypes(this.params);
-    this.getProducts(this.productParams);
-
     effect(() => {
       const open = this.isOpen();
       const item = this.ProductCodeResponse();
       const currentMode = this.mode();
 
       if (open) {
+        if (this.productOptions().length === 0) {
+          this.loadCodeTypes(this.params);
+          this.getProducts(this.productParams);
+        }
+
         this.formErrors.set({});
 
         if ((currentMode === 'edit' || currentMode === 'view') && item) {

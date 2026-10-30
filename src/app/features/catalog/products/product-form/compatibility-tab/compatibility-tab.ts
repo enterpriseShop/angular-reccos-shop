@@ -3,7 +3,7 @@ import { ProductOemComponent } from './components/product-oem/product-oem';
 import { ProductCodesComponent } from './components/product-codes/product-codes';
 import { ProductEquivalentsComponent } from './components/product-equivalents/product-equivalents';
 import { ProductVehicleApplicationsComponent } from './components/product-vehicle-applications/product-vehicle-applications';
-import { FormTab } from '../../../models/product-workspace.model';
+import { FormTab } from '../../../../../core/models/products/product-workspace.model';
 import {
   OemCode,
   ProductOemCodeResource,

@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, input, output, signal } f
 import { ButtonComponent } from '../../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
 import { PaginationComponent } from '../../../../../design-system/pagination/pagination';
-import { FormTab } from '../../../models/product-workspace.model';
+import { FormTab } from '../../../../../core/models/products/product-workspace.model';
 import { ProductSupplier } from '../../../../../core/models/suppliers/suppliers-product.model';
 import { ProductNote } from '../../../../../core/models/notes/notes.model';
 

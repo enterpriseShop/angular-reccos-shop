@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../../../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../../../../design-system/icon/app-icon';
 import { PaginationComponent } from '../../../../../../../design-system/pagination/pagination';
-import { OemCodeFormComponent } from '../../../../../oem-code/oem-code-form/oem-code-form';
+import { OemCodeFormComponent } from '../../../../../../compability/oem-code/oem-code-form/oem-code-form';
 import {
   OemCode,
   ProductOemCodeResource,

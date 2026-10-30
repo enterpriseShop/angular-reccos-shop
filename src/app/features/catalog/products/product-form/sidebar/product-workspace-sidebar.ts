@@ -9,7 +9,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
-import { FormTab } from '../../../models/product-workspace.model';
+import { FormTab } from '../../../../../core/models/products/product-workspace.model';
 
 @Component({
   selector: 'app-product-workspace-sidebar',

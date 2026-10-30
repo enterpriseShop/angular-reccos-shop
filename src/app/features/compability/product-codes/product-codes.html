@@ -92,6 +92,7 @@
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
+    (actionClick)="onActionClick($event)"
     emptyTitle="Nenhum código de produto encontrado"
     emptyDescription="Cadastre códigos alternativos como EAN ou referências de fornecedores para facilitar a busca e identificação de peças."
   />

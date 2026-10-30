@@ -64,7 +64,21 @@ export const routes: Routes = [
   {
     path: 'compatibility/oem-codes',
     loadComponent: () =>
-      import('./features/catalog/oem-code/oem-codes').then((m) => m.OemCodesPageComponent),
+      import('./features/compability/oem-code/oem-codes').then((m) => m.OemCodesPageComponent),
+  },
+  {
+    path: 'compatibility/product-codes',
+    loadComponent: () =>
+      import('./features/compability/product-codes/product-codes').then(
+        (m) => m.ProductCodesPageComponent,
+      ),
+  },
+  {
+    path: 'compatibility/equivalent-products',
+    loadComponent: () =>
+      import('./features/compability/product-equivalents/product-equivalents').then(
+        (m) => m.ProductEquivalentsPageComponent,
+      ),
   },
   {
     path: 'compatibility/:sub',

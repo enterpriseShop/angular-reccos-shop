@@ -34,7 +34,7 @@ import {
   FormTab,
   MediaImageItem,
   ProductWorkspaceMode,
-} from '../../models/product-workspace.model';
+} from '../../../../core/models/products/product-workspace.model';
 import { initialProductPayload } from '../../../../core/utils/product-initial-payload';
 import { OemCodeService } from '../../../../core/services/code-oem-service';
 import { OemCode } from '../../../../core/models/oem-codes/oem-codes.model';

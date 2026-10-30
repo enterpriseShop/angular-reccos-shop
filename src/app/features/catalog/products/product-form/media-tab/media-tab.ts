@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
-import { MediaImageItem } from '../../../models/product-workspace.model';
+import { MediaImageItem } from '../../../../../core/models/products/product-workspace.model';
 
 @Component({
   selector: 'app-product-media-tab',

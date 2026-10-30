@@ -116,6 +116,7 @@
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
+    (actionClick)="onActionClick($event)"
     emptyTitle="Nenhuma equivalência cadastrada"
     emptyDescription="Vincule produtos que podem atuar como peças intercambiáveis (ex: Filtro Tecfil PSL560 equivalente ao Filtro Mann W712/53)."
   />
