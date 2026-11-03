@@ -56,7 +56,7 @@
     <app-select
       [value]="selectedStatusFilter()"
       (valueChange)="onStatusFilterChange($event)"
-      [options]="statusFilterOptions"
+      [options]="statusFilterOptions()"
       placeholder="Todos os Status"
     />
   </div>

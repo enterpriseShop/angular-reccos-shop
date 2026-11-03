@@ -9,6 +9,7 @@ export type FormTab =
   | 'codigos'
   | 'fornecimento'
   | 'equivalentes'
+  | 'tipos-codigo'
   | 'compatibilidade'
   | 'tags'
   | 'observacoes'

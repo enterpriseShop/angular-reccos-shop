@@ -1,4 +1,11 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  signal,
+  inject,
+  OnInit,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
@@ -25,6 +32,7 @@ import { ProductCodeTypeService } from '../../../core/services/product-code-tyes
 import { ProductFilterRequest } from '../../../core/models/products/product-filter-request.model';
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
+import { StatusStore } from '../../../core/store/status-store/status-store';
 
 @Component({
   selector: 'app-product-codes-page',
@@ -47,6 +55,7 @@ import { initialValuesPagination } from '../../../design-system/pagination/utils
 })
 export class ProductCodesPageComponent implements OnInit {
   private router = inject(Router);
+  private statusStore = inject(StatusStore);
   private toastService = inject(ToastService);
   private productService = inject(ProductService);
   private productCodeService = inject(ProductCodeService);
@@ -72,7 +81,18 @@ export class ProductCodesPageComponent implements OnInit {
   readonly selectedForDelete = signal<ProductCodeResponse | null>(null);
   readonly isDeleting = signal<boolean>(false);
 
-  readonly statusFilterOptions: SelectOption[] = [];
+  readonly statusFilterOptions = computed<SelectOption[]>(() => {
+    const result = this.statusStore
+      .optionList()
+      .filter((m) => m.module === 'PRODUCT_CODE')
+      .map((m) => ({
+        ...m,
+        disabled: false,
+        module: '',
+      }));
+
+    return result;
+  });
 
   readonly columns: TableColumn<ProductCodeResponse>[] = productCodesTableColumns;
   readonly actions: TableAction<ProductCodeResponse>[] = productCodesTableActions;

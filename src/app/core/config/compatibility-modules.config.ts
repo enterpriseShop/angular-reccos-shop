@@ -50,6 +50,17 @@ export const COMPATIBILITY_MODULES: CompatibilityModuleConfig[] = [
     countKey: 'equivalentProductsCount',
   },
   {
+    menuId: 'code-types',
+    workspaceTab: 'tipos-codigo',
+    label: 'Tipos de Código',
+    route: '/compatibility/code-types',
+    icon: 'copy',
+    headerIcon: 'copy',
+    headerIconClass: 'text-purple-500',
+    description: 'Tipos de códigos de produtos cadastrados',
+    countKey: 'productCodesCount',
+  },
+  {
     menuId: 'applications',
     workspaceTab: 'compatibilidade',
     label: 'Aplicações',

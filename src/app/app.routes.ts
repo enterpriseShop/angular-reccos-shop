@@ -81,6 +81,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'compatibility/code-types',
+    loadComponent: () =>
+      import('./features/compability/code-types/code-types').then((m) => m.CodeTypesPageComponent),
+  },
+  {
     path: 'compatibility/:sub',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },

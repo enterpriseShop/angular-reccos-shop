@@ -19,6 +19,7 @@ import { ToastService } from '../../../../core/services/toast';
 import { CreateProductCodeDto, UpdateProductCodeDto } from '../../../../core/models/product-code';
 import { ProductCodeTypeService } from '../../../../core/services/product-code-tyes';
 import { ProductService } from '../../../../core/services/product-service';
+import { StatusStore } from '../../../../core/store/status-store/status-store';
 import { ProductCodeResponse } from '../../../../core/models/compatibility/product-codes/product-codes-response.model';
 import { AutocompleteOption } from '../../../../core/models/design-system/auto-complete.model';
 import { ProductCodeTypeFiltersRequest } from '../../../../core/models/compatibility/product-code-type/product-code-types-filters.model';
@@ -46,6 +47,7 @@ export class ProductCodeFormComponent {
   private productService = inject(ProductService);
   private productCodeService = inject(ProductCodeService);
   private productCodeTypeService = inject(ProductCodeTypeService);
+  private statusStore = inject(StatusStore);
 
   readonly isOpen = input<boolean>(false);
   readonly mode = input<'create' | 'edit' | 'view'>('create');
@@ -62,7 +64,18 @@ export class ProductCodeFormComponent {
   readonly typeOptions = signal<AutocompleteOption[]>([]);
   readonly productOptions = signal<AutocompleteOption[]>([]);
 
-  readonly statusOptions: SelectOption[] = [];
+  readonly statusOptions = computed<SelectOption[]>(() => {
+    const result = this.statusStore
+      .optionList()
+      .filter((m) => m.module === 'PRODUCT_CODE')
+      .map((m) => ({
+        ...m,
+        disabled: false,
+        module: '',
+      }));
+
+    return result;
+  });
 
   // Form Field Signals
   readonly productId = signal<string>('');
@@ -81,6 +94,8 @@ export class ProductCodeFormComponent {
     active: null,
     page: this.page(),
     per_page: this.perPage(),
+    status_id: null,
+    status_code: null,
   };
 
   productParams: ProductFilterRequest = {

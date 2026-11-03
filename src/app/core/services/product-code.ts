@@ -15,7 +15,7 @@ import { environment } from '../../../environments/environment';
 export class ProductCodeService {
   private http = inject(HttpClient);
   private api = environment.apiUrl;
-  private flag = 'product-equivalents';
+  private flag = 'product-codes';
 
   getAll(filters: ProductCodeFiltersRequest): Observable<PaginatedResponse<ProductCodeResponse>> {
     const params = buildHttpParams(filters);

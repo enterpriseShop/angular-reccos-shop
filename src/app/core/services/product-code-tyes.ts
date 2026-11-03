@@ -1,13 +1,13 @@
 import { Observable } from 'rxjs';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
-import { CreateProductCodeTypeDto, UpdateProductCodeTypeDto } from '../models/product-code';
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ProductCodeTypeResponse } from '../models/compatibility/product-code-type/product-code-type-response.model';
 import { PaginatedResponse } from '../models/pagination/pagination.model';
 import { buildHttpParams } from './build-http-params';
 import { ProductCodeTypeFiltersRequest } from '../models/compatibility/product-code-type/product-code-types-filters.model';
 import { environment } from '../../../environments/environment';
+import { ProductCodeTypeRequest } from '../models/compatibility/product-code-type/product-code-type-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +15,7 @@ import { environment } from '../../../environments/environment';
 export class ProductCodeTypeService {
   private http = inject(HttpClient);
   private api = environment.apiUrl;
-  private flag = 'product-equivalents';
+  private flag = 'product-code-types';
 
   getAll(
     filters: ProductCodeTypeFiltersRequest,
@@ -23,6 +23,10 @@ export class ProductCodeTypeService {
     const params = buildHttpParams(filters);
     return this.http.get<PaginatedResponse<ProductCodeTypeResponse>>(`${this.api}/${this.flag}`, {
       params,
+      headers: new HttpHeaders({
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      }),
     });
   }
 
@@ -36,7 +40,7 @@ export class ProductCodeTypeService {
     return this.http.get<getAllResponse<ProductCodeTypeResponse>>(`${this.api}/${this.flag}/${id}`);
   }
 
-  create(payload: CreateProductCodeTypeDto): Observable<getAllResponse<ProductCodeTypeResponse>> {
+  create(payload: ProductCodeTypeRequest): Observable<getAllResponse<ProductCodeTypeResponse>> {
     return this.http.post<getAllResponse<ProductCodeTypeResponse>>(
       `${this.api}/${this.flag}`,
       payload,
@@ -45,7 +49,7 @@ export class ProductCodeTypeService {
 
   update(
     id: string,
-    payload: UpdateProductCodeTypeDto,
+    payload: ProductCodeTypeRequest,
   ): Observable<getAllResponse<ProductCodeTypeResponse>> {
     return this.http.put<getAllResponse<ProductCodeTypeResponse>>(
       `${this.api}/${this.flag}/${id}`,

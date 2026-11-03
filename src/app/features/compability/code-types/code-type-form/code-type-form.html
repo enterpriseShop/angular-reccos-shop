@@ -1,0 +1,97 @@
+<app-drawer [isOpen]="isOpen()" [title]="formTitle()" (closeDrawer)="close()">
+  <div class="space-y-5 p-1">
+    <!-- Readonly View Banner -->
+    @if (isReadOnly()) {
+    <div
+      class="p-3.5 bg-blue-50/70 dark:bg-[#5A8DEE]/10 rounded-xl border border-blue-100 dark:border-[#5A8DEE]/20 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5"
+    >
+      <app-icon name="info" size="w-4 h-4 text-[#5A8DEE] shrink-0" />
+      <div>
+        <span class="font-semibold block mb-0.5">Modo de Visualização</span>
+        Tipo de código cadastrado no sistema.
+      </div>
+    </div>
+    }
+
+    <!-- Name Field -->
+    <div class="space-y-1.5">
+      <label
+        for="code-type-name"
+        class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+      >
+        Nome do Tipo de Código *
+      </label>
+      <input
+        id="code-type-name"
+        type="text"
+        [value]="name()"
+        [disabled]="isReadOnly()"
+        (input)="onNameChange($event)"
+        placeholder="Ex: EAN, Código do Fabricante, Código de Catálogo"
+        class="w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#4F8A6B] focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+        [class.border-red-500]="formErrors()['name']"
+        maxlength="100"
+      />
+      @if (formErrors()['name']) {
+      <p class="text-xs text-red-500 font-medium mt-1">{{ formErrors()['name'] }}</p>
+      }
+    </div>
+
+    <!-- Description Field -->
+    <div class="space-y-1.5">
+      <label
+        for="code-type-desc"
+        class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+      >
+        Descrição Técnica
+      </label>
+      <textarea
+        id="code-type-desc"
+        rows="3"
+        [value]="description()"
+        [disabled]="isReadOnly()"
+        (input)="onDescriptionChange($event)"
+        placeholder="Explicação da finalidade do tipo de código..."
+        class="w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#4F8A6B] focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed transition-all resize-none"
+        maxlength="255"
+      ></textarea>
+      <p class="text-xs text-slate-500 dark:text-slate-400">
+        Opcional. Ajuda os operadores a compreender quando utilizar este tipo.
+      </p>
+    </div>
+
+    <!-- Status Selection Field -->
+    <div class="space-y-1.5">
+      <app-select
+        label="Status"
+        [options]="statusOptions()"
+        [value]="status_id()"
+        [disabled]="isReadOnly()"
+        (valueChange)="onStatusChange($event)"
+        helperText="Tipos inativos deixam de aparecer como opção para novos cadastros de códigos."
+      />
+    </div>
+  </div>
+
+  <!-- Action Footer -->
+  <div
+    footer
+    class="flex items-center justify-end gap-2 w-full pt-4 border-t border-gray-200 dark:border-slate-700"
+  >
+    <app-button variant="ghost" size="sm" (btnClick)="close()">
+      {{ isReadOnly() ? 'Fechar' : 'Cancelar' }}
+    </app-button>
+
+    @if (!isReadOnly()) {
+    <app-button
+      variant="primary"
+      size="sm"
+      iconStart="save"
+      [loading]="isSubmitting()"
+      (btnClick)="onSubmit()"
+    >
+      {{ mode() === 'edit' ? 'Salvar Alterações' : 'Cadastrar Tipo' }}
+    </app-button>
+    }
+  </div>
+</app-drawer>
