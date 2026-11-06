@@ -125,6 +125,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'notifications',
+    loadComponent: () =>
+      import('./features/notifications/pages/notifications').then(
+        (m) => m.NotificationsPageComponent,
+      ),
+  },
+  {
     path: 'commercial/:sub',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },
@@ -134,10 +141,6 @@ export const routes: Routes = [
   },
   {
     path: 'reports',
-    loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
-  },
-  {
-    path: 'notifications',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },
   {
