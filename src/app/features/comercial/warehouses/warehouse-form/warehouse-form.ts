@@ -53,6 +53,7 @@ export class WarehouseFormComponent {
 
   // Validation Errors Signal
   readonly formErrors = signal<Record<string, string>>({});
+  readonly saveWarehouse = output<string>();
 
   constructor() {
     effect(() => {
@@ -134,6 +135,7 @@ export class WarehouseFormComponent {
   selectStatus(id: string): void {
     if (this.isReadOnly()) return;
     this.statusId.set(id);
+    this.saveWarehouse.emit(id);
     this.clearError('status_id');
   }
 

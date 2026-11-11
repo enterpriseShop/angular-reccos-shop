@@ -105,19 +105,13 @@
 <div class="w-full">
   <app-data-table
     [columns]="columns"
-    [data]="paginatedWarehouses()"
+    [data]="allWarehouses()"
     [actions]="actions"
     [loading]="loading()"
     [roundedBottom]="false"
   />
 
-  <app-pagination
-    [currentPage]="currentPage()"
-    [totalItems]="filteredWarehouses().length"
-    [pageSizeOptions]="[5, 10, 25, 50]"
-    (pageChange)="onPageChange($event)"
-    (pageSizeChange)="onPageSizeChange($event)"
-  />
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
 </div>
 
 <!-- Delete Confirmation Dialog -->

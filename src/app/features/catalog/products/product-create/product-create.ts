@@ -14,7 +14,6 @@ import { ProductGeneralTabComponent } from '../product-form/general-tab/general-
 import { ProductCreateStepperComponent } from '../product-form/stepper/product-create-stepper';
 import { CategoryService } from '../../../../core/services/category-service';
 import { ManufacturerService } from '../../../../core/services/manufacture-service';
-import { WarehouseService } from '../../../../core/services/warehouse-service';
 import { ProductService } from '../../../../core/services/product-service';
 import { ToastService } from '../../../../core/services/toast';
 import { SelectOption } from '../../../../core/models/design-system/select-option.model';
@@ -35,6 +34,8 @@ import { UnitSaleStore } from '../../../../core/store/unit-sale/unit-sale-store'
 import { WarehouseStore } from '../../../../core/store/warehouse/warehouse-store';
 import { PartOriginStore } from '../../../../core/store/part-origin/part-origin-store';
 import { ManufacturerStore } from '../../../../core/store/manufacturer-store/manufacturer-store';
+import { WarehouseService } from '../../../../core/services/warehouse';
+import { WarehouseFiltersRequest } from '../../../../core/models/warehouses/warehouse-filter-request.model';
 
 @Component({
   selector: 'app-product-create',
@@ -60,6 +61,9 @@ export class ProductCreateComponent implements OnInit {
   private toastService = inject(ToastService);
 
   readonly createStep = signal<number>(1);
+  private readonly perPage = signal<number>(10);
+  private readonly currentPage = signal<number>(1);
+
   readonly isSaving = signal<boolean>(false);
   readonly isFormDirty = signal<boolean>(false);
   readonly unsavedChangesDialogOpen = signal<boolean>(false);
@@ -108,21 +112,22 @@ export class ProductCreateComponent implements OnInit {
     { label: 'Novo Produto' },
   ];
 
-  private queries: Partial<GeneralOptionQuery> = {
-    search: null,
+  private params: WarehouseFiltersRequest = {
+    name: null,
+    code: null,
     active: null,
-    per_page: null,
-    page: null,
-    manufacturer_id: null,
+    status_id: null,
+    page: this.currentPage(),
+    per_page: this.perPage(),
   };
 
   readonly unitOptions = signal<SelectOption[]>([]);
 
   ngOnInit(): void {
-    this.loadInitialOptions(this.queries);
+    this.loadInitialOptions(this.params);
   }
 
-  loadInitialOptions(query: Partial<GeneralOptionQuery>): void {
+  loadInitialOptions(query: WarehouseFiltersRequest): void {
     this.categoryLoading.set(true);
     this.categoryService.getOptions(query).subscribe({
       next: (res) => {
@@ -155,7 +160,7 @@ export class ProductCreateComponent implements OnInit {
       error: () => this.manufacturerLoading.set(false),
     });
 
-    this.partOriginService.getAll(this.queries).subscribe({
+    this.partOriginService.getAll(this.params).subscribe({
       next: (res) => {
         const opts: SelectOption[] = (res.data || []).map((p) => ({
           label: p.name,
@@ -168,7 +173,7 @@ export class ProductCreateComponent implements OnInit {
       },
     });
 
-    this.warehouseService.getAll(this.queries).subscribe({
+    this.warehouseService.getAll(this.params).subscribe({
       next: (res) => {
         console.log('[Warehouses] ', res);
       },

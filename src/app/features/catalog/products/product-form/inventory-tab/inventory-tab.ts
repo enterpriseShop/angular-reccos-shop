@@ -63,6 +63,7 @@ export class ProductInventoryTabComponent {
   constructor() {
     effect(() => {
       const incoming = this.inventories() || [];
+      console.log('[incoming]', incoming);
       untracked(() => {
         this.localInventories.set(incoming);
       });
@@ -164,7 +165,9 @@ export class ProductInventoryTabComponent {
       return;
     }
 
-    const available = this.availableWarehouseOptions();
+    // const available = this.availableWarehouseOptions();
+    const available = this.warehouseOptions();
+    console.log('[warehouseOptions]', this.warehouseOptions());
 
     if (!available.length) {
       return;
@@ -173,6 +176,7 @@ export class ProductInventoryTabComponent {
     const firstWarehouse = available[0];
 
     const warehouseId = String(firstWarehouse.value);
+    console.log('[warehouseId]', warehouseId);
 
     const cached = this.removedItemsCache.get(warehouseId);
 

@@ -4,16 +4,16 @@ import { getAllResponse } from '../../models/generals/general-responses-list.mod
 import { isSameQuery } from '../../services/query-service';
 import { OptionCacheStore } from '../base/option-cache-store';
 import { WarehouseQueryCache } from '../../models/warehouses/warehouse-query-cache.model';
-import { WarehouseService } from '../../services/warehouse-service';
 import { GeneralOption } from '../../models/generals/general-options-response.model';
 import { SelectOption } from '../../models/design-system/select-option.model';
 import { map } from 'rxjs';
+import { WarehouseService } from '../../services/warehouse';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WarehouseStore extends OptionCacheStore<SelectOption, WarehouseQueryCache> {
-  private readonly service = inject(WarehouseService);
+  private readonly warehouseService = inject(WarehouseService);
 
   protected readonly INITIAL_KEY = 'warehouses:initial';
   protected readonly QUERY_KEY = 'warehouses:query';
@@ -21,7 +21,7 @@ export class WarehouseStore extends OptionCacheStore<SelectOption, WarehouseQuer
   readonly warehouseOptions = computed(() => this.options()?.data ?? []);
 
   protected fetchOptions(query: GeneralOptionQuery) {
-    return this.service.getOptions(query).pipe(
+    return this.warehouseService.getOptions(query).pipe(
       map((response: getAllResponse<GeneralOption[]>) => {
         return {
           ...response,

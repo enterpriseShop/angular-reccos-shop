@@ -7,8 +7,9 @@ import { GeneralOptionQuery } from '../models/generals/general-option-query.mode
 import { buildHttpParams } from './build-http-params';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { WarehouseRequest } from '../models/warehouses/warehouse-request.model';
-import { WarehouseOption } from '../models/warehouses/warehouse-options.model';
 import { environment } from '../../../environments/environment';
+import { WarehouseFiltersRequest } from '../models/warehouses/warehouse-filter-request.model';
+import { GeneralOption } from '../models/generals/general-options-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -16,18 +17,18 @@ import { environment } from '../../../environments/environment';
 export class WarehouseService {
   private http = inject(HttpClient);
   private api = environment.apiUrl;
-  private flag = 'warehouse';
+  private flag = 'warehouses';
 
-  getAll(filters: GeneralOptionQuery): Observable<PaginatedResponse<WarehouseResponse>> {
+  getAll(filters: WarehouseFiltersRequest): Observable<PaginatedResponse<WarehouseResponse>> {
     const params = buildHttpParams(filters);
     return this.http.get<PaginatedResponse<WarehouseResponse>>(`${this.api}/${this.flag}`, {
       params,
     });
   }
 
-  getOptions(filters: GeneralOptionQuery): Observable<getAllResponse<WarehouseOption[]>> {
+  getOptions(filters: GeneralOptionQuery): Observable<getAllResponse<GeneralOption[]>> {
     const params = buildHttpParams(filters);
-    return this.http.get<getAllResponse<WarehouseOption[]>>(`${this.api}/${this.flag}/options`, {
+    return this.http.get<getAllResponse<GeneralOption[]>>(`${this.api}/${this.flag}/options`, {
       params,
     });
   }

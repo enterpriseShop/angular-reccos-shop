@@ -17,11 +17,13 @@ import { ToolbarComponent } from '../../../design-system/toolbar/toolbar';
 import { ButtonComponent } from '../../../design-system/button/button';
 import { SelectComponent } from '../../../design-system/select/select';
 import { ToastService } from '../../../core/services/toast';
-import { WarehouseService } from '../../../core/services/warehouse-service';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
 import { WarehouseResponse } from '../../../core/models/warehouses/warehouses.interface';
 import { StatusStore } from '../../../core/store/status-store/status-store';
-import { GeneralOptionQuery } from '../../../core/models/generals/general-option-query.model';
+import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
+import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
+import { WarehouseService } from '../../../core/services/warehouse';
+import { WarehouseFiltersRequest } from '../../../core/models/warehouses/warehouse-filter-request.model';
 
 @Component({
   selector: 'app-warehouses-page',
@@ -164,6 +166,8 @@ export class WarehousesPageComponent implements OnInit {
     },
   ];
 
+  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
+
   // Quick KPI Computed Signals
   readonly totalCount = computed(() => this.allWarehouses().length);
   readonly activeCount = computed(
@@ -175,36 +179,33 @@ export class WarehousesPageComponent implements OnInit {
     return this.allWarehouses().reduce((sum, w) => sum + (w.inventories_count ?? 0), 0);
   });
 
-  params: Partial<GeneralOptionQuery> = {
+  params: WarehouseFiltersRequest = {
     active: null,
     page: this.currentPage(),
     per_page: this.perPage(),
+    name: null,
+    code: null,
+    status_id: null,
   };
 
   ngOnInit(): void {
     this.loadWarehouses(this.params);
   }
 
-  loadWarehouses(params: Partial<GeneralOptionQuery>): void {
+  loadWarehouses(params: WarehouseFiltersRequest): void {
     this.loading.set(true);
     this.warehouseService.getAll(params).subscribe({
       next: (response) => {
         this.allWarehouses.set(response.data);
-        if (response.meta) {
-          this.totalItems.set(response.meta.total);
-          this.currentPage.set(response.meta.current_page);
-          this.perPage.set(response.meta.per_page);
-        } else {
-          this.totalItems.set((response.data || []).length);
-        }
+        this.pagination.set(response.meta);
         this.loading.set(false);
       },
-      error: (error) => {
+      error: () => {
         this.loading.set(false);
-        this.toastService.error(
-          'Erro ao buscar depósitos',
-          error.message || 'Falha ao carregar lista de depósitos.',
-        );
+        // this.toastService.error(
+        //   'Erro ao buscar depósitos',
+        //   error.message || 'Falha ao carregar lista de depósitos.',
+        // );
       },
     });
   }
@@ -231,14 +232,6 @@ export class WarehousesPageComponent implements OnInit {
 
       return matchesQ && matchesSt;
     });
-  });
-
-  readonly paginatedWarehouses = computed(() => {
-    const all = this.filteredWarehouses();
-    const page = this.currentPage();
-    const size = this.perPage();
-    const start = (page - 1) * size;
-    return all.slice(start, start + size);
   });
 
   onSearchChange(query: string): void {
@@ -290,8 +283,22 @@ export class WarehousesPageComponent implements OnInit {
     this.selectedWarehouse.set(null);
   }
 
+  normalizeParams(): void {
+    this.params = {
+      code: null,
+      active: null,
+      status_id: null,
+      name: this.searchQuery(),
+      page: this.currentPage(),
+      per_page: this.perPage(),
+    };
+    this.loadWarehouses(this.params);
+  }
+
   onWarehouseSaved(): void {
-    // this.loadWarehouses();
+    this.perPage.set(10);
+    this.currentPage.set(1);
+    this.normalizeParams();
   }
 
   confirmDelete(warehouse: WarehouseResponse): void {
@@ -304,7 +311,7 @@ export class WarehousesPageComponent implements OnInit {
     if (!warehouse) return;
 
     this.isDeleting.set(true);
-    this.warehouseService.deleteWarehouse(warehouse.id).subscribe({
+    this.warehouseService.delete(warehouse.id).subscribe({
       next: () => {
         this.isDeleting.set(false);
         this.deleteDialogOpen.set(false);
@@ -320,5 +327,15 @@ export class WarehousesPageComponent implements OnInit {
         this.toastService.error('Erro ao excluir', err.message || 'Falha ao remover depósito.');
       },
     });
+  }
+
+  onPaginationChange(meta: PaginationMeta): void {
+    this.pagination.set(meta);
+    this.params = {
+      ...this.params,
+      page: meta.current_page,
+      per_page: meta.per_page,
+    };
+    this.normalizeParams();
   }
 }

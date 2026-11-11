@@ -132,6 +132,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'commercial/inventory',
+    loadComponent: () =>
+      import('./features/comercial/warehouses/warehouses').then((m) => m.WarehousesPageComponent),
+  },
+  {
     path: 'commercial/:sub',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },
