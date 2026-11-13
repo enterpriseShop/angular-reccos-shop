@@ -31,6 +31,7 @@ export interface NotificationSeverityData {
 }
 
 export interface NotificationReference {
-  type: string;
   id: string;
+  type: string;
+  route: string;
 }

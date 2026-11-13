@@ -8,6 +8,14 @@
   ]"
 >
   <div actions class="flex items-center gap-2">
+    <app-button
+      variant="outline"
+      size="sm"
+      iconStart="upload"
+      (btnClick)="isBulkImportOpen.set(true)"
+    >
+      Importar em Massa
+    </app-button>
     <app-button variant="outline" size="sm" iconStart="download" (btnClick)="exportProducts()">
       Exportar Excel
     </app-button>
@@ -146,3 +154,19 @@
   (confirmAction)="executeDelete()"
   (cancelAction)="deleteDialogOpen.set(false)"
 />
+
+<!-- Importação em Massa -->
+<app-dialog
+  [isOpen]="isBulkImportOpen()"
+  title="Importação de Produtos em Massa"
+  size="xl"
+  (closeDialog)="isBulkImportOpen.set(false)"
+>
+  <app-bulk-importer
+    title="Carregar Arquivo"
+    description="Selecione um arquivo CSV ou Excel com a estrutura definida para importar novos produtos."
+    [importHandler]="handleBulkImport.bind(this)"
+    [downloadTemplate]="downloadProductTemplate.bind(this)"
+    (downloadTemplateXLSX)="downalodTemplateXLSX()"
+  />
+</app-dialog>

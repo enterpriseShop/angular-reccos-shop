@@ -23,11 +23,14 @@ import { PaginationMeta } from '../../../core/models/pagination/pagination.model
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 import { NotificationMockService } from '../../../core/utils/notification-mock';
 import {
-  NotificationCategory,
-  NotificationReadFilter,
+  NotificationCategoryValue,
+  NotificationSeverityValue,
 } from '../../../core/models/notification-mock.model';
 import { NotificationsFiltersRequest } from '../../../core/models/notification/notification-filters-request.model';
 import { NotificationDisplayResponse } from '../../../core/models/notification/notification-display-response.model';
+import { DateRangePicker } from '../../../design-system/date-range-picker/date-range-picker';
+import { DateRange } from '../../../core/models/date-range-picker/date-range-picker.model';
+import { DatePipe, NgClass } from '@angular/common';
 
 const TYPE_ICON_MAP: Record<string, string> = {
   warning: 'alert-triangle',
@@ -78,6 +81,9 @@ const CATEGORY_LABEL_MAP: Record<string, string> = {
     ConfirmDialogComponent,
     AppIconComponent,
     NotificationDetailModalComponent,
+    DateRangePicker,
+    DatePipe,
+    NgClass,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './notifications.html',
@@ -91,14 +97,17 @@ export class NotificationsPageComponent implements OnInit {
 
   readonly page = signal<number>(1);
   readonly perPage = signal<number>(10);
-  // Delete Confirm Dialog State
+
+  readonly selectedIds = signal<string[]>([]);
 
   readonly loading = signal<boolean>(false);
   readonly isDeleteDialogOpen = signal<boolean>(false);
+  readonly activeNotification = signal<boolean>(false);
   readonly isBulkDeleteConfirmOpen = signal<boolean>(false);
 
   readonly notifications = signal<NotificationDisplayResponse[]>([]);
   readonly notificationToDelete = signal<NotificationResponse | null>(null);
+  readonly notificationSelected = signal<NotificationDisplayResponse | null>(null);
 
   // Simulation Menu state
   readonly isSimulatorMenuOpen = signal<boolean>(false);
@@ -122,12 +131,32 @@ export class NotificationsPageComponent implements OnInit {
     { value: 'sistema', label: 'Sistema', sublabel: 'all', disabled: false, module: '' },
   ];
 
-  readonly endItemIndex = computed(() => {
-    const total = this.notificationMockService.filteredNotifications().length;
-    const end =
-      this.notificationMockService.currentPage() * this.notificationMockService.itemsPerPage();
-    return Math.min(end, total);
-  });
+  readonly severityOptions: SelectOption[] = [
+    { value: 'all', label: 'Todas as Gravidades', sublabel: 'all', disabled: false, module: '' },
+    {
+      value: 'CRITICAL',
+      label: 'Crítico (CRITICAL)',
+      sublabel: 'all',
+      disabled: false,
+      module: '',
+    },
+    { value: 'WARNING', label: 'Aviso (WARNING)', sublabel: 'all', disabled: false, module: '' },
+    { value: 'INFO', label: 'Informativo (INFO)', sublabel: 'all', disabled: false, module: '' },
+    { value: 'SUCCESS', label: 'Sucesso (SUCCESS)', sublabel: 'all', disabled: false, module: '' },
+  ];
+
+  // Occurrence status options matching API active param
+  readonly activeOptions: SelectOption[] = [
+    { value: 'all', label: 'Todas as Ocorrências', sublabel: 'all', disabled: false, module: '' },
+    { value: 'active', label: 'Somente Ativas', sublabel: 'all', disabled: false, module: '' },
+    {
+      value: 'resolved',
+      label: 'Normalizadas / Resolvidas',
+      sublabel: 'all',
+      disabled: false,
+      module: '',
+    },
+  ];
 
   params: NotificationsFiltersRequest = {
     read: null,
@@ -144,9 +173,9 @@ export class NotificationsPageComponent implements OnInit {
 
   // Check if all items on current page are selected
   readonly isAllCurrentPageSelected = computed(() => {
-    const currentPageItems = this.notificationMockService.paginatedNotifications();
+    const currentPageItems = this.notifications();
     if (currentPageItems.length === 0) return false;
-    const selected = this.notificationMockService.selectedIds();
+    const selected = this.selectedIds();
     return currentPageItems.every((n) => selected.includes(n.id));
   });
 
@@ -184,12 +213,20 @@ export class NotificationsPageComponent implements OnInit {
     this.notificationMockService.setSearchQuery(query);
   }
 
-  onStatusFilterChange(status: NotificationReadFilter): void {
+  onStatusFilterChange(status: 'all' | 'unread' | 'read'): void {
     this.notificationMockService.setStatusFilter(status);
   }
 
-  onCategoryFilterChange(categoryValue: string): void {
-    this.notificationMockService.setCategoryFilter(categoryValue as NotificationCategory | 'all');
+  onCategoryFilterChange(val: string): void {
+    this.notificationMockService.setCategoryFilter(val as NotificationCategoryValue | 'all');
+  }
+
+  onSeverityFilterChange(val: string): void {
+    this.notificationMockService.setSeverityFilter(val as NotificationSeverityValue | 'all');
+  }
+
+  onActiveFilterChange(val: string): void {
+    this.notificationMockService.setActiveFilter(val as 'all' | 'active' | 'resolved');
   }
 
   onItemsPerPageChange(value: string): void {
@@ -200,21 +237,39 @@ export class NotificationsPageComponent implements OnInit {
     this.notificationMockService.setPage(page);
   }
 
-  toggleSelectAll(): void {
-    this.notificationMockService.selectAllCurrentPage();
+  toggleSelectAll(event: Event): void {
+    const currentIds = this.notifications().map((n) => n.id);
+    const allSelected = (event.currentTarget as HTMLInputElement).checked;
+
+    if (allSelected) {
+      this.selectedIds.set(currentIds);
+    } else {
+      this.selectedIds.set([]);
+    }
   }
 
-  toggleSelect(id: string, event: Event): void {
-    event.stopPropagation();
-    this.notificationMockService.toggleSelectId(id);
+  toggleSelect(id: string): void {
+    this.selectedIds.update((ids) =>
+      ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id],
+    );
   }
 
-  // openDetails(notification: NotificationResponse, event?: Event): void {
+  onDateRangeChange(range: DateRange): void {
+    this.notificationMockService.setDateFrom(range.dateFrom);
+    this.notificationMockService.setDateTo(range.dateTo);
+  }
+
   openDetails(notification: NotificationDisplayResponse, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
-    // this.notificationMockService.openDetails(notification);
+    this.notificationSelected.set(notification);
+    this.activeNotification.set(true);
+  }
+
+  closeDetails(): void {
+    this.activeNotification.set(false);
+    this.notificationSelected.set(null);
   }
 
   toggleRead(notification: NotificationDisplayResponse, event: Event): void {
@@ -229,26 +284,31 @@ export class NotificationsPageComponent implements OnInit {
     this.notificationMockService.markAllAsRead();
     this.toastService.success('Sucesso', 'Todas as notificações foram marcadas como lidas.');
   }
-  confirmDelete() {
-    console.log('[CONFIRM DELETE]');
-  }
 
-  // confirmDelete(notification: NotificationDisplayResponse, event?: Event): void {
-  //   if (event) {
-  //     event.stopPropagation();
-  //   }
-  //   this.notificationToDelete.set(notification);
-  //   this.isDeleteDialogOpen.set(true);
-  // }
+  confirmDelete(notification: NotificationDisplayResponse, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.notificationToDelete.set(notification);
+    this.isDeleteDialogOpen.set(true);
+  }
 
   executeDelete(): void {
     const item = this.notificationToDelete();
     if (item) {
-      this.notificationMockService.deleteNotification(item.id);
-      this.toastService.success('Excluída', 'A notificação foi removida da central.');
+      this.notificationService.deleteNotification(item.id).subscribe({
+        next: () => {
+          this.toastService.success('Excluída', 'A notificação foi removida da central.');
+        },
+        error: () => {
+          this.toastService.error('Erro', 'Erro ao excluir notificação.');
+        },
+        complete: () => {
+          this.isDeleteDialogOpen.set(false);
+          this.notificationToDelete.set(null);
+        },
+      });
     }
-    this.isDeleteDialogOpen.set(false);
-    this.notificationToDelete.set(null);
   }
 
   // Bulk Actions
@@ -286,16 +346,17 @@ export class NotificationsPageComponent implements OnInit {
   }
 
   triggerSimulatedEvent(preset?: 'estoque' | 'importacao' | 'oem' | 'catalogo'): void {
-    const created = this.notificationMockService.simulateEvent(preset);
+    // const created = this.notificationMockService.simulateEvent(preset);
+    console.log(preset);
     this.isSimulatorMenuOpen.set(false);
-    this.toastService.success(
-      'Evento de Sistema Gerado',
-      `Nova notificação "${created.title}" registrada com sucesso.`,
-    );
+    // this.toastService.success(
+    //   'Evento de Sistema Gerado',
+    //   `Nova notificação "${created.title}" registrada com sucesso.`,
+    // );
   }
 
   resetDefaults(): void {
-    this.notificationMockService.resetToDefaults();
+    // this.notificationMockService.resetToDefaults();
     this.toastService.info(
       'Restaurado',
       'A lista de notificações foi restaurada para o estado inicial.',

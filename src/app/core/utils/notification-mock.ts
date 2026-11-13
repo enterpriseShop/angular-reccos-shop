@@ -1,319 +1,266 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import {
   AppNotification,
-  NotificationReadFilter,
-  NotificationCategory,
+  NotificationCategoryValue,
+  NotificationSeverityValue,
+  NotificationsListResponse,
+  NotificationSummaryResponse,
+  NotificationUnreadCountResponse,
   NotificationStats,
 } from '../models/notification-mock.model';
-
-const STORAGE_KEY = 'reccos_shop_notifications_v1';
 
 @Injectable({
   providedIn: 'root',
 })
 export class NotificationMockService {
-  private readonly defaultNotifications: AppNotification[] = [
-    {
-      id: 'notif-1',
-      title: 'Estoque Crítico - Correia Dentada Contitech CT1028',
-      description:
-        'Apenas 3 unidades disponíveis no depósito Central SP. Ponto de reposição (10 un) atingido.',
-      fullMessage:
-        'Atenção: O saldo físico do produto "Correia Dentada Contitech CT1028" atingiu o limite crítico de segurança no depósito Central São Paulo. Restam apenas 3 unidades em estoque. Recomendado emitir ordem de compra junto ao fornecedor Contitech imediatamente.',
-      timestamp: 'Há 12 min',
-      createdAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-      read: false,
-      type: 'warning',
-      category: 'estoque',
-      priority: 'alta',
-      link: '/commercial/inventory',
-      relatedEntity: {
-        module: 'Estoque',
-        entityId: 'PROD-CT1028',
-        route: '/commercial/inventory',
-        label: 'Ver Estoque Central',
-      },
-    },
-    {
-      id: 'notif-2',
-      title: 'Importação de Tabela de Preços Bosch 2026 Concluída',
-      description:
-        'Arquivo tabela_precos_bosch_2026.xlsx processado com sucesso. 1.420 produtos atualizados.',
-      fullMessage:
-        'A rotina de processamento em lote finalizou a leitura da planilha Bosch. Foram processados 1.420 registros de SKUs, 310 cruzamentos de códigos de equivalência e 45 novas regras de margem comercial atreladas à tabela oficial.',
-      timestamp: 'Há 45 min',
-      createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-      read: false,
-      type: 'success',
-      category: 'importacao',
-      priority: 'media',
-      link: '/imports',
-      relatedEntity: {
-        module: 'Importações',
-        entityId: 'IMP-2026-8902',
-        route: '/imports',
-        label: 'Ver Histórico de Importações',
-      },
-    },
-    {
-      id: 'notif-3',
-      title: 'Solicitação de Nova Categoria #892',
-      description: 'Solicitação referente a Categoria "Sistemas Eletrônicos de Freio (ABS/ESP)".',
-      fullMessage:
-        'A equipe comercial de Vendas Corporativas solicitou a criação da subcategoria "Sistemas Eletrônicos de Freio (ABS/ESP)" sob o grupo principal Freios & Suspensão. A solicitação requer aprovação do Gestor de Catálogo.',
-      timestamp: 'Há 2 horas',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      read: false,
-      type: 'info',
-      category: 'catalogo',
-      priority: 'baixa',
-      link: '/catalog/categories',
-      relatedEntity: {
-        module: 'Catálogo',
-        entityId: 'CAT-REQ-892',
-        route: '/catalog/categories',
-        label: 'Gerenciar Categorias',
-      },
-    },
-    {
-      id: 'notif-4',
-      title: 'Divergência Detectada no Mapeamento OEM #4092',
-      description:
-        'Código OEM 030115561AN associado a Filtro de Óleo Mann HU719/7x apresentou inconformidade de veículo.',
-      fullMessage:
-        'O robô de validação de compatibilidade OEM identificou uma discrepância entre o código OEM VW 030115561AN e as aplicações atribuídas no motor EA111 1.6 Flex. É necessário revisar a lista de motores compatíveis no módulo de Cruzamento OEM.',
-      timestamp: 'Ontem às 18:40',
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      read: true,
-      type: 'error',
-      category: 'compatibilidade',
-      priority: 'alta',
-      link: '/compatibility/oem-codes',
-      relatedEntity: {
-        module: 'Compatibilidade OEM',
-        entityId: 'OEM-4092-VW',
-        route: '/compatibility/oem-codes',
-        label: 'Corrigir Mapeamento OEM',
-      },
-    },
-    {
-      id: 'notif-5',
-      title: 'Atualização da Tabela de Aplicações FIPE 2026',
-      description:
-        '14 novas versões de veículos elétricos e híbridos das montadoras BYD e GWM adicionadas.',
-      fullMessage:
-        'O banco de dados de veículos foi sincronizado com a base FIPE/Anfavea. Foram inseridas 14 novas versões de veículos, incluindo BYD Dolphin Mini, King, Song Plus e GWM Haval H6, permitindo inclusão imediata de aplicações de autopeças.',
-      timestamp: '03/11/2026',
-      createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      read: true,
-      type: 'info',
-      category: 'veiculos',
-      priority: 'media',
-      link: '/vehicles/brands',
-      relatedEntity: {
-        module: 'Veículos',
-        entityId: 'FIPE-2026-V11',
-        route: '/vehicles/brands',
-        label: 'Ver Montadoras',
-      },
-    },
-    {
-      id: 'notif-6',
-      title: 'Ajuste de Balanço de Estoque - Depósito Zona Sul',
-      description:
-        'Inventário físico finalizado com divergência auditada de -4 unidades no SKU GP30112 Cofap.',
-      fullMessage:
-        'Foi registrado um ajuste manual de estoque após recontagem física no Depósito Zona Sul. O produto Amortecedor Dianteiro Cofap GP30112 teve sua quantidade reduzida de 28 para 24 unidades com motivo "Avaria em transporte interno".',
-      timestamp: '02/11/2026',
-      createdAt: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
-      read: true,
-      type: 'warning',
-      category: 'estoque',
-      priority: 'media',
-      link: '/commercial/inventory',
-      relatedEntity: {
-        module: 'Estoque',
-        entityId: 'INV-ZS-GP30112',
-        route: '/commercial/inventory',
-        label: 'Ver Depósito Zona Sul',
-      },
-    },
-    {
-      id: 'notif-7',
-      title: 'Backup Automático de Segurança Concluído',
-      description:
-        'Backup integral de catálogos, equivalências e especificações técnicas gerado com sucesso.',
-      fullMessage:
-        'O rotina automatizada de backup de madrugada concluiu a cópia completa de segurança. Tamanho final da imagem: 1.28 GB. Arquivo assinado e sincronizado com o servidor seguro da nuvem.',
-      timestamp: '01/11/2026',
-      createdAt: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString(),
-      read: true,
-      type: 'system',
-      category: 'sistema',
-      priority: 'baixa',
-      link: '/admin',
-      relatedEntity: {
-        module: 'Sistema',
-        entityId: 'SYS-BKP-9821',
-        route: '/admin',
-        label: 'Logs do Sistema',
-      },
-    },
-  ];
+  private readonly http = inject(HttpClient);
 
-  // Signal storing all notifications
-  readonly notifications = signal<AppNotification[]>(this.loadNotifications());
+  // Notifications state
+  readonly notifications = signal<AppNotification[]>([]);
+  readonly isLoading = signal<boolean>(false);
+  readonly error = signal<string | null>(null);
 
-  // Search & Filter state
+  // Summary & Badge State
+  readonly unreadCount = signal<number>(0);
+  readonly recentNotifications = signal<AppNotification[]>([]);
+
+  // Search & Filter state matching API parameters
   readonly searchQuery = signal<string>('');
-  readonly statusFilter = signal<NotificationReadFilter>('all');
-  readonly categoryFilter = signal<NotificationCategory | 'all'>('all');
+  readonly statusFilter = signal<'all' | 'unread' | 'read'>('all');
+  readonly categoryFilter = signal<NotificationCategoryValue | 'all'>('all');
+  readonly severityFilter = signal<NotificationSeverityValue | 'all'>('all');
+  readonly activeFilter = signal<'all' | 'active' | 'resolved'>('all');
+  readonly dateFrom = signal<string>('');
+  readonly dateTo = signal<string>('');
 
   // Pagination state
   readonly currentPage = signal<number>(1);
   readonly itemsPerPage = signal<number>(10);
+  readonly totalItems = signal<number>(0);
+  readonly lastPage = signal<number>(1);
 
-  // Selected notifications for bulk actions
+  // Bulk Selection State
   readonly selectedIds = signal<string[]>([]);
 
-  // Computed: Unread Count
-  readonly unreadCount = computed(() => {
-    return this.notifications().filter((n) => !n.read).length;
-  });
+  // Active Notification Detail Modal State
+  readonly activeNotification = signal<AppNotification | null>(null);
 
-  // Computed: Top 5 Recent Notifications (for Header Bell)
-  readonly recentNotifications = computed(() => {
-    return [...this.notifications()]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
-  });
-
-  // Computed: Overall Statistics
+  // Computed: Stats summary based on current list
   readonly stats = computed<NotificationStats>(() => {
     const items = this.notifications();
     return {
-      total: items.length,
-      unread: items.filter((n) => !n.read).length,
-      read: items.filter((n) => n.read).length,
-      highPriority: items.filter((n) => n.priority === 'alta').length,
+      total: this.totalItems() || items.length,
+      unread: this.unreadCount(),
+      read: Math.max(0, (this.totalItems() || items.length) - this.unreadCount()),
+      critical: items.filter((n) => n.severity?.value === 'CRITICAL').length,
     };
   });
 
-  // Computed: Filtered Notifications List
-  readonly filteredNotifications = computed(() => {
-    let result = [...this.notifications()];
-    const query = this.searchQuery().trim().toLowerCase();
-    const status = this.statusFilter();
-    const category = this.categoryFilter();
-
-    // Filter by read status
-    if (status === 'unread') {
-      result = result.filter((n) => !n.read);
-    } else if (status === 'read') {
-      result = result.filter((n) => n.read);
-    }
-
-    // Filter by category
-    if (category !== 'all') {
-      result = result.filter((n) => n.category === category);
-    }
-
-    // Filter by search text
-    if (query) {
-      result = result.filter(
-        (n) =>
-          n.title.toLowerCase().includes(query) ||
-          n.description.toLowerCase().includes(query) ||
-          (n.fullMessage && n.fullMessage.toLowerCase().includes(query)) ||
-          (n.relatedEntity?.module && n.relatedEntity.module.toLowerCase().includes(query)) ||
-          (n.relatedEntity?.entityId && n.relatedEntity.entityId.toLowerCase().includes(query)),
-      );
-    }
-
-    // Sort newest first
-    return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  // Computed: Check if any filter is active
+  readonly hasActiveFilters = computed<boolean>(() => {
+    return (
+      this.searchQuery().trim() !== '' ||
+      this.statusFilter() !== 'all' ||
+      this.categoryFilter() !== 'all' ||
+      this.severityFilter() !== 'all' ||
+      this.activeFilter() !== 'all' ||
+      this.dateFrom() !== '' ||
+      this.dateTo() !== ''
+    );
   });
 
-  // Computed: Paginated Result
-  readonly paginatedNotifications = computed(() => {
-    const list = this.filteredNotifications();
-    const page = this.currentPage();
-    const perPage = this.itemsPerPage();
-    const startIndex = (page - 1) * perPage;
-    return list.slice(startIndex, startIndex + perPage);
+  // Computed: Filtered Notifications (fallback or computed view)
+  readonly filteredNotifications = computed<AppNotification[]>(() => {
+    return this.notifications();
   });
 
-  // Computed: Total Pages
-  readonly totalPages = computed(() => {
-    const totalItems = this.filteredNotifications().length;
-    const perPage = this.itemsPerPage();
-    return Math.max(1, Math.ceil(totalItems / perPage));
+  readonly paginatedNotifications = computed<AppNotification[]>(() => {
+    return this.notifications();
   });
 
-  // Signal: Selected Notification for Details View
-  readonly activeNotification = signal<AppNotification | null>(null);
+  readonly totalPages = computed<number>(() => {
+    return this.lastPage();
+  });
 
   constructor() {
-    // Keep local storage synced on change
+    this.refreshAll();
   }
 
-  private loadNotifications(): AppNotification[] {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const data = localStorage.getItem(STORAGE_KEY);
-        if (data) {
-          const parsed = JSON.parse(data);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+  // --- API CALLS ---
+
+  refreshAll(): void {
+    this.fetchNotifications();
+    this.fetchSummary();
+  }
+
+  fetchNotifications(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    let params = new HttpParams()
+      .set('page', this.currentPage().toString())
+      .set('per_page', this.itemsPerPage().toString());
+
+    const search = this.searchQuery().trim();
+    if (search) {
+      params = params.set('search', search);
+    }
+
+    const status = this.statusFilter();
+    if (status === 'unread') {
+      params = params.set('unread', 'true');
+    } else if (status === 'read') {
+      params = params.set('read', 'true');
+    }
+
+    const category = this.categoryFilter();
+    if (category !== 'all') {
+      params = params.set('category', category);
+    }
+
+    const severity = this.severityFilter();
+    if (severity !== 'all') {
+      params = params.set('severity', severity);
+    }
+
+    const active = this.activeFilter();
+    if (active === 'active') {
+      params = params.set('active', 'true');
+    } else if (active === 'resolved') {
+      params = params.set('active', 'false');
+    }
+
+    const df = this.dateFrom();
+    if (df) {
+      params = params.set('date_from', df);
+    }
+
+    const dt = this.dateTo();
+    if (dt) {
+      params = params.set('date_to', dt);
+    }
+
+    this.http.get<NotificationsListResponse>('/api/notifications', { params }).subscribe({
+      next: (res) => {
+        if (res.success && Array.isArray(res.data)) {
+          const items = res.data.map((item) => this.normalizeItem(item));
+          this.notifications.set(items);
+          if (res.meta) {
+            this.totalItems.set(res.meta.total);
+            this.lastPage.set(res.meta.last_page);
           }
         }
-      }
-    } catch {
-      // Fall back to default mock list on error
-    }
-    return this.defaultNotifications;
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error fetching notifications:', err);
+        this.error.set('Não foi possível carregar as notificações.');
+        this.isLoading.set(false);
+      },
+    });
   }
 
-  private persist(items: AppNotification[]): void {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      }
-    } catch {
-      // Ignore storage errors
-    }
+  fetchSummary(limit = 5): void {
+    const params = new HttpParams().set('limit', limit.toString());
+    this.http.get<NotificationSummaryResponse>('/api/notifications/summary', { params }).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.unreadCount.set(res.data.unread_count);
+          if (Array.isArray(res.data.recent)) {
+            const normalizedRecent = res.data.recent.map((item) => this.normalizeItem(item));
+            this.recentNotifications.set(normalizedRecent);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching summary:', err);
+      },
+    });
+  }
+
+  fetchUnreadCount(): void {
+    this.http.get<NotificationUnreadCountResponse>('/api/notifications/unread-count').subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.unreadCount.set(res.data.unread_count);
+        }
+      },
+    });
+  }
+
+  private normalizeItem(item: AppNotification): AppNotification {
+    return {
+      ...item,
+      read: item.is_read,
+      description: item.message || item.description || '',
+    };
   }
 
   // --- ACTIONS ---
 
   markAsRead(id: string): void {
-    this.notifications.update((items) => {
-      const updated = items.map((item) => (item.id === id ? { ...item, read: true } : item));
-      this.persist(updated);
-      return updated;
-    });
+    // Optimistic local update
+    this.notifications.update((list) =>
+      list.map((item) =>
+        item.id === id
+          ? { ...item, is_read: true, read: true, read_at: new Date().toISOString() }
+          : item,
+      ),
+    );
+    this.recentNotifications.update((list) =>
+      list.map((item) =>
+        item.id === id
+          ? { ...item, is_read: true, read: true, read_at: new Date().toISOString() }
+          : item,
+      ),
+    );
+    this.unreadCount.update((c) => Math.max(0, c - 1));
 
     if (this.activeNotification()?.id === id) {
-      this.activeNotification.update((n) => (n ? { ...n, read: true } : null));
+      this.activeNotification.update((n) =>
+        n ? { ...n, is_read: true, read: true, read_at: new Date().toISOString() } : null,
+      );
     }
+
+    this.http.patch(`/api/notifications/${id}/read`, {}).subscribe({
+      next: () => this.fetchUnreadCount(),
+      error: () => this.fetchNotifications(),
+    });
   }
 
   markAsUnread(id: string): void {
-    this.notifications.update((items) => {
-      const updated = items.map((item) => (item.id === id ? { ...item, read: false } : item));
-      this.persist(updated);
-      return updated;
-    });
+    // Optimistic local update
+    this.notifications.update((list) =>
+      list.map((item) =>
+        item.id === id ? { ...item, is_read: false, read: false, read_at: null } : item,
+      ),
+    );
+    this.recentNotifications.update((list) =>
+      list.map((item) =>
+        item.id === id ? { ...item, is_read: false, read: false, read_at: null } : item,
+      ),
+    );
+    this.unreadCount.update((c) => c + 1);
 
     if (this.activeNotification()?.id === id) {
-      this.activeNotification.update((n) => (n ? { ...n, read: false } : null));
+      this.activeNotification.update((n) =>
+        n ? { ...n, is_read: false, read: false, read_at: null } : null,
+      );
     }
+
+    this.http.patch(`/api/notifications/${id}/unread`, {}).subscribe({
+      next: () => this.fetchUnreadCount(),
+      error: () => this.fetchNotifications(),
+    });
   }
 
   toggleReadStatus(id: string): void {
-    const target = this.notifications().find((n) => n.id === id);
-    if (!target) return;
-    if (target.read) {
+    const item =
+      this.notifications().find((n) => n.id === id) ||
+      this.recentNotifications().find((n) => n.id === id);
+    if (!item) return;
+    if (item.is_read) {
       this.markAsUnread(id);
     } else {
       this.markAsRead(id);
@@ -321,30 +268,53 @@ export class NotificationMockService {
   }
 
   markAllAsRead(): void {
-    this.notifications.update((items) => {
-      const updated = items.map((item) => ({ ...item, read: true }));
-      this.persist(updated);
-      return updated;
-    });
+    // Optimistic local update
+    const now = new Date().toISOString();
+    this.notifications.update((list) =>
+      list.map((item) => ({ ...item, is_read: true, read: true, read_at: now })),
+    );
+    this.recentNotifications.update((list) =>
+      list.map((item) => ({ ...item, is_read: true, read: true, read_at: now })),
+    );
+    this.unreadCount.set(0);
 
     if (this.activeNotification()) {
-      this.activeNotification.update((n) => (n ? { ...n, read: true } : null));
+      this.activeNotification.update((n) =>
+        n ? { ...n, is_read: true, read: true, read_at: now } : null,
+      );
     }
+
+    this.http.post('/api/notifications/read-all', {}).subscribe({
+      next: () => {
+        this.fetchUnreadCount();
+        this.fetchSummary();
+      },
+      error: () => this.fetchNotifications(),
+    });
   }
 
   deleteNotification(id: string): void {
-    this.notifications.update((items) => {
-      const updated = items.filter((item) => item.id !== id);
-      this.persist(updated);
-      return updated;
-    });
+    // Optimistic local removal
+    const target = this.notifications().find((n) => n.id === id);
+    if (target && !target.is_read) {
+      this.unreadCount.update((c) => Math.max(0, c - 1));
+    }
 
-    // Remove from selection if selected
+    this.notifications.update((list) => list.filter((item) => item.id !== id));
+    this.recentNotifications.update((list) => list.filter((item) => item.id !== id));
     this.selectedIds.update((ids) => ids.filter((i) => i !== id));
 
     if (this.activeNotification()?.id === id) {
       this.activeNotification.set(null);
     }
+
+    this.http.delete(`/api/notifications/${id}`).subscribe({
+      next: () => {
+        this.fetchUnreadCount();
+        this.fetchNotifications();
+      },
+      error: () => this.fetchNotifications(),
+    });
   }
 
   // Bulk Actions
@@ -352,13 +322,7 @@ export class NotificationMockService {
     const selected = this.selectedIds();
     if (selected.length === 0) return;
 
-    this.notifications.update((items) => {
-      const updated = items.map((item) =>
-        selected.includes(item.id) ? { ...item, read: true } : item,
-      );
-      this.persist(updated);
-      return updated;
-    });
+    selected.forEach((id) => this.markAsRead(id));
     this.selectedIds.set([]);
   }
 
@@ -366,13 +330,7 @@ export class NotificationMockService {
     const selected = this.selectedIds();
     if (selected.length === 0) return;
 
-    this.notifications.update((items) => {
-      const updated = items.map((item) =>
-        selected.includes(item.id) ? { ...item, read: false } : item,
-      );
-      this.persist(updated);
-      return updated;
-    });
+    selected.forEach((id) => this.markAsUnread(id));
     this.selectedIds.set([]);
   }
 
@@ -380,69 +338,90 @@ export class NotificationMockService {
     const selected = this.selectedIds();
     if (selected.length === 0) return;
 
-    this.notifications.update((items) => {
-      const updated = items.filter((item) => !selected.includes(item.id));
-      this.persist(updated);
-      return updated;
-    });
+    selected.forEach((id) => this.deleteNotification(id));
     this.selectedIds.set([]);
   }
 
-  // Bulk Selection Toggles
+  // Selection Controls
   toggleSelectId(id: string): void {
     this.selectedIds.update((ids) =>
       ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id],
     );
   }
 
-  selectAllCurrentPage(): void {
-    const currentPageIds = this.paginatedNotifications().map((n) => n.id);
-    const currentSelected = this.selectedIds();
-    const allSelected = currentPageIds.every((id) => currentSelected.includes(id));
-
-    if (allSelected) {
-      this.selectedIds.update((ids) => ids.filter((id) => !currentPageIds.includes(id)));
-    } else {
-      const newSet = new Set([...currentSelected, ...currentPageIds]);
-      this.selectedIds.set(Array.from(newSet));
-    }
-  }
-
   clearSelection(): void {
     this.selectedIds.set([]);
   }
 
-  // Search & Filter setters
+  // Search & Filter Setters
   setSearchQuery(query: string): void {
     this.searchQuery.set(query);
     this.currentPage.set(1);
+    this.fetchNotifications();
   }
 
-  setStatusFilter(filter: NotificationReadFilter): void {
-    this.statusFilter.set(filter);
+  setStatusFilter(status: 'all' | 'unread' | 'read'): void {
+    this.statusFilter.set(status);
     this.currentPage.set(1);
+    this.fetchNotifications();
   }
 
-  setCategoryFilter(category: NotificationCategory | 'all'): void {
+  setCategoryFilter(category: NotificationCategoryValue | 'all'): void {
     this.categoryFilter.set(category);
     this.currentPage.set(1);
+    this.fetchNotifications();
+  }
+
+  setSeverityFilter(severity: NotificationSeverityValue | 'all'): void {
+    this.severityFilter.set(severity);
+    this.currentPage.set(1);
+    this.fetchNotifications();
+  }
+
+  setActiveFilter(active: 'all' | 'active' | 'resolved'): void {
+    this.activeFilter.set(active);
+    this.currentPage.set(1);
+    this.fetchNotifications();
+  }
+
+  setDateFrom(date: string): void {
+    this.dateFrom.set(date);
+    this.currentPage.set(1);
+    this.fetchNotifications();
+  }
+
+  setDateTo(date: string): void {
+    this.dateTo.set(date);
+    this.currentPage.set(1);
+    this.fetchNotifications();
   }
 
   setPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.currentPage.set(page);
-    }
+    this.currentPage.set(page);
+    this.fetchNotifications();
   }
 
   setItemsPerPage(perPage: number): void {
     this.itemsPerPage.set(perPage);
     this.currentPage.set(1);
+    this.fetchNotifications();
   }
 
-  // Details Modal Control
+  clearAllFilters(): void {
+    this.searchQuery.set('');
+    this.statusFilter.set('all');
+    this.categoryFilter.set('all');
+    this.severityFilter.set('all');
+    this.activeFilter.set('all');
+    this.dateFrom.set('');
+    this.dateTo.set('');
+    this.currentPage.set(1);
+    this.fetchNotifications();
+  }
+
+  // Details Modal Controls
   openDetails(notification: AppNotification): void {
-    // Automatically mark as read when inspecting details
-    if (!notification.read) {
+    if (!notification.is_read) {
       this.markAsRead(notification.id);
     }
     this.activeNotification.set(notification);
@@ -450,107 +429,5 @@ export class NotificationMockService {
 
   closeDetails(): void {
     this.activeNotification.set(null);
-  }
-
-  // System Event Simulation
-  simulateEvent(eventPreset?: 'estoque' | 'importacao' | 'oem' | 'catalogo'): AppNotification {
-    const presets: Omit<AppNotification, 'id' | 'createdAt' | 'timestamp' | 'read'>[] = [
-      {
-        title: 'Estoque Baixo - Disco de Freio Fremax BD1402',
-        description: 'Apenas 2 unidades restantes no depósito Zona Leste.',
-        fullMessage:
-          'O sistema de monitoramento automático de estoque registrou que o produto Disco de Freio Fremax BD1402 atingiu o nível crítico no depósito Zona Leste. Recomenda-se realizar pedido de transferência de estoque ou nova compra.',
-        type: 'warning',
-        category: 'estoque',
-        priority: 'alta',
-        link: '/commercial/inventory',
-        relatedEntity: {
-          module: 'Estoque',
-          entityId: 'PROD-BD1402',
-          route: '/commercial/inventory',
-          label: 'Ver Estoque Zona Leste',
-        },
-      },
-      {
-        title: 'Processamento de Catálogo Nakata Concluído',
-        description: 'Sincronização de 540 amortecedores e kits de suspensão realizada.',
-        fullMessage:
-          'A rotina de atualização do parceiro Nakata foi finalizada com êxito. Todos os 540 itens tiveram suas tabelas de dimensões e fotos associadas atualizadas para a versão 2026.',
-        type: 'success',
-        category: 'catalogo',
-        priority: 'media',
-        link: '/catalog/products',
-        relatedEntity: {
-          module: 'Catálogo',
-          entityId: 'SYNC-NAKATA-01',
-          route: '/catalog/products',
-          label: 'Ver Produtos Atualizados',
-        },
-      },
-      {
-        title: 'Novo Cruzamento OEM Validado pelo Sistema',
-        description: 'OEM Fiat 55268021 vinculado ao Filtro de Ar Tecfil ARL4152.',
-        fullMessage:
-          'O algoritmo de validação automática cruzou dados da montadora Fiat e confirmou a aplicação exata para os motores Firefly 1.0 e 1.3 Flex. Mapeamento ativado no catálogo.',
-        type: 'info',
-        category: 'compatibilidade',
-        priority: 'baixa',
-        link: '/compatibility/oem-codes',
-        relatedEntity: {
-          module: 'Compatibilidade OEM',
-          entityId: 'OEM-55268021',
-          route: '/compatibility/oem-codes',
-          label: 'Ver Mapeamento',
-        },
-      },
-      {
-        title: 'Erro de Validação na Importação #9012',
-        description: 'Falha ao processar 12 linhas com códigos de barras duplicados.',
-        fullMessage:
-          'A rotina automatizada de importação de arquivos CSV encontrou 12 linhas contendo EAN-13 duplicados na planilha tabela_fornecedor_2026.csv. Os itens foram isolados para correção manual.',
-        type: 'error',
-        category: 'importacao',
-        priority: 'alta',
-        link: '/imports',
-        relatedEntity: {
-          module: 'Importações',
-          entityId: 'IMP-ERR-9012',
-          route: '/imports',
-          label: 'Resolver Inconformidades',
-        },
-      },
-    ];
-
-    let chosen = presets[Math.floor(Math.random() * presets.length)];
-    if (eventPreset === 'estoque') chosen = presets[0];
-    if (eventPreset === 'catalogo') chosen = presets[1];
-    if (eventPreset === 'oem') chosen = presets[2];
-    if (eventPreset === 'importacao') chosen = presets[3];
-
-    const newNotification: AppNotification = {
-      ...chosen,
-      id: 'notif-sim-' + Date.now(),
-      createdAt: new Date().toISOString(),
-      timestamp: 'Agora mesmo',
-      read: false,
-    };
-
-    this.notifications.update((items) => {
-      const updated = [newNotification, ...items];
-      this.persist(updated);
-      return updated;
-    });
-
-    return newNotification;
-  }
-
-  resetToDefaults(): void {
-    this.notifications.set(this.defaultNotifications);
-    this.selectedIds.set([]);
-    this.searchQuery.set('');
-    this.statusFilter.set('all');
-    this.categoryFilter.set('all');
-    this.currentPage.set(1);
-    this.persist(this.defaultNotifications);
   }
 }

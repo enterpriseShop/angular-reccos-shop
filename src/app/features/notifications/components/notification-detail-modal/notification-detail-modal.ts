@@ -1,11 +1,12 @@
 import { Component, ChangeDetectionStrategy, input, output, inject, computed } from '@angular/core';
-import { Router } from '@angular/router';
-import { AppNotification } from '../../../../core/models/notification-mock.model';
+import { Router, RouterLink } from '@angular/router';
 import { NotificationMockService } from '../../../../core/utils/notification-mock';
 import { DialogComponent } from '../../../../design-system/dialog/dialog';
 import { ButtonComponent } from '../../../../design-system/button/button';
 import { AppIconComponent } from '../../../../design-system/icon/app-icon';
 import { BadgeComponent } from '../../../../design-system/badge/badge';
+import { NotificationDisplayResponse } from '../../../../core/models/notification/notification-display-response.model';
+import { DatePipe } from '@angular/common';
 
 const TYPE_ICON_MAP: Record<string, string> = {
   warning: 'alert-triangle',
@@ -15,12 +16,13 @@ const TYPE_ICON_MAP: Record<string, string> = {
   info: 'info',
 };
 
-const TYPE_BADGE_VARIANT_MAP: Record<string, 'warning' | 'success' | 'error' | 'info' | 'neutral'> = {
-  warning: 'warning',
-  success: 'success',
-  error: 'error',
-  info: 'info',
-};
+const TYPE_BADGE_VARIANT_MAP: Record<string, 'warning' | 'success' | 'error' | 'info' | 'neutral'> =
+  {
+    warning: 'warning',
+    success: 'success',
+    error: 'error',
+    info: 'info',
+  };
 
 const CATEGORY_LABEL_MAP: Record<string, string> = {
   estoque: 'Estoque',
@@ -40,18 +42,26 @@ const PRIORITY_LABEL_MAP: Record<string, string> = {
 @Component({
   selector: 'app-notification-detail-modal',
   standalone: true,
-  imports: [DialogComponent, ButtonComponent, AppIconComponent, BadgeComponent],
+  imports: [
+    DialogComponent,
+    ButtonComponent,
+    AppIconComponent,
+    BadgeComponent,
+    DatePipe,
+    RouterLink,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './notification-detail-modal.html',
 })
 export class NotificationDetailModalComponent {
-  readonly notification = input<AppNotification | null>(null);
-  readonly isOpen = input<boolean>(false);
-  readonly closeModal = output<void>();
-  readonly deleteRequested = output<string>();
-
-  readonly notificationMockService = inject(NotificationMockService);
   private readonly router = inject(Router);
+  readonly notificationMockService = inject(NotificationMockService);
+
+  readonly isOpen = input<boolean>(false);
+  readonly notification = input<NotificationDisplayResponse | null>(null);
+
+  readonly closeModal = output<void>();
+  readonly deleteRequested = output<NotificationDisplayResponse>();
 
   readonly typeIcon = computed(() => {
     const item = this.notification();
@@ -65,12 +75,12 @@ export class NotificationDetailModalComponent {
 
   readonly categoryLabel = computed(() => {
     const item = this.notification();
-    return item ? (CATEGORY_LABEL_MAP[item.category] ?? 'Geral') : 'Geral';
+    return item ? (CATEGORY_LABEL_MAP[item.type] ?? 'Geral') : 'Geral';
   });
 
   readonly priorityLabel = computed(() => {
     const item = this.notification();
-    return item ? (PRIORITY_LABEL_MAP[item.priority] ?? 'Normal') : 'Normal';
+    return item ? (PRIORITY_LABEL_MAP[item.message] ?? 'Normal') : 'Normal';
   });
 
   toggleRead(): void {
@@ -80,21 +90,18 @@ export class NotificationDetailModalComponent {
     }
   }
 
-  navigateToRelated(): void {
+  navigateToReference(): void {
     const item = this.notification();
-    if (item?.relatedEntity?.route) {
+    if (item?.reference?.route) {
       this.closeModal.emit();
-      this.router.navigateByUrl(item.relatedEntity.route);
-    } else if (item?.link) {
-      this.closeModal.emit();
-      this.router.navigateByUrl(item.link);
+      this.router.navigateByUrl(item.reference.route);
     }
   }
 
   requestDelete(): void {
     const item = this.notification();
     if (item) {
-      this.deleteRequested.emit(item.id);
+      this.deleteRequested.emit(item);
     }
   }
 }

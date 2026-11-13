@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
 import { ToolbarComponent } from '../../../design-system/toolbar/toolbar';
 import { SearchInputComponent } from '../../../design-system/input/search-input';
@@ -10,15 +11,15 @@ import { PaginationComponent } from '../../../design-system/pagination/paginatio
 import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
 import { AppIconComponent } from '../../../design-system/icon/app-icon';
 import { ToastService } from '../../../core/services/toast';
-import {
-  ProductResponse,
-} from '../../../core/models/products/product-response.model';
+import { ProductResponse } from '../../../core/models/products/product-response.model';
 import { ProductService } from '../../../core/services/product-service';
 import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
 import { productTableActions, productTableColumns } from '../../../utils/product-table-collum';
 import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
 import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
 import { ProductFilterRequest } from '../../../core/models/products/product-filter-request.model';
+import { BulkImporterComponent } from '../../../design-system/bulk-importer/bulk-importer';
+import { DialogComponent } from '../../../design-system/dialog/dialog';
 
 export interface ProductItem extends Record<string, unknown> {
   id: string;
@@ -36,15 +37,17 @@ export interface ProductItem extends Record<string, unknown> {
   selector: 'app-products-page',
   standalone: true,
   imports: [
-    PageHeaderComponent,
-    ToolbarComponent,
-    SearchInputComponent,
+    DialogComponent,
     SelectComponent,
     ButtonComponent,
+    AppIconComponent,
+    ToolbarComponent,
     DataTableComponent,
     PaginationComponent,
+    PageHeaderComponent,
+    SearchInputComponent,
+    BulkImporterComponent,
     ConfirmDialogComponent,
-    AppIconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './products.html',
@@ -54,13 +57,15 @@ export class ProductsPageComponent implements OnInit {
   private router = inject(Router);
   private toastService = inject(ToastService);
   private productService = inject(ProductService);
+  readonly isBulkImportOpen = signal<boolean>(false);
 
   readonly searchQuery = signal<string>('');
   readonly selectedStatus = signal<string>('');
   readonly selectedCategory = signal<string>('');
+
   readonly pageSize = signal<number>(10);
-  readonly currentPage = signal<number>(1);
   readonly totalItems = signal<number>(0);
+  readonly currentPage = signal<number>(1);
 
   readonly loading = signal<boolean>(false);
   readonly deleteDialogOpen = signal<boolean>(false);
@@ -177,5 +182,62 @@ export class ProductsPageComponent implements OnInit {
         break;
     }
   }
-}
 
+  async handleBulkImport(payload: any): Promise<unknown> {
+    if (payload && payload.products) {
+      return firstValueFrom(this.productService.importProducts(payload));
+    }
+    return Promise.resolve();
+  }
+
+  downloadProductTemplate(): void {
+    const csvContent =
+      'nome,codigo_interno,categoria,fabricante,unidade,origem,status\n' +
+      'Pastilha de Freio Dianteira,PF-1234,Freios,Bosch,Jogo,Nacional,Ativo';
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'produtos_template.csv';
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    this.toastService.info('Download', 'Template de importação gerado e baixado.');
+  }
+
+  downalodTemplateXLSX() {
+    this.productService.importLSXTemplate().subscribe({
+      next: (response: any) => {
+        const blob =
+          response instanceof Blob
+            ? response
+            : new Blob([response], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'produtos-modelo.xlsx';
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        this.toastService.info('Download', 'Template de importação XLSX baixado com sucesso.');
+      },
+      error: () => {
+        this.toastService.error(
+          'Erro no Download',
+          'Não foi possível baixar o template de importação.',
+        );
+      },
+    });
+  }
+}

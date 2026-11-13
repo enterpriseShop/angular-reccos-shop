@@ -86,7 +86,7 @@
         <div
           class="text-2xl font-bold text-gray-900 dark:text-slate-100 mt-1 font-mono tabular-nums"
         >
-          {{ notificationMockService.stats().total }}
+          {{ notificationMockService.totalItems() }}
         </div>
       </div>
       <div
@@ -96,7 +96,7 @@
       </div>
     </div>
 
-    <!-- Card 2: Unread (Highlight) -->
+    <!-- Card 2: Unread -->
     <div
       (click)="onStatusFilterChange('unread')"
       (keydown.enter)="onStatusFilterChange('unread')"
@@ -105,11 +105,13 @@
       class="p-4 rounded-xl bg-[#EAF4EE]/60 dark:bg-[#4F8A6B]/15 border border-[#4F8A6B]/30 shadow-xs flex items-center justify-between cursor-pointer hover:border-[#4F8A6B]/60 transition-colors"
     >
       <div>
-        <span class="text-xs font-semibold text-[#4F8A6B] dark:text-[#5BAE6A]">Não Lidas</span>
+        <span class="text-xs font-semibold text-[#4F8A6B] dark:text-[#5BAE6A]">
+          Pendentes / Não Lidas
+        </span>
         <div
           class="text-2xl font-bold text-[#38624C] dark:text-[#5BAE6A] mt-1 font-mono tabular-nums"
         >
-          {{ notificationMockService.stats().unread }}
+          {{ notificationMockService.unreadCount() }}
         </div>
       </div>
       <div
@@ -142,16 +144,16 @@
       </div>
     </div>
 
-    <!-- Card 4: High Priority -->
+    <!-- Card 4: Critical Severity -->
     <div
       class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-gray-200/80 dark:border-slate-700/80 shadow-xs flex items-center justify-between"
     >
       <div>
-        <span class="text-xs font-medium text-rose-600 dark:text-rose-400">Alta Prioridade</span>
+        <span class="text-xs font-medium text-rose-600 dark:text-rose-400">Gravidade Crítica</span>
         <div
           class="text-2xl font-bold text-rose-700 dark:text-rose-400 mt-1 font-mono tabular-nums"
         >
-          {{ notificationMockService.stats().highPriority }}
+          {{ notificationMockService.stats().critical }}
         </div>
       </div>
       <div
@@ -167,7 +169,7 @@
     class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-gray-200/80 dark:border-slate-700/80 shadow-xs space-y-4"
   >
     <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-      <!-- Search Input -->
+      <!-- Row 1: Search Input + Status Segmented Control -->
       <div class="flex-1 max-w-md">
         <app-search-input
           [value]="notificationMockService.searchQuery()"
@@ -175,11 +177,11 @@
           placeholder="Buscar por título, resumo ou módulo relacionado..."
         />
       </div>
-
-      <!-- Filter Controls -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <!-- Status Filter Segmented Control -->
-        <div class="flex items-center p-1 bg-gray-100 dark:bg-slate-700/80 rounded-lg shrink-0">
+      <!-- Read Status Segmented Control -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div
+          class="flex items-center p-1 bg-gray-100 dark:bg-slate-700/80 rounded-xl w-full sm:w-auto"
+        >
           <button
             type="button"
             (click)="onStatusFilterChange('all')"
@@ -190,9 +192,9 @@
             [class.shadow-xs]="notificationMockService.statusFilter() === 'all'"
             [class.text-gray-600]="notificationMockService.statusFilter() !== 'all'"
             [class.dark:text-slate-400]="notificationMockService.statusFilter() !== 'all'"
-            class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap"
+            class="flex-1 sm:flex-initial px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap text-center"
           >
-            Todas ({{ notificationMockService.stats().total }})
+            Todas
           </button>
 
           <button
@@ -205,9 +207,9 @@
             [class.shadow-xs]="notificationMockService.statusFilter() === 'unread'"
             [class.text-gray-600]="notificationMockService.statusFilter() !== 'unread'"
             [class.dark:text-slate-400]="notificationMockService.statusFilter() !== 'unread'"
-            class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap flex items-center gap-1.5"
+            class="flex-1 sm:flex-initial px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex items-center justify-center gap-1.5"
           >
-            Não Lidas @if (notificationMockService.stats().unread > 0) {
+            Não Lidas (unread) @if (notificationMockService.unreadCount() > 0) {
             <span class="w-2 h-2 rounded-full bg-[#4F8A6B]"></span>
             }
           </button>
@@ -222,68 +224,67 @@
             [class.shadow-xs]="notificationMockService.statusFilter() === 'read'"
             [class.text-gray-600]="notificationMockService.statusFilter() !== 'read'"
             [class.dark:text-slate-400]="notificationMockService.statusFilter() !== 'read'"
-            class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap"
+            class="flex-1 sm:flex-initial px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap text-center"
           >
-            Lidas
+            Lidas (read)
           </button>
         </div>
-
-        <!-- Category Dropdown Filter -->
-        <div class="w-48 shrink-0">
-          <app-select
-            [options]="categoryOptions"
-            [value]="notificationMockService.categoryFilter()"
-            (valueChange)="onCategoryFilterChange($event)"
-            placeholder="Categoria"
-          />
-        </div>
       </div>
     </div>
-
-    <!-- Bulk Selection Floating Bar (when items are selected) -->
-    @if (notificationMockService.selectedIds().length > 0) {
+    <!-- Row 2: Category, Severity, Active Status & Single Date Range Picker -->
     <div
-      class="p-3 rounded-lg bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 border border-[#4F8A6B]/40 flex items-center justify-between gap-3 flex-wrap"
+      class="pt-3 border-t border-gray-100 dark:border-slate-700/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end"
     >
-      <div class="flex items-center gap-2 text-xs font-semibold text-[#38624C] dark:text-[#5BAE6A]">
-        <app-icon name="check-square" size="w-4 h-4" />
-        <span>
-          {{ notificationMockService.selectedIds().length }} notificação(ões) selecionada(s)
+      <div>
+        <span class="block text-[11px] font-semibold text-gray-500 dark:text-slate-400 mb-1">
+          Categoria
         </span>
+        <app-select
+          [options]="categoryOptions"
+          [value]="notificationMockService.categoryFilter()"
+          (valueChange)="onCategoryFilterChange($event)"
+          placeholder="Categoria"
+        />
       </div>
 
-      <div class="flex items-center gap-2">
-        <app-button variant="ghost" size="sm" iconStart="check" (btnClick)="markSelectedAsRead()">
-          Marcar Lidas
-        </app-button>
-        <app-button
-          variant="ghost"
-          size="sm"
-          iconStart="eye-off"
-          (btnClick)="markSelectedAsUnread()"
-        >
-          Marcar Não Lidas
-        </app-button>
-        <app-button
-          variant="ghost"
-          size="sm"
-          iconStart="trash-2"
-          class="text-rose-600 dark:text-rose-400"
-          (btnClick)="confirmBulkDelete()"
-        >
-          Excluir
-        </app-button>
-        <div class="h-4 w-px bg-[#4F8A6B]/30 mx-1"></div>
-        <button
-          type="button"
-          (click)="notificationMockService.clearSelection()"
-          class="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
-        >
-          Limpar
-        </button>
+      <!-- Severity Dropdown -->
+      <div>
+        <span class="block text-[11px] font-semibold text-gray-500 dark:text-slate-400 mb-1">
+          Gravidade (Severity)
+        </span>
+        <app-select
+          [options]="severityOptions"
+          [value]="notificationMockService.severityFilter()"
+          (valueChange)="onSeverityFilterChange($event)"
+          placeholder="Gravidade"
+        />
+      </div>
+
+      <!-- Status de Resolução Dropdown -->
+      <div>
+        <span class="block text-[11px] font-semibold text-gray-500 dark:text-slate-400 mb-1">
+          Status de Resolução
+        </span>
+        <app-select
+          [options]="activeOptions"
+          [value]="notificationMockService.activeFilter()"
+          (valueChange)="onActiveFilterChange($event)"
+          placeholder="Ocorrência"
+        />
+      </div>
+
+      <!-- Single Item Date Range Picker -->
+      <div>
+        <app-date-range-picker
+          [dateFrom]="notificationMockService.dateFrom()"
+          [dateTo]="notificationMockService.dateTo()"
+          label="Período (Intervalo de Datas)"
+          placeholder="Filtrar por período..."
+          (rangeChange)="onDateRangeChange($event)"
+          (clearRange)="onDateRangeChange({ dateFrom: '', dateTo: '' })"
+        />
       </div>
     </div>
-    }
   </div>
 
   <!-- Notifications List Container -->
@@ -298,38 +299,40 @@
         <input
           type="checkbox"
           [checked]="isAllCurrentPageSelected()"
-          (change)="toggleSelectAll()"
+          (change)="toggleSelectAll($event)"
           class="w-4 h-4 rounded border-gray-300 text-[#4F8A6B] focus:ring-[#4F8A6B] cursor-pointer"
           title="Selecionar todos da página"
         />
         <span class="font-medium text-gray-700 dark:text-slate-300">Notificação / Conteúdo</span>
       </div>
 
-      <div class="hidden md:flex items-center gap-6">
+      <!-- <div class="hidden md:flex items-center gap-6">
         <span>Categoria</span>
         <span>Data & Horário</span>
         <span class="pr-2">Ações</span>
-      </div>
+      </div> -->
     </div>
 
     <!-- Notification Cards List -->
     <div class="divide-y divide-gray-100 dark:divide-slate-700/60">
       @for (item of notifications(); track item.id) {
       <div
-        (click)="openDetails(item, $event)"
-        (keydown.enter)="openDetails(item, $event)"
+        (click)="toggleSelect(item.id)"
+        (keydown.enter)="toggleSelect(item.id)"
         tabindex="0"
         role="button"
-        [class.bg-[#EAF4EE]/30]="!item.is_read"
-        [class.dark:bg-[#4F8A6B]/10]="!item.is_read"
-        class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer group relative"
+        class="flex items-start gap-3.5 flex-1 min-w-0 rounded-xl transition-colors duration-200 p-2"
+        [ngClass]="{
+          'bg-[#4F8A6B]/[0.08] border-b-2 border-[#4F8A6B]/35 dark:bg-[#4F8A6B]/[0.15]': selectedIds().includes(item.id),
+          'border-b-2 border-transparent': !selectedIds().includes(item.id)
+        }"
       >
         <!-- Left side: Checkbox, Icon, Title, Description -->
-        <div class="flex items-start gap-3.5 flex-1 min-w-0">
+        <div class="flex items-center gap-3.5 flex-1 min-w-0">
           <input
             type="checkbox"
-            [checked]="notificationMockService.selectedIds().includes(item.id)"
-            (click)="toggleSelect(item.id, $event)"
+            [checked]="selectedIds().includes(item.id)"
+            (click)="toggleSelect(item.id)"
             class="w-4 h-4 rounded border-gray-300 text-[#4F8A6B] focus:ring-[#4F8A6B] cursor-pointer mt-1 shrink-0"
           />
 
@@ -366,21 +369,21 @@
             <p class="text-xs text-gray-600 dark:text-slate-300 leading-normal line-clamp-2">
               {{ item.message }}
             </p>
-            ROTA DE NAVEGAÇÃO
+
             <!-- Related Module Tag (if present) -->
-            <!-- @if (item.relatedEntity) {
+            @if (item.reference.route) {
             <div class="mt-2 inline-flex items-center gap-1.5">
               <button
                 type="button"
-                (click)="navigateToRelated(item.relatedEntity.route, $event)"
+                (click)="navigateToRelated(item.reference.route, $event)"
                 class="text-[11px] font-medium text-[#4F8A6B] dark:text-[#5BAE6A] hover:underline flex items-center gap-1 bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 px-2 py-0.5 rounded-md border border-[#4F8A6B]/20"
               >
-                <app-icon name="link" size="w-3 h-3" />
-                <span>{{ item.relatedEntity.module }}: {{ item.relatedEntity.label }}</span>
+                <app-icon name="arrow-left" size="w-3 h-3" />
+                <span>{{ item.reference.type }}: {{ item.reference.id }}</span>
                 <app-icon name="arrow-right" size="w-3 h-3" />
               </button>
             </div>
-            } -->
+            }
           </div>
         </div>
 
@@ -395,16 +398,13 @@
             </span>
           </div>
 
-          <!-- Timestamp -->
           <div class="text-left md:text-right w-28 shrink-0">
             <span class="text-xs text-gray-400 dark:text-slate-500 font-mono">
-              {{ item.created_at }}
+              {{ item.created_at | date: 'dd/MM/yyy HH:mm' }}
             </span>
           </div>
 
-          <!-- Action Buttons -->
-          <div class="flex items-center gap-1 shrink-0">
-            <!-- Read / Unread Toggle Button -->
+          <!-- <div class="flex items-center gap-1 shrink-0">
             <button
               type="button"
               (click)="toggleRead(item, $event)"
@@ -414,7 +414,6 @@
               <app-icon [name]="item.is_read ? 'eye-off' : 'check-circle'" size="w-4 h-4" />
             </button>
 
-            <!-- View Details Button -->
             <button
               type="button"
               (click)="openDetails(item, $event)"
@@ -424,24 +423,15 @@
               <app-icon name="eye" size="w-4 h-4" />
             </button>
 
-            <!-- Delete Button -->
             <button
-              type="button"
-              (click)="confirmDelete()"
-              class="p-1.5 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-              title="Excluir notificação"
-            >
-              <app-icon name="trash-2" size="w-4 h-4" />
-            </button>
-            <!-- <button
               type="button"
               (click)="confirmDelete(item, $event)"
               class="p-1.5 text-gray-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
               title="Excluir notificação"
             >
               <app-icon name="trash-2" size="w-4 h-4" />
-            </button> -->
-          </div>
+            </button>
+          </div> -->
         </div>
       </div>
       } @empty {
@@ -474,10 +464,10 @@
 
 <!-- Notification Details Modal -->
 <app-notification-detail-modal
-  [isOpen]="!!notificationMockService.activeNotification()"
-  [notification]="notificationMockService.activeNotification()"
-  (closeModal)="notificationMockService.closeDetails()"
-  (deleteRequested)="confirmDelete()"
+  [isOpen]="activeNotification()"
+  [notification]="notificationSelected()"
+  (closeModal)="closeDetails()"
+  (deleteRequested)="confirmDelete($event)"
 />
 
 <!-- Delete Confirm Dialog -->

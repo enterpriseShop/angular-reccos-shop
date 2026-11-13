@@ -8,6 +8,12 @@ import { environment } from '../../../environments/environment';
 import { getAllResponse } from '../models/generals/general-responses-list.model';
 import { ProductFilterRequest } from '../models/products/product-filter-request.model';
 import { buildHttpParams } from './build-http-params';
+import {
+  ProductImportPayload,
+  ProductImportResponse,
+  ProductImportSchemaResponse,
+  ProductImportStatusResponse,
+} from '../models/products/product-import.model';
 
 @Injectable({
   providedIn: 'root',
@@ -45,5 +51,25 @@ export class ProductService {
 
   delete(id: string) {
     return this.http.delete(`${this.api}/${this.flag}/${id}`);
+  }
+
+  // Importação em massa
+
+  getImportSchema() {
+    return this.http.get<ProductImportSchemaResponse>(`${this.api}/${this.flag}/import-schema`);
+  }
+
+  importLSXTemplate() {
+    return this.http.get(`${this.api}/${this.flag}/import-template`, {
+      responseType: 'blob',
+    });
+  }
+
+  importProducts(payload: ProductImportPayload) {
+    return this.http.post<ProductImportResponse>(`${this.api}/${this.flag}/import`, payload);
+  }
+
+  getImportStatus(id: string) {
+    return this.http.get<ProductImportStatusResponse>(`${this.api}/${this.flag}/import/${id}`);
   }
 }

@@ -1,34 +1,109 @@
-export type NotificationType = 'info' | 'warning' | 'success' | 'error' | 'system';
-export type NotificationCategory =
-  'estoque' | 'importacao' | 'catalogo' | 'compatibilidade' | 'veiculos' | 'sistema';
-export type NotificationPriority = 'alta' | 'media' | 'baixa';
-export type NotificationReadFilter = 'all' | 'unread' | 'read';
+export type NotificationCategoryValue =
+  'STOCK' | 'PRODUCT' | 'PRICE' | 'IMPORT' | 'VEHICLE' | 'ADMIN' | 'SYSTEM' | 'AUDIT' | 'EXPORT';
 
-export interface NotificationRelatedEntity {
-  module: string; // e.g. 'Estoque', 'Produtos', 'Importações', 'OEM'
-  entityId?: string; // e.g. 'PROD-CT1028', 'IMP-8820'
-  route: string; // e.g. '/commercial/inventory', '/catalog/products'
-  label: string; // e.g. 'Ver Item no Estoque'
+export type NotificationSeverityValue = 'CRITICAL' | 'WARNING' | 'INFO' | 'SUCCESS';
+
+export interface NotificationCategory {
+  value: NotificationCategoryValue;
+  label: string;
+}
+
+export interface NotificationSeverity {
+  value: NotificationSeverityValue;
+  label: string;
+}
+
+export interface NotificationReference {
+  type: string;
+  id: string;
+  route?: string;
+  label?: string;
 }
 
 export interface AppNotification {
   id: string;
   title: string;
-  description: string;
-  fullMessage?: string;
-  timestamp: string; // Human readable date string, e.g. 'Hoje às 14:32'
-  createdAt: string; // ISO Date string for sorting
-  read: boolean;
-  type: NotificationType;
+  message: string;
   category: NotificationCategory;
-  priority: NotificationPriority;
-  link?: string;
-  relatedEntity?: NotificationRelatedEntity;
+  type: string;
+  severity: NotificationSeverity;
+  tags: string[];
+  origin: string;
+  reference: NotificationReference | null;
+  is_read: boolean;
+  read_at: string | null;
+  is_resolved: boolean;
+  resolved_at: string | null;
+  occurred_at: string;
+  created_at: string;
+  updated_at: string;
+
+  // Optional alias properties for template backwards compatibility
+  description?: string;
+  read?: boolean;
+}
+
+export interface NotificationQueryParams {
+  page?: number;
+  per_page?: number;
+  unread?: boolean;
+  read?: boolean;
+  category?: NotificationCategoryValue | 'all';
+  severity?: NotificationSeverityValue | 'all';
+  active?: boolean | null;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+export interface NotificationMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+}
+
+export interface NotificationLinks {
+  first: string;
+  last: string;
+  prev: string | null;
+  next: string | null;
+}
+
+export interface NotificationsListResponse {
+  success: boolean;
+  message: string;
+  data: AppNotification[];
+  meta: NotificationMeta;
+  links: NotificationLinks;
+}
+
+export interface NotificationSummaryResponse {
+  success: boolean;
+  message: string;
+  data: {
+    unread_count: number;
+    recent: AppNotification[];
+  };
+}
+
+export interface NotificationUnreadCountResponse {
+  success: boolean;
+  message: string;
+  data: {
+    unread_count: number;
+  };
+}
+
+export interface NotificationSingleResponse {
+  success: boolean;
+  message: string;
+  data: AppNotification;
 }
 
 export interface NotificationStats {
   total: number;
   unread: number;
   read: number;
-  highPriority: number;
+  critical: number;
 }

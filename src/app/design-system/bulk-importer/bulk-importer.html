@@ -1,0 +1,357 @@
+<div class="flex flex-col gap-5">
+  <!-- Header do Importador -->
+  <!-- Alerta Informativo: Recomendação do Template -->
+  @if (state() === 'idle') {
+  <div
+    class="flex items-start gap-3 p-3.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 text-blue-900 dark:text-blue-200 text-xs shadow-2xs"
+  >
+    <div
+      class="p-1 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-300 shrink-0 mt-0.5"
+    >
+      <app-icon name="info" size="w-4 h-4" />
+    </div>
+    <div class="space-y-0.5 flex-1">
+      <p class="font-bold text-blue-950 dark:text-blue-100 font-montserrat">
+        Dica para facilitar o preenchimento
+      </p>
+      <p class="text-blue-800/90 dark:text-blue-300/90 leading-relaxed">
+        Recomendamos baixar a nossa planilha modelo antes de preencher seus produtos. Ela já vem atualizada com as opções cadastradas no sistema (como categorias, marcas e unidades de medida) prontas para seleção, facilitando o processo e evitando divergências no envio.
+      </p>
+    </div>
+  </div>
+  }
+
+  <div
+    class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/60"
+  >
+    <div>
+      <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 font-montserrat">
+        {{ title() }}
+      </h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ description() }}</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <app-button
+        variant="secondary"
+        [disabled]="state() !== 'idle'"
+        (btnClick)="downloadTemplateXLSX.emit()"
+        class="text-xs"
+      >
+        <app-icon name="download" size="w-3.5 h-3.5" class="mr-1" />
+        Baixar Template (XLSX)
+      </app-button>
+    </div>
+  </div>
+
+  @switch (state()) {
+  <!-- 1. ESTADO IDLE: DROPZONE -->
+  @case ('idle') {
+  <div
+    class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl p-8 text-center hover:border-reccos-primary/60 dark:hover:border-reccos-primary/60 transition-all cursor-pointer bg-slate-50/50 dark:bg-slate-800/40"
+    (drop)="onDrop($event)"
+    (dragover)="$event.preventDefault()"
+  >
+    <input
+      type="file"
+      (change)="onFileSelected($event)"
+      class="hidden"
+      #fileInput
+      accept=".csv,.xlsx,.xls"
+    />
+    <div
+      (click)="fileInput.click()"
+      (keydown.enter)="fileInput.click()"
+      tabindex="0"
+      role="button"
+      class="flex flex-col items-center gap-3 select-none"
+    >
+      <div
+        class="w-12 h-12 rounded-full bg-reccos-light text-reccos-primary flex items-center justify-center"
+      >
+        <app-icon name="upload" size="w-6 h-6" />
+      </div>
+      <div class="space-y-1">
+        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+          Arraste ou clique para selecionar o arquivo
+        </span>
+        <p class="text-xs text-slate-400 dark:text-slate-500">
+          Formatos aceitos: Planilha Excel (
+          <span class="font-mono font-medium">.xlsx</span>
+          ) ou Texto (
+          <span class="font-mono font-medium">.csv</span>
+          )
+        </p>
+      </div>
+      <span
+        class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+      >
+        Limite: até 100 produtos por lote
+      </span>
+    </div>
+  </div>
+  }
+
+  <!-- 2. ESTADO PARSING: PROCESSANDO ARQUIVO -->
+  @case ('parsing') {
+  <div
+    class="p-10 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center gap-3 bg-white dark:bg-slate-800"
+  >
+    <app-icon name="loader" size="w-8 h-8" class="animate-spin text-reccos-primary" />
+    <span class="text-sm font-medium text-slate-700 dark:text-slate-200">
+      Lendo e validando {{ fileName() }}...
+    </span>
+  </div>
+  }
+
+  <!-- 3. ESTADO PREVIEW: TABELA E VALIDAÇÕES -->
+  @case ('preview') {
+  <div class="space-y-4" id="previewContainer">
+    <!-- Barra de Informações do Arquivo e Contadores -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80"
+    >
+      <div class="flex items-center gap-2.5">
+        <div
+          class="w-8 h-8 rounded-lg bg-reccos-light text-reccos-primary flex items-center justify-center shrink-0"
+        >
+          <app-icon name="layers" size="w-4 h-4" />
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 font-mono">
+              {{ fileName() }}
+            </span>
+            @if (fileSize()) {
+            <span class="text-[10px] text-slate-400 font-mono">({{ fileSize() }})</span>
+            }
+          </div>
+          <p class="text-[11px] text-slate-500">Pré-visualização dos dados importados</p>
+        </div>
+      </div>
+
+      <!-- Badges de Contagem -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 shadow-2xs"
+        >
+          Total:
+          <strong id="rowCount">{{ totalRows() }}</strong>
+          / 100
+        </span>
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
+        >
+          Válidos:
+          <strong>{{ validRows().length }}</strong>
+        </span>
+        @if (invalidRows().length > 0) {
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
+        >
+          Incorretos:
+          <strong>{{ invalidRows().length }}</strong>
+        </span>
+        }
+      </div>
+    </div>
+
+    <!-- Alertas de Validação do Lote (alertBox) -->
+    @if (batchError()) {
+    <div
+      class="p-3.5 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 flex items-start gap-2.5 text-xs"
+    >
+      <app-icon name="alert-circle" size="w-4 h-4" class="shrink-0 mt-0.5 text-rose-600" />
+      <div class="flex-1 font-medium">{{ batchError() }}</div>
+    </div>
+    } @else if (errorMessage()) {
+    <div
+      class="p-3.5 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 flex items-start gap-2.5 text-xs"
+    >
+      <app-icon name="alert-circle" size="w-4 h-4" class="shrink-0 mt-0.5 text-rose-600" />
+      <div class="flex-1 font-medium">{{ errorMessage() }}</div>
+    </div>
+    } @else if (invalidRows().length > 0) {
+    <div
+      class="p-3.5 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 flex items-start gap-2.5 text-xs"
+    >
+      <app-icon name="alert-circle" size="w-4 h-4" class="shrink-0 mt-0.5 text-amber-600" />
+      <div class="flex-1">
+        Atenção:
+        <strong>{{ invalidRows().length }}</strong>
+        linha(s) possuem campos obrigatórios ausentes ou valores inválidos. Corrija o arquivo antes
+        de enviar.
+      </div>
+    </div>
+    } @else {
+    <div
+      class="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 flex items-center gap-2.5 text-xs"
+    >
+      <app-icon name="check-circle" size="w-4 h-4" class="shrink-0 text-emerald-600" />
+      <div class="flex-1">
+        Tudo pronto! Todas as
+        <strong>{{ totalRows() }}</strong>
+        linhas foram validadas com sucesso.
+      </div>
+    </div>
+    }
+
+    <!-- Tabela de Pré-visualização -->
+    <div
+      class="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs"
+    >
+      <div class="max-h-[300px] overflow-auto custom-scrollbar">
+        <table class="w-full text-left text-xs font-inter border-collapse min-w-[760px]">
+          <thead
+            class="sticky top-0 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 z-10"
+          >
+            <tr
+              class="text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-montserrat"
+              id="tableHeader"
+            >
+              <th class="py-2.5 px-3 w-12 text-center">#</th>
+              <th class="py-2.5 px-3 w-24">Status</th>
+              <th class="py-2.5 px-3">Cód. Interno</th>
+              <th class="py-2.5 px-3">Nome do Produto</th>
+              <th class="py-2.5 px-3">Categoria</th>
+              <th class="py-2.5 px-3">Fabricante</th>
+              <th class="py-2.5 px-3">Origem</th>
+              <th class="py-2.5 px-3">Unidade</th>
+              <th class="py-2.5 px-3">Cód. Barras</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800" id="tableBody">
+            @for (row of previewRows(); track row.index) {
+            <tr
+              [class]="row.errors.length > 0 ? 'bg-rose-50/40 dark:bg-rose-950/20 hover:bg-rose-50/70' : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50'"
+              class="transition-colors text-slate-700 dark:text-slate-300"
+            >
+              <td class="py-2 px-3 text-center font-mono text-slate-400 text-[11px]">
+                {{ row.index }}
+              </td>
+              <td class="py-2 px-3">
+                @if (row.errors.length === 0) {
+                <span
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                >
+                  Válido
+                </span>
+                } @else {
+                <span
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 cursor-help"
+                  [title]="row.errors.join(', ')"
+                >
+                  {{ row.errors.length }} erro(s)
+                </span>
+                }
+              </td>
+              <td
+                class="py-2 px-3 font-mono font-semibold"
+                [class.text-rose-600]="!row.internal_code"
+              >
+                {{ row.internal_code || '—' }}
+              </td>
+              <td
+                class="py-2 px-3 max-w-xs truncate"
+                [class.text-rose-600]="!row.name"
+                [title]="row.name"
+              >
+                {{ row.name || '—' }}
+              </td>
+              <td class="py-2 px-3" [class.text-rose-600]="!row.category_id">
+                {{ row.category_id || '—' }}
+              </td>
+              <td class="py-2 px-3" [class.text-rose-600]="!row.manufacturer_id">
+                {{ row.manufacturer_id || '—' }}
+              </td>
+              <td class="py-2 px-3" [class.text-rose-600]="!row.part_origin_id">
+                {{ row.part_origin_id || '—' }}
+              </td>
+              <td class="py-2 px-3" [class.text-rose-600]="!row.unit_id">
+                {{ row.unit_id || '—' }}
+              </td>
+              <td class="py-2 px-3 font-mono text-slate-500">{{ row.barcode || 'null' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Ações do Preview -->
+    <div class="flex items-center justify-between pt-2">
+      <app-button variant="secondary" (btnClick)="reset()">Trocar Arquivo</app-button>
+
+      <app-button variant="primary" [disabled]="!canSubmit()" (btnClick)="submitBatch()">
+        <app-icon name="check" size="w-4 h-4" class="mr-1" />
+        Enviar Lote ({{ totalRows() }} itens)
+      </app-button>
+    </div>
+  </div>
+  }
+
+  <!-- 4. ESTADO SUBMITTING: ENVIANDO LOTE -->
+  @case ('submitting') {
+  <div
+    class="p-10 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center gap-3 bg-white dark:bg-slate-800"
+  >
+    <app-icon name="loader" size="w-8 h-8" class="animate-spin text-reccos-primary" />
+    <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+      Enviando lote para o servidor (POST /api/product/import)...
+    </span>
+    <p class="text-xs text-slate-400">
+      Aguardando confirmação de processamento assíncrono (202 Accepted)
+    </p>
+  </div>
+  }
+
+  <!-- 5. ESTADO SUCCESS: PROCESS ID E FEEDBACK -->
+  @case ('success') {
+  <div
+    class="p-8 border border-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl flex flex-col gap-4"
+  >
+    <div class="flex items-start gap-3">
+      <div
+        class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/60 flex items-center justify-center shrink-0"
+      >
+        <app-icon name="check-circle" size="w-6 h-6" />
+      </div>
+      <div class="space-y-1">
+        <h4 class="text-sm font-bold text-emerald-900 dark:text-emerald-200 font-montserrat">
+          Lote Recebido com Sucesso!
+        </h4>
+        <p class="text-xs text-emerald-700 dark:text-emerald-300">
+          O lote de produtos foi aceito e enfileirado para processamento assíncrono.
+        </p>
+        @if (processId()) {
+        <div
+          class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-700 text-xs font-mono font-bold text-slate-800 dark:text-slate-200"
+        >
+          <span>Process ID:</span>
+          <span class="text-reccos-primary">{{ processId() }}</span>
+        </div>
+        }
+      </div>
+    </div>
+
+    <div class="flex justify-end pt-2 border-t border-emerald-200/60 dark:border-emerald-800/40">
+      <app-button variant="secondary" (btnClick)="reset()">Importar Outro Arquivo</app-button>
+    </div>
+  </div>
+  }
+
+  <!-- 6. ESTADO ERROR -->
+  @case ('error') {
+  <div
+    class="p-8 border border-rose-200 bg-rose-50 dark:bg-rose-950/40 rounded-xl flex flex-col gap-3"
+  >
+    <div class="flex items-center gap-3 text-rose-700 dark:text-rose-300">
+      <app-icon name="alert-circle" size="w-5 h-5" />
+      <span class="text-sm font-semibold">Falha na Leitura ou Importação</span>
+    </div>
+    <p class="text-xs text-rose-600 dark:text-rose-400">{{ errorMessage() }}</p>
+    <div class="flex justify-end">
+      <app-button variant="secondary" (btnClick)="reset()">Tentar Novamente</app-button>
+    </div>
+  </div>
+  } }
+</div>
