@@ -1,0 +1,544 @@
+<div class="space-y-6">
+  <!-- Header da Seção de Contatos -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[12px] border border-gray-200/80 dark:border-slate-700/80 p-6 shadow-2xs"
+  >
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <span class="text-xs font-semibold text-slate-400 font-inter">Fornecedor:</span>
+          <h2 class="text-base font-bold text-slate-900 dark:text-slate-100 font-montserrat">
+            {{ supplierName() }}
+          </h2>
+          <span
+            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
+            [class]="
+              supplierActive()
+                ? 'bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A]'
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+            "
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full"
+              [class]="supplierActive() ? 'bg-[#5BAE6A]' : 'bg-slate-400'"
+            ></span>
+            {{ supplierActive() ? 'Ativo' : 'Inativo' }}
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1 text-xs text-slate-500 dark:text-slate-400">
+          <app-icon name="team" class="text-[#4F8A6B]" />
+          <span class="font-bold text-slate-800 dark:text-slate-200 font-montserrat">Contatos</span>
+          <span class="text-slate-300 dark:text-slate-600">•</span>
+          <span class="font-medium text-slate-600 dark:text-slate-300 font-mono">
+            {{ totalCount() }} cadastrado{{ totalCount() !== 1 ? 's' : '' }} ({{ activeCount() }}
+            ativo{{ activeCount() !== 1 ? 's' : '' }})
+          </span>
+        </div>
+      </div>
+
+      <!-- Ações do Topo -->
+      @if (!isReadOnly()) {
+      <div class="flex items-center gap-3">
+        <app-button
+          variant="primary"
+          iconStart="add"
+          (btnClick)="openCreateModal()"
+          class="shadow-xs text-xs"
+        >
+          Adicionar Contato
+        </app-button>
+      </div>
+      }
+    </div>
+
+    <!-- Barra de Filtros e Busca -->
+    <div
+      class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700/60 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+    >
+      <div class="flex-1 max-w-md">
+        <app-search-input
+          [value]="searchQuery()"
+          (valueChange)="searchQuery.set($event)"
+          placeholder="Buscar por nome, e-mail, cargo, telefone..."
+        />
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Filtro por Status -->
+        <div
+          class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-700/50 p-1 text-xs font-medium text-slate-600 dark:text-slate-300"
+        >
+          <button
+            type="button"
+            (click)="selectedStatusFilter.set('all')"
+            [class]="selectedStatusFilter() === 'all' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-2xs font-semibold' : 'hover:text-slate-900'"
+            class="px-2.5 py-1 rounded-md transition-all"
+          >
+            Todos ({{ totalCount() }})
+          </button>
+          <button
+            type="button"
+            (click)="selectedStatusFilter.set('active')"
+            [class]="selectedStatusFilter() === 'active' ? 'bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 shadow-2xs font-semibold' : 'hover:text-slate-900'"
+            class="px-2.5 py-1 rounded-md transition-all"
+          >
+            Ativos ({{ activeCount() }})
+          </button>
+          <button
+            type="button"
+            (click)="selectedStatusFilter.set('inactive')"
+            [class]="selectedStatusFilter() === 'inactive' ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-2xs font-semibold' : 'hover:text-slate-900'"
+            class="px-2.5 py-1 rounded-md transition-all"
+          >
+            Inativos ({{ totalCount() - activeCount() }})
+          </button>
+        </div>
+
+        <!-- Filtro por Departamento -->
+        <select
+          [value]="selectedDepartmentFilter()"
+          (change)="selectedDepartmentFilter.set($any($event.target).value)"
+          class="text-xs rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4F8A6B]"
+        >
+          <option value="all">Todos os Departamentos</option>
+          @for (dept of departmentOptions; track dept.value) {
+          <option [value]="dept.value">{{ dept.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de Cards dos Contatos -->
+  @if (filteredContacts().length > 0) {
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    @for (contact of filteredContacts(); track contact.id) {
+    <div
+      class="bg-white dark:bg-slate-800 rounded-[12px] border transition-all flex flex-col justify-between overflow-hidden shadow-2xs relative"
+      [class]="
+        contact.is_primary && contact.active
+          ? 'border-[#4F8A6B] ring-1 ring-[#4F8A6B]/20'
+          : 'border-slate-200/80 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600'
+      "
+      [class.opacity-60]="!contact.active"
+    >
+      <!-- Faixa de Destaque para Contato Principal -->
+      @if (contact.is_primary && contact.active) {
+      <div
+        class="bg-[#EAF4EE] dark:bg-[#4F8A6B]/20 px-4 py-1.5 border-b border-[#4F8A6B]/20 flex items-center justify-between"
+      >
+        <span
+          class="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#4F8A6B] font-montserrat"
+        >
+          <app-icon name="check" size="w-3.5 h-3.5" />
+          Contato Principal
+        </span>
+        <span class="text-[10px] text-slate-500 font-mono">Padrão p/ Pedidos e Avisos</span>
+      </div>
+      }
+
+      <!-- Conteúdo do Card -->
+      <div class="p-5 space-y-4 flex-1">
+        <!-- Topo do Card: Avatar, Nome, Cargo e Badges -->
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center font-montserrat font-bold text-xs shrink-0"
+              [class]="
+                contact.active
+                  ? 'bg-[#EAF4EE] text-[#4F8A6B] border border-[#4F8A6B]/30'
+                  : 'bg-slate-100 text-slate-400 dark:bg-slate-700'
+              "
+            >
+              {{ contact.name.substring(0, 2).toUpperCase() }}
+            </div>
+            <div>
+              <h3
+                class="text-sm font-bold text-slate-900 dark:text-slate-100 font-montserrat leading-tight"
+              >
+                {{ contact.name }}
+              </h3>
+              @if (contact.role) {
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ contact.role }}</p>
+              }
+            </div>
+          </div>
+
+          <!-- Badge de Status -->
+          <span
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
+            [class]="
+              contact.active
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+            "
+          >
+            {{ contact.active ? 'Ativo' : 'Inativo' }}
+          </span>
+        </div>
+
+        <!-- Badges de Identificação (Departamento) -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border font-montserrat"
+            [class]="getDepartmentBadge(contact.department)"
+          >
+            {{ getDepartmentLabel(contact.department) }}
+          </span>
+
+          @if (contact.is_primary && !contact.active) {
+          <span
+            class="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+          >
+            Principal (Inativo)
+          </span>
+          }
+        </div>
+
+        <!-- Informações de Contato -->
+        <div
+          class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300"
+        >
+          <!-- E-mail -->
+          <div class="flex items-center gap-2">
+            <app-icon name="mail" size="w-3.5 h-3.5" class="text-slate-400 shrink-0" />
+            <a
+              [href]="'mailto:' + contact.email"
+              class="hover:text-[#4F8A6B] hover:underline truncate"
+              [title]="contact.email"
+            >
+              {{ contact.email }}
+            </a>
+          </div>
+
+          <!-- Celular / WhatsApp -->
+          @if (contact.mobile) {
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <app-icon name="smartphone" size="w-3.5 h-3.5" class="text-slate-400 shrink-0" />
+              <span class="font-mono font-medium">{{ contact.mobile }}</span>
+            </div>
+
+            @if (contact.has_whatsapp) {
+            <a
+              [href]="getWhatsAppLink(contact.mobile)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800 transition-colors"
+              title="Iniciar conversa no WhatsApp"
+            >
+              <app-icon name="whatsapp" variant="fill" class="text-emerald-600" />
+              WhatsApp
+            </a>
+            }
+          </div>
+          }
+
+          <!-- Telefone Fixo e Ramal -->
+          @if (contact.phone) {
+          <div class="flex items-center gap-2">
+            <app-icon name="phone" size="w-3.5 h-3.5" class="text-slate-400 shrink-0" />
+            <span class="font-mono text-slate-500">{{ contact.phone }}</span>
+            @if (contact.extension) {
+            <span
+              class="font-mono text-[11px] text-slate-400 bg-slate-100 dark:bg-slate-700 px-1 rounded"
+            >
+              Ramal {{ contact.extension }}
+            </span>
+            }
+          </div>
+          }
+
+          <!-- Observações -->
+          @if (contact.notes) {
+          <div class="pt-1.5 flex items-start gap-1.5 text-[11px] text-slate-400">
+            <app-icon name="file-text" size="w-3 h-3" class="shrink-0 mt-0.5" />
+            <span class="line-clamp-2" [title]="contact.notes">{{ contact.notes }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Rodapé de Ações do Card -->
+      @if (!isReadOnly()) {
+      <div
+        class="px-4 py-2.5 bg-slate-50/70 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs"
+      >
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="openEditModal(contact)"
+            class="font-semibold text-slate-700 dark:text-slate-300 hover:text-[#4F8A6B] hover:underline"
+          >
+            Editar
+          </button>
+          <span class="text-slate-300 dark:text-slate-600">•</span>
+          <button
+            type="button"
+            (click)="toggleStatus(contact)"
+            class="font-semibold hover:underline"
+            [class]="contact.active ? 'text-slate-500 hover:text-amber-600' : 'text-emerald-700 hover:text-emerald-800 font-bold'"
+          >
+            {{ contact.active ? 'Desativar' : 'Reativar' }}
+          </button>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          @if (!contact.is_primary && contact.active) {
+          <button
+            type="button"
+            (click)="setAsPrimary(contact)"
+            class="text-[11px] font-semibold text-slate-500 hover:text-[#4F8A6B] px-2 py-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            title="Tornar este o contato principal do fornecedor"
+          >
+            Tornar Principal
+          </button>
+          }
+
+          <button
+            type="button"
+            (click)="confirmDelete(contact)"
+            class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+            title="Remover contato permanentemente"
+          >
+            <app-icon name="delete-bin" />
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+  } @else {
+  <!-- Estado Vazio / Nenhum Contato Encontrado -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-[12px] border border-dashed border-slate-200 dark:border-slate-700 p-12 text-center flex flex-col items-center justify-center gap-3"
+  >
+    <div
+      class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 flex items-center justify-center"
+    >
+      <app-icon name="team" size="2x" />
+    </div>
+    <div class="space-y-1">
+      <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 font-montserrat">
+        Nenhum contato encontrado
+      </h3>
+      <p class="text-xs text-slate-400 max-w-sm">
+        @if (searchQuery() || selectedDepartmentFilter() !== 'all' || selectedStatusFilter() !==
+        'all') { Nenhum contato corresponde aos filtros aplicados. Tente limpar os filtros de busca.
+        } @else { Este fornecedor ainda não possui contatos cadastrados. }
+      </p>
+    </div>
+    @if (!isReadOnly()) {
+    <app-button variant="outline" size="sm" iconStart="add" (btnClick)="openCreateModal()">
+      Cadastrar Primeiro Contato
+    </app-button>
+    }
+  </div>
+  }
+</div>
+
+<!-- Modal de Adicionar / Editar Contato -->
+<app-dialog
+  [isOpen]="isModalOpen()"
+  [title]="editingContactId() ? 'Editar Contato' : 'Adicionar Novo Contato'"
+  size="lg"
+  (closeDialog)="closeModal()"
+>
+  <div class="space-y-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Nome Completo -->
+      <div class="md:col-span-2">
+        <app-input
+          label="Nome Completo *"
+          placeholder="Ex: João Silva"
+          [value]="formName()"
+          [error]="formErrors()['name']"
+          (valueChange)="formName.set($event)"
+        />
+      </div>
+
+      <!-- Departamento / Tipo -->
+      <div class="space-y-1.5">
+        <label
+          for="deptoType"
+          class="block text-xs font-semibold text-slate-700 dark:text-slate-300 font-inter"
+        >
+          Departamento / Área *
+        </label>
+        <select
+          [value]="formDepartment()"
+          id="deptoType"
+          (change)="formDepartment.set($any($event.target).value)"
+          class="w-full px-3 py-2 text-sm rounded-[8px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B]"
+        >
+          @for (dept of departmentOptions; track dept.value) {
+          <option [value]="dept.value">{{ dept.label }}</option>
+          }
+        </select>
+        <p class="text-[10px] text-slate-400">
+          Classificação para direcionamento de chamados e pedidos.
+        </p>
+      </div>
+
+      <!-- Cargo / Função -->
+      <div>
+        <app-input
+          label="Cargo / Função"
+          placeholder="Ex: Gerente Comercial"
+          [value]="formRole()"
+          (valueChange)="formRole.set($event)"
+        />
+      </div>
+
+      <!-- E-mail -->
+      <div class="md:col-span-2">
+        <app-input
+          label="E-mail *"
+          type="email"
+          placeholder="exemplo@empresa.com.br"
+          [value]="formEmail()"
+          [error]="formErrors()['email']"
+          iconPrefix="mail"
+          (valueChange)="formEmail.set($event)"
+        />
+      </div>
+
+      <!-- Celular e WhatsApp (Ajuste identificado) -->
+      <div>
+        <app-input
+          label="Celular Comercial"
+          placeholder="(00) 90000-0000"
+          [value]="formMobile()"
+          iconPrefix="smartphone"
+          (valueChange)="formMobile.set($event)"
+        />
+      </div>
+
+      <!-- Checkbox WhatsApp -->
+      <div class="flex flex-col justify-end pb-1.5">
+        <label class="flex items-center gap-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            [checked]="formHasWhatsapp()"
+            (change)="formHasWhatsapp.set($any($event.target).checked)"
+            class="w-4 h-4 rounded text-[#4F8A6B] focus:ring-[#4F8A6B] border-slate-300 cursor-pointer"
+          />
+          <div>
+            <span
+              class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1"
+            >
+              <app-icon name="whatsapp" variant="fill" class="text-emerald-600" />
+              Número com WhatsApp Ativo
+            </span>
+            <p class="text-[10px] text-slate-400">Habilita botão de conversa direta no card.</p>
+          </div>
+        </label>
+      </div>
+
+      <!-- Telefone Fixo -->
+      <div>
+        <app-input
+          label="Telefone Fixo"
+          placeholder="(00) 0000-0000"
+          [value]="formPhone()"
+          iconPrefix="phone"
+          (valueChange)="formPhone.set($event)"
+        />
+      </div>
+
+      <!-- Ramal -->
+      <div>
+        <app-input
+          label="Ramal"
+          placeholder="Ex: 104"
+          [value]="formExtension()"
+          (valueChange)="formExtension.set($event)"
+        />
+      </div>
+
+      <!-- Observações -->
+      <div class="md:col-span-2 space-y-1.5">
+        <label
+          for="formNotes"
+          class="block text-xs font-semibold text-slate-700 dark:text-slate-300 font-inter"
+        >
+          Observações Internas (Opcional)
+        </label>
+        <textarea
+          rows="2"
+          id="formNotes"
+          [value]="formNotes()"
+          (input)="formNotes.set($any($event.target).value)"
+          placeholder="Ex: Responsável pela região Sudeste, atendimento somente no período da manhã."
+          class="w-full px-3 py-2 text-xs rounded-[8px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4F8A6B]/20 focus:border-[#4F8A6B] transition-colors"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Toggles de Configuração -->
+    <div class="pt-4 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
+      <!-- Contato Principal -->
+      <div
+        class="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-200/80 dark:border-slate-700/80"
+      >
+        <div>
+          <span
+            class="text-xs font-bold text-slate-900 dark:text-slate-100 font-montserrat flex items-center gap-1.5"
+          >
+            <app-icon name="check" size="w-3.5 h-3.5" class="text-[#4F8A6B]" />
+            Definir como Contato Principal
+          </span>
+          <p class="text-[11px] text-slate-500">
+            Será o contato padrão para envio de cotações e ordens de compra. Desmarca qualquer outro
+            principal ativo.
+          </p>
+        </div>
+        <input
+          type="checkbox"
+          [checked]="formIsPrimary()"
+          (change)="formIsPrimary.set($any($event.target).checked)"
+          class="w-4 h-4 rounded text-[#4F8A6B] focus:ring-[#4F8A6B] border-slate-300 cursor-pointer"
+        />
+      </div>
+
+      <!-- Status Ativo -->
+      <div class="flex items-center justify-between px-3 py-2">
+        <div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">
+            Contato Ativo
+          </span>
+          <p class="text-[11px] text-slate-400">
+            Disponível para seleção nas operações do catálogo.
+          </p>
+        </div>
+        <input
+          type="checkbox"
+          [checked]="formActive()"
+          (change)="formActive.set($any($event.target).checked)"
+          class="w-4 h-4 rounded text-[#4F8A6B] focus:ring-[#4F8A6B] border-slate-300 cursor-pointer"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div footer class="flex items-center justify-end gap-3 w-full">
+    <app-button variant="secondary" (btnClick)="closeModal()">Cancelar</app-button>
+    <app-button variant="primary" (btnClick)="saveContact()">
+      {{ editingContactId() ? 'Salvar Alterações' : 'Adicionar Contato' }}
+    </app-button>
+  </div>
+</app-dialog>
+
+<!-- Modal de Confirmação de Exclusão -->
+<app-confirm-dialog
+  [isOpen]="isDeleteDialogOpen()"
+  title="Excluir Contato"
+  [message]="'Tem certeza de que deseja remover permanentemente o contato ' + (contactToDelete()?.name || '') + '? Recomenda-se desativar o contato para preservar o histórico comercial.'"
+  type="danger"
+  confirmText="Excluir Permanentemente"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="isDeleteDialogOpen.set(false)"
+/>

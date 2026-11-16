@@ -1,0 +1,375 @@
+<!-- Page Header -->
+<app-page-header
+  [title]="pageTitle()"
+  [subtitle]="pageSubtitle()"
+  [breadcrumbs]="breadcrumbs()"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="outline" size="sm" iconStart="arrow-left" (btnClick)="goBack()">
+      Voltar
+    </app-button>
+    @if (supplierSignal()) {
+      <app-button variant="secondary" size="sm" iconStart="edit" (btnClick)="openEditDrawer()">
+        Editar Fornecedor
+      </app-button>
+    }
+  </div>
+</app-page-header>
+
+@if (loadingSignal()) {
+  <!-- Skeleton Loading State -->
+  <div class="space-y-4 animate-pulse">
+    <div class="bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+        <div class="space-y-2">
+          <div class="h-4 w-56 bg-slate-200 dark:bg-slate-700 rounded"></div>
+          <div class="h-3 w-40 bg-slate-100 dark:bg-slate-700/60 rounded"></div>
+        </div>
+      </div>
+      <div class="h-7 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200/80 dark:border-slate-700/80 h-64"></div>
+      <div class="bg-white dark:bg-slate-800 rounded-xl p-6 border border-gray-200/80 dark:border-slate-700/80 h-64"></div>
+    </div>
+  </div>
+} @else if (errorSignal()) {
+  <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700/80">
+    <app-error-state
+      title="Fornecedor não encontrado"
+      [message]="errorSignal()!"
+      (retry)="loadSupplier()"
+    />
+  </div>
+} @else if (supplierSignal(); as supplier) {
+  <div class="space-y-5">
+    <!-- Context Bar + Tab Navigation -->
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700/80 overflow-hidden">
+      <!-- Supplier Summary Strip -->
+      <div class="px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-slate-700/70">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div class="w-11 h-11 rounded-xl bg-[#4F8A6B]/12 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center shrink-0">
+            <lucide-icon [img]="icons.Building2" [size]="22" />
+          </div>
+          <div class="min-w-0 space-y-0.5">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <span class="text-sm font-bold text-gray-900 dark:text-slate-100 truncate">
+                {{ supplier.trade_name || supplier.corporate_name }}
+              </span>
+              <span
+                class="inline-flex items-center gap-1.5 text-xs font-semibold"
+                [class]="isSupplierActive() ? 'text-[#4F8A6B] dark:text-[#5BAE6A]' : 'text-slate-500 dark:text-slate-400'"
+              >
+                @if (isSupplierActive()) {
+                  <lucide-icon [img]="icons.CheckCircle2" [size]="14" />
+                } @else {
+                  <lucide-icon [img]="icons.XCircle" [size]="14" />
+                }
+                <span>{{ statusLabel() }}</span>
+              </span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap text-xs text-gray-500 dark:text-slate-400">
+              <span>{{ supplier.corporate_name }}</span>
+              @if (supplier.document) {
+                <span aria-hidden="true">·</span>
+                <span class="font-mono tabular-nums">{{ supplier.document }}</span>
+              }
+              @if (supplier.city && supplier.state) {
+                <span aria-hidden="true">·</span>
+                <span>{{ supplier.city }}/{{ supplier.state }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 text-xs text-gray-600 dark:text-slate-300 shrink-0 tabular-nums">
+          <div class="text-left md:text-right">
+            <span class="text-[11px] text-gray-400 dark:text-slate-500 block">Contatos</span>
+            <span class="font-semibold text-gray-900 dark:text-slate-100">
+              {{ contactsCount() }} ({{ activeContactsCount() }} ativos)
+            </span>
+          </div>
+          <div class="h-7 w-px bg-gray-200 dark:bg-slate-700"></div>
+          <div class="text-left md:text-right">
+            <span class="text-[11px] text-gray-400 dark:text-slate-500 block">Produtos Vinculados</span>
+            <span class="font-semibold text-gray-900 dark:text-slate-100">
+              {{ supplier.products_count ?? 0 }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs Bar -->
+      <nav class="px-5 flex items-center gap-6 bg-slate-50/60 dark:bg-slate-900/30" aria-label="Seções do fornecedor">
+        <button
+          type="button"
+          (click)="setActiveTab('overview')"
+          class="relative py-3 text-xs font-semibold inline-flex items-center gap-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer border-b-2"
+          [class]="activeTabSignal() === 'overview'
+            ? 'border-[#4F8A6B] text-[#4F8A6B] dark:text-[#5BAE6A]'
+            : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'"
+        >
+          <lucide-icon [img]="icons.Building2" [size]="15" />
+          <span>Visão Geral</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setActiveTab('contacts')"
+          class="relative py-3 text-xs font-semibold inline-flex items-center gap-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer border-b-2"
+          [class]="activeTabSignal() === 'contacts'
+            ? 'border-[#4F8A6B] text-[#4F8A6B] dark:text-[#5BAE6A]'
+            : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'"
+        >
+          <lucide-icon [img]="icons.Users" [size]="15" />
+          <span>Contatos</span>
+          <span
+            class="px-1.5 py-0.5 rounded-md text-[11px] font-semibold tabular-nums"
+            [class]="activeTabSignal() === 'contacts'
+              ? 'bg-[#EAF4EE] text-[#4F8A6B] dark:bg-[#4F8A6B]/20 dark:text-[#5BAE6A]'
+              : 'bg-gray-200/80 text-gray-600 dark:bg-slate-700 dark:text-slate-300'"
+          >
+            {{ contactsCount() }}
+          </span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- TAB 1: Visão Geral -->
+    @if (activeTabSignal() === 'overview') {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Left 2 Columns: Master Supplier Information -->
+        <div class="lg:col-span-2 space-y-5">
+          <!-- Dados Empresariais & Fiscais -->
+          <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200/80 dark:border-slate-700/80 space-y-4">
+            <div class="flex items-center gap-2 pb-2.5 border-b border-gray-100 dark:border-slate-700/60">
+              <lucide-icon [img]="icons.Building2" [size]="16" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+              <h2 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+                Dados Empresariais & Fiscais
+              </h2>
+            </div>
+
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <dt class="text-gray-400 dark:text-slate-500 mb-0.5">Razão Social</dt>
+                <dd class="font-semibold text-gray-900 dark:text-slate-100">{{ supplier.corporate_name }}</dd>
+              </div>
+              <div>
+                <dt class="text-gray-400 dark:text-slate-500 mb-0.5">Nome Fantasia</dt>
+                <dd class="font-medium text-gray-900 dark:text-slate-100">{{ supplier.trade_name || '—' }}</dd>
+              </div>
+              <div>
+                <dt class="text-gray-400 dark:text-slate-500 mb-0.5">CNPJ / CPF</dt>
+                <dd class="font-mono tabular-nums text-gray-900 dark:text-slate-100">{{ supplier.document || '—' }}</dd>
+              </div>
+              <div>
+                <dt class="text-gray-400 dark:text-slate-500 mb-0.5">Inscrição Estadual</dt>
+                <dd class="font-mono tabular-nums text-gray-900 dark:text-slate-100">{{ supplier.state_registration || '—' }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Canais Corporativos & Endereço -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200/80 dark:border-slate-700/80 space-y-4">
+              <div class="flex items-center gap-2 pb-2.5 border-b border-gray-100 dark:border-slate-700/60">
+                <lucide-icon [img]="icons.Globe" [size]="16" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+                <h2 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+                  Canais Corporativos
+                </h2>
+              </div>
+
+              <dl class="space-y-3 text-xs">
+                <div>
+                  <dt class="text-gray-400 dark:text-slate-500 mb-0.5">E-mail Geral</dt>
+                  <dd>
+                    @if (supplier.email) {
+                      <a [href]="'mailto:' + supplier.email" class="text-gray-900 dark:text-slate-100 hover:text-[#4F8A6B] hover:underline break-all">
+                        {{ supplier.email }}
+                      </a>
+                    } @else {
+                      <span class="text-gray-400">—</span>
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-gray-400 dark:text-slate-500 mb-0.5">Telefone Sede</dt>
+                  <dd class="font-mono tabular-nums text-gray-900 dark:text-slate-100">{{ supplier.phone || '—' }}</dd>
+                </div>
+                <div>
+                  <dt class="text-gray-400 dark:text-slate-500 mb-0.5">Website / Portal B2B</dt>
+                  <dd>
+                    @if (supplier.website) {
+                      <a
+                        [href]="supplier.website"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1 text-[#4F8A6B] dark:text-[#5BAE6A] hover:underline break-all"
+                      >
+                        <span>{{ supplier.website }}</span>
+                        <lucide-icon [img]="icons.ExternalLink" [size]="12" />
+                      </a>
+                    } @else {
+                      <span class="text-gray-400">—</span>
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200/80 dark:border-slate-700/80 space-y-4">
+              <div class="flex items-center gap-2 pb-2.5 border-b border-gray-100 dark:border-slate-700/60">
+                <lucide-icon [img]="icons.MapPin" [size]="16" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+                <h2 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+                  Endereço Fiscal & Entrega
+                </h2>
+              </div>
+
+              @if (formattedAddress()) {
+                <p class="text-xs text-gray-700 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+                  {{ formattedAddress() }}
+                </p>
+              } @else {
+                <p class="text-xs text-gray-400">Endereço não informado.</p>
+              }
+            </div>
+          </div>
+
+          <!-- Observações & Metadados -->
+          <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200/80 dark:border-slate-700/80 space-y-4">
+            <div class="flex items-center gap-2 pb-2.5 border-b border-gray-100 dark:border-slate-700/60">
+              <lucide-icon [img]="icons.FileText" [size]="16" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+              <h2 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+                Observações & Condições Comerciais
+              </h2>
+            </div>
+
+            <p class="text-xs text-gray-700 dark:text-slate-300 leading-relaxed">
+              {{ supplier.notes || 'Nenhuma observação comercial registrada para este fornecedor.' }}
+            </p>
+
+            <div class="pt-3 border-t border-gray-100 dark:border-slate-700/60 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] text-gray-500 dark:text-slate-400">
+              <div>
+                <span class="block text-gray-400">Cadastro</span>
+                <span class="tabular-nums text-gray-700 dark:text-slate-300">{{ supplier.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div>
+                <span class="block text-gray-400">Última Atualização</span>
+                <span class="tabular-nums text-gray-700 dark:text-slate-300">{{ supplier.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div>
+                <span class="block text-gray-400">Identificador</span>
+                <span class="font-mono text-[10px] truncate block select-all">{{ supplier.id }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Primary Contact Spotlight & Quick Jump to Contacts Tab -->
+        <div class="space-y-5">
+          <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200/80 dark:border-slate-700/80 space-y-4">
+            <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100 dark:border-slate-700/60">
+              <div class="flex items-center gap-2">
+                <lucide-icon [img]="icons.Star" [size]="16" class="text-[#4F8A6B] dark:text-[#5BAE6A]" />
+                <h2 class="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-slate-300">
+                  Contato Principal
+                </h2>
+              </div>
+              <span class="text-xs text-gray-400 tabular-nums">{{ activeContactsCount() }} ativos</span>
+            </div>
+
+            @if (primaryContact(); as primary) {
+              <div class="space-y-3">
+                <div>
+                  <h3 class="text-sm font-bold text-gray-900 dark:text-slate-100">{{ primary.name }}</h3>
+                  <p class="text-xs text-gray-500 dark:text-slate-400">
+                    {{ primary.role ? primary.role + ' · ' : '' }}{{ getDeptLabel(primary.department) }}
+                  </p>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                  @if (primary.email) {
+                    <div class="flex items-center gap-2 text-gray-700 dark:text-slate-200">
+                      <lucide-icon [img]="icons.Mail" [size]="14" class="text-gray-400 shrink-0" />
+                      <a [href]="'mailto:' + primary.email" class="hover:text-[#4F8A6B] hover:underline truncate">
+                        {{ primary.email }}
+                      </a>
+                    </div>
+                  }
+                  @if (primary.mobile) {
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2 font-mono tabular-nums text-gray-700 dark:text-slate-200">
+                        <lucide-icon [img]="icons.Smartphone" [size]="14" class="text-gray-400 shrink-0" />
+                        <span>{{ primary.mobile }}</span>
+                      </div>
+                      @if (primary.has_whatsapp) {
+                        <a
+                          [href]="getWhatsAppUrl(primary.mobile)"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                        >
+                          <lucide-icon [img]="icons.MessageCircle" [size]="12" />
+                          <span>WhatsApp</span>
+                        </a>
+                      }
+                    </div>
+                  }
+                  @if (primary.phone) {
+                    <div class="flex items-center gap-2 font-mono tabular-nums text-gray-700 dark:text-slate-200">
+                      <lucide-icon [img]="icons.Phone" [size]="14" class="text-gray-400 shrink-0" />
+                      <span>
+                        {{ primary.phone }}
+                        @if (primary.extension) {
+                          <span class="font-sans text-gray-500"> · Ramal {{ primary.extension }}</span>
+                        }
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
+                Nenhum contato ativo definido como principal para este fornecedor.
+              </p>
+            }
+
+            <div class="pt-2">
+              <app-button
+                variant="secondary"
+                size="sm"
+                [fullWidth]="true"
+                iconStart="user"
+                (btnClick)="setActiveTab('contacts')"
+              >
+                Gerenciar Contatos ({{ contactsCount() }})
+              </app-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 2: Contatos (Dedicated Contact Management) -->
+    @if (activeTabSignal() === 'contacts') {
+      <app-supplier-contacts
+        [supplierId]="supplier.id"
+        [supplierName]="supplier.trade_name || supplier.corporate_name"
+        [supplierActive]="isSupplierActive()"
+        (contactsChanged)="onContactsChanged()"
+      />
+    }
+  </div>
+
+  <!-- Edit Supplier Master Data Drawer -->
+  <app-supplier-form
+    [isOpen]="isEditDrawerOpenSignal()"
+    mode="edit"
+    [supplier]="supplier"
+    (closeForm)="closeEditDrawer()"
+    (supplierSaved)="onSupplierUpdated($event)"
+    (openContactsRequested)="closeEditDrawer(); setActiveTab('contacts')"
+  />
+}

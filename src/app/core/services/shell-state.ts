@@ -42,13 +42,13 @@ export class ShellStateService {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      icon: 'layout-dashboard',
+      icon: 'dashboard-horizontal',
       route: '/dashboard',
     },
     {
       id: 'catalog',
       label: 'Catálogo',
-      icon: 'box',
+      icon: 'box-3',
       children: [
         { id: 'categories', label: 'Categorias', route: '/catalog/categories' },
         { id: 'manufacturers', label: 'Fabricantes', route: '/catalog/manufacturers' },
@@ -61,7 +61,7 @@ export class ShellStateService {
     {
       id: 'compatibility',
       label: 'Compatibilidade',
-      icon: 'layers',
+      icon: 'stack',
       children: compatibilityMenuChildren(),
     },
     {
@@ -97,20 +97,20 @@ export class ShellStateService {
     {
       id: 'reports',
       label: 'Relatórios',
-      icon: 'bar-chart-3',
+      icon: 'bar-chart-2',
       route: '/reports',
     },
     {
       id: 'notifications',
       label: 'Notificações',
-      icon: 'bell',
+      icon: 'notification-2',
       route: '/notifications',
       badge: '3',
     },
     {
       id: 'admin',
       label: 'Administração',
-      icon: 'settings',
+      icon: 'settings-4',
       route: '/admin',
     },
     {

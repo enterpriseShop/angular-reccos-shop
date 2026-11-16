@@ -1,0 +1,168 @@
+<!-- Page Header -->
+<app-page-header
+  title="Fornecedores"
+  subtitle="Gestão mestre de fornecedores homologados, dados fiscais, endereços e contatos comerciais."
+  [breadcrumbs]="[
+    { label: 'Comercial', route: '/commercial/warehouses' },
+    { label: 'Fornecedores' }
+  ]"
+>
+  <div actions class="flex items-center gap-2">
+    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newSupplier()">
+      Novo Fornecedor
+    </app-button>
+  </div>
+</app-page-header>
+
+<!-- Quick KPI Summary Strip -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
+      >
+        <app-icon name="building" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Total de Fornecedores
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100 tabular-nums">
+          {{ totalCount() }} cadastrados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
+      >
+        <app-icon name="check-circle" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Fornecedores Ativos
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100 tabular-nums">
+          {{ activeCount() }} homologados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
+      >
+        <app-icon name="user" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Contatos Comerciais
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100 tabular-nums">
+          {{ totalContactsCount() }} vinculados
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex items-center justify-between shadow-2xs"
+  >
+    <div class="flex items-center gap-3">
+      <div
+        class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center"
+      >
+        <app-icon name="map-pin" size="w-4 h-4" />
+      </div>
+      <div>
+        <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
+          Abrangência Regional
+        </span>
+        <span class="text-sm font-bold text-gray-900 dark:text-slate-100 tabular-nums">
+          {{ distinctStatesCount() }} estados (UF)
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Toolbar -->
+<app-toolbar>
+  <div start class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+    <app-search-input
+      [value]="searchQuery()"
+      (valueChange)="onSearchChange($event)"
+      placeholder="Filtrar por razão social, fantasia, CNPJ ou cidade..."
+    />
+
+    <app-select
+      [value]="selectedStatus()"
+      (valueChange)="onStatusChange($event)"
+      [options]="statusFilterOptions()"
+      placeholder="Todos os Status"
+    />
+
+    <app-select
+      [value]="selectedState()"
+      (valueChange)="onStateChange($event)"
+      [options]="stateFilterOptions()"
+      placeholder="Todos os Estados (UF)"
+    />
+  </div>
+
+  <div end class="flex items-center gap-2">
+    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+      Limpar
+    </app-button>
+  </div>
+</app-toolbar>
+
+<!-- Table + Integrated Pagination Container -->
+<div class="w-full">
+  <app-data-table
+    [columns]="columns"
+    [data]="allSuppliers()"
+    [actions]="actions"
+    [loading]="loading()"
+    [roundedBottom]="false"
+    emptyTitle="Nenhum fornecedor encontrado"
+    emptyDescription="Cadastre um novo fornecedor ou ajuste os parâmetros de busca e filtros."
+    (rowClick)="viewSupplier($event)"
+  />
+
+  <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpen()"
+  title="Excluir Fornecedor"
+  [message]="'Tem certeza de que deseja excluir o fornecedor ' + (selectedSupplierForDelete()?.trade_name || selectedSupplierForDelete()?.corporate_name || '') + '?'"
+  type="danger"
+  confirmText="Excluir Fornecedor"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpen.set(false)"
+/>
+
+<!-- Supplier Create / Edit / View Drawer Form -->
+<app-supplier-form
+  [isOpen]="isFormOpen()"
+  [mode]="formMode()"
+  [supplier]="selectedSupplier()"
+  (closeForm)="closeForm()"
+  (supplierSaved)="onSupplierSaved()"
+  (contactsUpdated)="onSupplierSaved()"
+  (openContactsRequested)="onOpenContactsRequested($event)"
+/>

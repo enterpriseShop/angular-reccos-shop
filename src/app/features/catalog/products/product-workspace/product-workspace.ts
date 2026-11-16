@@ -168,6 +168,7 @@ export class ProductWorkspaceComponent implements OnInit {
     const url = this.router.url;
     const id = this.route.snapshot.paramMap.get('id');
     const state = this.location.getState() as any;
+    console.log('[URL, ID, STATE]', url, id, state);
 
     this.productCreatedSuccessBanner.set(!!state?.['productJustCreated']);
 

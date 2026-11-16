@@ -9,9 +9,8 @@ import { Component, ChangeDetectionStrategy, input, computed } from '@angular/co
 })
 export class AppIconComponent {
   readonly name = input.required<string>();
-  readonly size = input<string>('w-5 h-5');
+  readonly size = input<string>('1x');
+  readonly variant = input<'line' | 'fill'>('line');
 
-  readonly wrapperClasses = computed(() => {
-    return `${this.size()}`;
-  });
+  readonly iconClass = computed(() => `ri-${this.name()}-${this.variant()} ${this.size()}`);
 }
