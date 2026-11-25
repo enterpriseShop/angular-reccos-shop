@@ -18,21 +18,21 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { ButtonComponent } from '../../../../../design-system/button/button';
-import { AppIconComponent } from '../../../../../design-system/icon/app-icon';
-import { DrawerComponent } from '../../../../../design-system/drawer/drawer';
-import { SupplierService } from '../../../../../core/services/supplier';
-import { ToastService } from '../../../../../core/services/toast';
-import { brazilianStates } from '../../../../../utils/barzilian-states';
-import { IBrazilianState } from '../../../../../core/models/generals/brazilian-states.model';
-import { SupplierResponse } from '../../../../../core/models/suppliers/supplier-response.model';
-import { SupplierRequest } from '../../../../../core/models/suppliers/supplier-request.model';
-import { SUPPLIER_CONTACT_DEPARTMENTS } from '../../../../../utils/supplier-contact-depto';
-import { SupplierContactResponse } from '../../../../../core/models/supplier-contact/supplier-contact-response.model';
-import { SupplierContactRequest } from '../../../../../core/models/supplier-contact/supplier-contact-request.model';
-import { getDepartmentLabel } from '../../../../../core/models/getDepto.model';
-import { StatusStore } from '../../../../../core/store/status-store/status-store';
-import { SelectOption } from '../../../../../core/models/design-system/select-option.model';
+import { ButtonComponent } from '../../../../design-system/button/button';
+import { AppIconComponent } from '../../../../design-system/icon/app-icon';
+import { DrawerComponent } from '../../../../design-system/drawer/drawer';
+import { SupplierService } from '../../../../core/services/supplier';
+import { ToastService } from '../../../../core/services/toast';
+import { brazilianStates } from '../../../../utils/barzilian-states';
+import { IBrazilianState } from '../../../../core/models/generals/brazilian-states.model';
+import { SupplierResponse } from '../../../../core/models/suppliers/supplier-response.model';
+import { SupplierRequest } from '../../../../core/models/suppliers/supplier-request.model';
+import { SUPPLIER_CONTACT_DEPARTMENTS } from '../../../../utils/supplier-contact-depto';
+import { SupplierContactResponse } from '../../../../core/models/supplier-contact/supplier-contact-response.model';
+import { SupplierContactRequest } from '../../../../core/models/supplier-contact/supplier-contact-request.model';
+import { getDepartmentLabel } from '../../../../core/models/getDepto.model';
+import { StatusStore } from '../../../../core/store/status-store/status-store';
+import { SelectOption } from '../../../../core/models/design-system/select-option.model';
 
 export const BRAZILIAN_STATES: readonly IBrazilianState[] = brazilianStates;
 

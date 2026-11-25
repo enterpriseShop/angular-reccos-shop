@@ -139,12 +139,12 @@ export const routes: Routes = [
   {
     path: 'commercial/suppliers',
     loadComponent: () =>
-      import('./features/comercial/suppliers/suppliers').then((c) => c.SuppliersPageComponent),
+      import('./features/suppliers/suppliers').then((c) => c.SuppliersPageComponent),
   },
   {
     path: 'commercial/suppliers/:contactId',
     loadComponent: () =>
-      import('./features/comercial/suppliers/components/supplier-contacts/supplier-contacts').then(
+      import('./features/suppliers/components/supplier-contacts/supplier-contacts').then(
         (c) => c.SupplierContactsComponent,
       ),
   },

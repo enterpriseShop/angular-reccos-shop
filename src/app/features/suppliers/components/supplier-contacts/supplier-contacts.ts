@@ -10,23 +10,23 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule, Users } from 'lucide-angular';
-import { SearchInputComponent } from '../../../../../design-system/input/search-input';
-import { SelectComponent } from '../../../../../design-system/select/select';
-import { ButtonComponent } from '../../../../../design-system/button/button';
-import { ConfirmDialogComponent } from '../../../../../design-system/dialog/confirm-dialog';
-import { EmptyStateComponent } from '../../../../../design-system/empty-state/empty-state';
-import { ErrorStateComponent } from '../../../../../design-system/error-state/error-state';
+import { SearchInputComponent } from '../../../../design-system/input/search-input';
+import { SelectComponent } from '../../../../design-system/select/select';
+import { ButtonComponent } from '../../../../design-system/button/button';
+import { ConfirmDialogComponent } from '../../../../design-system/dialog/confirm-dialog';
+import { EmptyStateComponent } from '../../../../design-system/empty-state/empty-state';
+import { ErrorStateComponent } from '../../../../design-system/error-state/error-state';
 import { SupplierContactModalComponent } from '../supplier-contact-modal/supplier-contact-modal';
-import { SupplierService } from '../../../../../core/services/supplier';
-import { ToastService } from '../../../../../core/services/toast';
-import { SupplierContactResponse } from '../../../../../core/models/supplier-contact/supplier-contact-response.model';
-import { SupplierContactService } from '../../../../../core/services/supplier-contact';
-import { SupplierContactFiltersRequest } from '../../../../../core/models/supplier-contact/supplier-contact-filter-request.model';
+import { SupplierService } from '../../../../core/services/supplier';
+import { ToastService } from '../../../../core/services/toast';
+import { SupplierContactResponse } from '../../../../core/models/supplier-contact/supplier-contact-response.model';
+import { SupplierContactService } from '../../../../core/services/supplier-contact';
+import { SupplierContactFiltersRequest } from '../../../../core/models/supplier-contact/supplier-contact-filter-request.model';
 import { ActivatedRoute } from '@angular/router';
 import { SupplierContactsCard } from '../suplier-contacts-card/supplier-contacts-card';
-import { SUPPLIER_CONTACT_DEPARTMENTS } from '../../../../../utils/supplier-contact-depto';
-import { StatusStore } from '../../../../../core/store/status-store/status-store';
-import { SupplierContactDepartment } from '../../../../../core/models/supplier-contact/supplier-contact-depto.model';
+import { SUPPLIER_CONTACT_DEPARTMENTS } from '../../../../utils/supplier-contact-depto';
+import { StatusStore } from '../../../../core/store/status-store/status-store';
+import { SupplierContactDepartment } from '../../../../core/models/supplier-contact/supplier-contact-depto.model';
 
 @Component({
   selector: 'app-supplier-contacts',

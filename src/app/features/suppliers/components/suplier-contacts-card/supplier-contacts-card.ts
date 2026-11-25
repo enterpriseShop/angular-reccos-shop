@@ -13,9 +13,9 @@ import {
   UserCheck,
   UserX,
 } from 'lucide-angular';
-import { getDepartmentLabel } from '../../../../../core/models/getDepto.model';
-import { SupplierContactResponse } from '../../../../../core/models/supplier-contact/supplier-contact-response.model';
-import { supplierResponseInitialData } from '../../../../../utils/supplier-response-initial-data';
+import { getDepartmentLabel } from '../../../../core/models/getDepto.model';
+import { SupplierContactResponse } from '../../../../core/models/supplier-contact/supplier-contact-response.model';
+import { supplierResponseInitialData } from '../../../../utils/supplier-response-initial-data';
 
 function toTelUrl(phone: string | null | undefined): string {
   const digits = (phone || '').replace(/\D+/g, '');
