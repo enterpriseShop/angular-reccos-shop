@@ -133,7 +133,10 @@ export class ProductWorkspaceComponent implements OnInit {
 
   readonly generalFormOptions = computed(() => ({
     unitOptions: this.unitSaleStore.optionList(),
-    statusOptions: this.statusStore.optionList(),
+    statusOptions: this.statusStore.optionList().map((option) => ({
+      ...option,
+      disabled: false,
+    })),
     categoryOptions: this.categoryStore.optionList(),
     warehouseOptions: this.warehouseStore.optionList(),
     partOriginOptions: this.partOriginStore.optionList(),

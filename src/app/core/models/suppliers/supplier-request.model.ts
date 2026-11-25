@@ -1,4 +1,4 @@
-import { CreateSupplierContactInput } from '../supplier-contact/supplier-contact-request.model';
+import { SupplierContactRequest } from '../supplier-contact/supplier-contact-request.model';
 
 export interface SupplierRequest {
   corporate_name: string;
@@ -14,8 +14,8 @@ export interface SupplierRequest {
   complement: string | null;
   neighborhood: string | null;
   city: string | null;
-  state: string | null; // UF com 2 caracteres
+  state: string | null;
   notes: string | null;
   status_id: string | null;
-  contacts: CreateSupplierContactInput[];
+  contacts: SupplierContactRequest[];
 }

@@ -6,11 +6,14 @@ import { Component, ChangeDetectionStrategy, input, computed } from '@angular/co
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app-icon.html',
   styleUrl: './app-icon.css',
+  host: {
+    class: 'inline-flex items-center justify-center shrink-0 leading-none',
+  },
 })
 export class AppIconComponent {
   readonly name = input.required<string>();
   readonly size = input<string>('1x');
   readonly variant = input<'line' | 'fill'>('line');
 
-  readonly iconClass = computed(() => `ri-${this.name()}-${this.variant()} ${this.size()}`);
+  readonly iconClass = computed(() => `ri-${this.name()}-${this.variant()} ri-${this.size()}`);
 }

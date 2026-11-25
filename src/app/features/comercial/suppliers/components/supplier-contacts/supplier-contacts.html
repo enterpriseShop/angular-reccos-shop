@@ -1,0 +1,205 @@
+<section class="space-y-4">
+  <!-- Section Header -->
+  <div
+    class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-800 rounded-xl p-4 border border-gray-200/80 dark:border-slate-700/80"
+  >
+    <div class="space-y-0.5">
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <h2 class="text-sm font-bold text-gray-900 dark:text-slate-100">Contatos do Fornecedor</h2>
+        <span class="text-xs text-gray-500 dark:text-slate-400 tabular-nums">
+          · {{ totalContactsCount() }} {{ totalContactsCount() === 1 ? 'cadastrado' : 'cadastrados'
+          }} ({{ activeContactsCount() }} {{ activeContactsCount() === 1 ? 'ativo' : 'ativos' }})
+        </span>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-slate-400">
+        Central de contatos comerciais, financeiros e logísticos para pedidos de compra, cotações e
+        avisos.
+      </p>
+    </div>
+
+    <div class="shrink-0">
+      <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="openAddModal()">
+        Adicionar Contato
+      </app-button>
+    </div>
+  </div>
+
+  <!-- Filter & Search Bar -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl p-3.5 border border-gray-200/80 dark:border-slate-700/80 flex flex-col lg:flex-row lg:items-center gap-3"
+  >
+    <!-- Search Input -->
+    <div class="flex-1 min-w-0">
+      <app-search-input
+        [value]="searchQuerySignal()"
+        (valueChange)="onSearchChange($event)"
+        placeholder="Buscar por nome, cargo, e-mail ou telefone..."
+      />
+    </div>
+
+    <!-- Segmented Status Filter -->
+    <div
+      class="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900/70 rounded-lg border border-gray-200/60 dark:border-slate-700/60 shrink-0 self-start lg:self-auto"
+    >
+      <button
+        type="button"
+        (click)="onStatusFilterChange('all')"
+        class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 tabular-nums cursor-pointer"
+        [class]="statusFilterSignal() === 'all'
+          ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 shadow-2xs font-semibold'
+          : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'"
+      >
+        Todos ({{ totalContactsCount() }})
+      </button>
+      <button
+        type="button"
+        (click)="onStatusFilterChange('active')"
+        class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 tabular-nums cursor-pointer"
+        [class]="statusFilterSignal() === 'active'
+          ? 'bg-white dark:bg-slate-800 text-[#4F8A6B] dark:text-[#5BAE6A] shadow-2xs font-semibold'
+          : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'"
+      >
+        Ativos ({{ activeContactsCount() }})
+      </button>
+      <button
+        type="button"
+        (click)="onStatusFilterChange('inactive')"
+        class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 tabular-nums cursor-pointer"
+        [class]="statusFilterSignal() === 'inactive'
+          ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 shadow-2xs font-semibold'
+          : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'"
+      >
+        Inativos ({{ inactiveContactsCount() }})
+      </button>
+    </div>
+
+    <!-- Department Select -->
+    <div class="w-full sm:w-56 shrink-0">
+      <app-select
+        [value]="departmentFilterSignal()"
+        (valueChange)="onDepartmentFilterChange($event)"
+        [options]="departmentSelectOptions()"
+        placeholder="Todos os Departamentos"
+      />
+    </div>
+
+    <!-- Status Select -->
+    <div class="w-full sm:w-56 shrink-0">
+      <app-select
+        [value]="statusFilterSignal()"
+        (valueChange)="onStatusFilterChange($event)"
+        [options]="statusOptions()"
+        placeholder="Todos os status"
+      />
+    </div>
+  </div>
+
+  <!-- Loading Skeleton State -->
+  @if (loadingSignal()) {
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (item of [1, 2, 3]; track item) {
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200/80 dark:border-slate-700/80 space-y-4 animate-pulse"
+    >
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-4 w-40 bg-slate-200 dark:bg-slate-700 rounded"></div>
+          <div class="h-3 w-28 bg-slate-100 dark:bg-slate-700/60 rounded"></div>
+        </div>
+      </div>
+      <div class="space-y-2 pt-2 border-t border-gray-100 dark:border-slate-700/60">
+        <div class="h-3 w-52 bg-slate-100 dark:bg-slate-700/60 rounded"></div>
+        <div class="h-3 w-44 bg-slate-100 dark:bg-slate-700/60 rounded"></div>
+      </div>
+    </div>
+    }
+  </div>
+  } @else if (errorSignal()) {
+  <!-- Error State -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700/80"
+  >
+    <!-- (retry)="loadContacts()" -->
+    <app-error-state
+      title="Erro ao carregar contatos"
+      [message]="errorSignal()!"
+      (retry)="errorSignal()"
+    />
+  </div>
+  } @else if (totalContactsCount() === 0) {
+  <!-- Empty State (No contacts registered yet) -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700/80 py-4"
+  >
+    <app-empty-state
+      icon="user"
+      title="Nenhum contato cadastrado"
+      description="Cadastre os contatos comerciais, financeiros ou logísticos deste fornecedor para agilizar cotações e pedidos de compra."
+      actionText="Adicionar Primeiro Contato"
+      (actionClick)="openAddModal()"
+    />
+  </div>
+  } @else if (contacts().length === 0) {
+  <!-- Empty Filter State -->
+  <div
+    class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200/80 dark:border-slate-700/80 p-8 text-center space-y-3"
+  >
+    <div
+      class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-700 text-gray-400 dark:text-slate-400 flex items-center justify-center mx-auto"
+    >
+      <lucide-icon [img]="icons.Users" [size]="20" />
+    </div>
+    <div class="space-y-1">
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-slate-100">
+        Nenhum contato corresponde aos filtros
+      </h3>
+      <p class="text-xs text-gray-500 dark:text-slate-400">
+        Ajuste o termo de busca, departamento ou situação para visualizar outros registros.
+      </p>
+    </div>
+    <div>
+      <app-button variant="outline" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+        Limpar Filtros
+      </app-button>
+    </div>
+  </div>
+  } @else {
+  <!-- Contact Cards Grid -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    @for (contact of contacts(); track contact.id) {
+    <app-supplier-contact-card
+      [contact]="contact"
+      [loading]="actionLoadingIdSignal() === contact.id"
+      (edit)="openEditModal($event)"
+      (toggleStatus)="toggleStatus($event)"
+      (promote)="promoteToPrimary($event)"
+      (delete)="confirmDelete($event)"
+    />
+    }
+  </div>
+  }
+</section>
+
+<!-- Dedicated Add / Edit Contact Modal -->
+<app-supplier-contact-modal
+  [isOpen]="isModalOpenSignal()"
+  [supplierId]="supplierId()"
+  [supplierName]="supplierName()"
+  [contact]="selectedContactForEditSignal()"
+  [defaultPrimary]="totalContactsCount() === 0"
+  (closeModal)="closeModal()"
+  (saved)="onContactSaved()"
+/>
+
+<!-- Explicit Delete Confirmation Dialog -->
+<app-confirm-dialog
+  [isOpen]="deleteDialogOpenSignal()"
+  title="Excluir Contato"
+  [message]="deleteDialogMessage()"
+  type="danger"
+  confirmText="Excluir Definitivamente"
+  cancelText="Cancelar"
+  (confirmAction)="executeDelete()"
+  (cancelAction)="deleteDialogOpenSignal.set(false)"
+/>

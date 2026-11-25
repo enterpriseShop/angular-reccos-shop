@@ -137,6 +137,18 @@ export const routes: Routes = [
       import('./features/comercial/warehouses/warehouses').then((m) => m.WarehousesPageComponent),
   },
   {
+    path: 'commercial/suppliers',
+    loadComponent: () =>
+      import('./features/comercial/suppliers/suppliers').then((c) => c.SuppliersPageComponent),
+  },
+  {
+    path: 'commercial/suppliers/:contactId',
+    loadComponent: () =>
+      import('./features/comercial/suppliers/components/supplier-contacts/supplier-contacts').then(
+        (c) => c.SupplierContactsComponent,
+      ),
+  },
+  {
     path: 'commercial/:sub',
     loadComponent: () => import('./features/placeholder').then((m) => m.PlaceholderPageComponent),
   },

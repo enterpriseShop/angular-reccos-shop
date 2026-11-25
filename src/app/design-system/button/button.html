@@ -5,7 +5,7 @@
   [class]="buttonClasses()"
 >
   @if (loading()) {
-  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
+  <svg class="animate-spin h-4 w-4 text-current shrink-0" fill="none" viewBox="0 0 24 24">
     <circle
       class="opacity-25"
       cx="12"
@@ -14,6 +14,7 @@
       stroke="currentColor"
       stroke-width="4"
     ></circle>
+
     <path
       class="opacity-75"
       fill="currentColor"
@@ -21,12 +22,14 @@
     ></path>
   </svg>
   } @else if (iconStart()) {
-  <app-icon [name]="iconStart()!" size="w-4 h-4 mr-2" />
+  <app-icon [name]="iconStart()!" [variant]="iconVariant()" [size]="iconSize()" />
   }
 
-  <ng-content />
+  <span class="inline-flex items-center leading-none">
+    <ng-content />
+  </span>
 
   @if (!loading() && iconEnd()) {
-  <app-icon [name]="iconEnd()!" size="w-4 h-4 ml-2" />
+  <app-icon [name]="iconEnd()!" [variant]="iconVariant()" [size]="iconSize()" />
   }
 </button>

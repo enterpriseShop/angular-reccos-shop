@@ -8,7 +8,14 @@
   ]"
 >
   <div actions class="flex items-center gap-2">
-    <app-button variant="primary" size="sm" iconStart="plus" (btnClick)="newSupplier()">
+    <app-button
+      variant="primary"
+      size="md"
+      iconStart="add"
+      iconVariant="line"
+      iconSize="lg"
+      (btnClick)="newSupplier()"
+    >
       Novo Fornecedor
     </app-button>
   </div>
@@ -23,14 +30,14 @@
       <div
         class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center justify-center"
       >
-        <app-icon name="building" size="w-4 h-4" />
+        <app-icon name="building" size="xl" />
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
           Total de Fornecedores
         </span>
         <span class="text-sm font-bold text-gray-900 dark:text-slate-100 tabular-nums">
-          {{ totalCount() }} cadastrados
+          {{ pagination().total }} cadastrados
         </span>
       </div>
     </div>
@@ -43,7 +50,7 @@
       <div
         class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-[#4F8A6B]/20 text-[#4F8A6B] dark:text-[#5BAE6A] flex items-center justify-center"
       >
-        <app-icon name="check-circle" size="w-4 h-4" />
+        <app-icon name="check-circle" size="xl" />
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
@@ -63,7 +70,7 @@
       <div
         class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-[#5A8DEE]/20 text-[#5A8DEE] flex items-center justify-center"
       >
-        <app-icon name="user" size="w-4 h-4" />
+        <app-icon name="user" size="xl" />
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
@@ -83,7 +90,7 @@
       <div
         class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 flex items-center justify-center"
       >
-        <app-icon name="map-pin" size="w-4 h-4" />
+        <app-icon name="map-pin" size="xl" />
       </div>
       <div>
         <span class="text-[11px] font-medium text-gray-500 dark:text-slate-400 block">
@@ -109,7 +116,7 @@
     <app-select
       [value]="selectedStatus()"
       (valueChange)="onStatusChange($event)"
-      [options]="statusFilterOptions()"
+      [options]="statusOptions()"
       placeholder="Todos os Status"
     />
 
@@ -122,7 +129,13 @@
   </div>
 
   <div end class="flex items-center gap-2">
-    <app-button variant="ghost" size="sm" iconStart="refresh-cw" (btnClick)="resetFilters()">
+    <app-button
+      variant="ghost"
+      size="sm"
+      iconStart="refresh"
+      iconVariant="line"
+      (btnClick)="resetFilters()"
+    >
       Limpar
     </app-button>
   </div>
@@ -138,7 +151,7 @@
     [roundedBottom]="false"
     emptyTitle="Nenhum fornecedor encontrado"
     emptyDescription="Cadastre um novo fornecedor ou ajuste os parâmetros de busca e filtros."
-    (rowClick)="viewSupplier($event)"
+    (actionClick)="onActionClick($event)"
   />
 
   <app-pagination [pagination]="pagination()" (paginationChange)="onPaginationChange($event)" />

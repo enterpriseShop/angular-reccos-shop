@@ -34,11 +34,12 @@
         <app-icon name="x" size="w-3.5 h-3.5" />
       </button>
       }
-      <app-icon
-        name="chevron-down"
-        size="w-4 h-4 text-gray-400 transition-transform duration-200"
+      <app-icon name="arrow-drop-down" size="xl" [class.rotate-180]="isOpen()" />
+      <!-- <app-icon
+        name="arrow-drop-down"
+        size="xl text-gray-400 transition-transform duration-200"
         [class.rotate-180]="isOpen()"
-      />
+      /> -->
     </div>
   </div>
 

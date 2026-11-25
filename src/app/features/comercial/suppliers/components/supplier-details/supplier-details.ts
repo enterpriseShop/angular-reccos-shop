@@ -28,16 +28,16 @@ import {
   MessageCircle,
   ArrowRight,
 } from 'lucide-angular';
-import { PageHeaderComponent } from '../../../../design-system/page-header/page-header';
-import { ButtonComponent } from '../../../../design-system/button/button';
-import { ErrorStateComponent } from '../../../../design-system/error-state/error-state';
-import { SupplierContactsComponent } from '../../components/supplier-contacts/supplier-contacts';
-import { SupplierFormComponent } from '../../components/supplier-form/supplier-form';
-import { SupplierService } from '../../../../core/services/supplier';
-import { ShellStateService } from '../../../../core/services/shell-state';
-import { SupplierResponse } from '../../../../core/models/suppliers/supplier-response.model';
-import { SupplierContactResponse } from '../../../../core/models/supplier-contact/supplier-contact-response.model';
-import { getDepartmentLabel } from '../../../../core/models/getDepto.model';
+import { PageHeaderComponent } from '../../../../../design-system/page-header/page-header';
+import { ButtonComponent } from '../../../../../design-system/button/button';
+import { ErrorStateComponent } from '../../../../../design-system/error-state/error-state';
+import { SupplierContactsComponent } from '../supplier-contacts/supplier-contacts';
+import { SupplierFormComponent } from '../supplier-form/supplier-form';
+import { SupplierService } from '../../../../../core/services/supplier';
+import { ShellStateService } from '../../../../../core/services/shell-state';
+import { SupplierResponse } from '../../../../../core/models/suppliers/supplier-response.model';
+import { SupplierContactResponse } from '../../../../../core/models/supplier-contact/supplier-contact-response.model';
+import { getDepartmentLabel } from '../../../../../core/models/getDepto.model';
 
 export type SupplierDetailsTab = 'overview' | 'contacts';
 
@@ -121,7 +121,7 @@ export class SupplierDetailsPageComponent implements OnInit {
     if (!s) return true;
     // const code = (s.status?.code || '').toLowerCase();
     // return s.active ?? code === 'active';
-    return 'active';
+    return true;
   });
 
   readonly statusLabel = computed(() => {

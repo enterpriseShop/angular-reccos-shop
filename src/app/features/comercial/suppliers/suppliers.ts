@@ -7,27 +7,29 @@ import {
   OnInit,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { PageHeaderComponent } from '../../design-system/page-header/page-header';
-import { ToolbarComponent } from '../../design-system/toolbar/toolbar';
-import { SearchInputComponent } from '../../design-system/input/search-input';
-import { SelectComponent } from '../../design-system/select/select';
-import { ButtonComponent } from '../../design-system/button/button';
-import { DataTableComponent } from '../../design-system/data-table/data-table';
-import { PaginationComponent } from '../../design-system/pagination/pagination';
-import { ConfirmDialogComponent } from '../../design-system/dialog/confirm-dialog';
-import { AppIconComponent } from '../../design-system/icon/app-icon';
-import { SupplierFormComponent, BRAZILIAN_STATES } from './components/supplier-form/supplier-form';
-import { ToastService } from '../../core/services/toast';
-import { PaginationMeta } from '../../core/models/pagination/pagination.model';
-import { initialValuesPagination } from '../../design-system/pagination/utils/initial-values';
-import { SupplierFilterRequest } from '../../core/models/suppliers/supplier-filter-request.model';
-import { SupplierService } from '../../core/services/supplier';
-import { StatusService } from '../../core/services/status-service';
-import { SupplierResponse } from '../../core/models/suppliers/supplier-response.model';
-import { SelectOption } from '../../core/models/design-system/select-option.model';
-import { TableAction, TableColumn } from '../../core/models/list-table/list-table.model';
-import { supplierTableActions, supplierTableColumns } from '../../utils/supplier-table-collums';
-import { StatusStore } from '../../core/store/status-store/status-store';
+import { PageHeaderComponent } from '../../../design-system/page-header/page-header';
+import { ToolbarComponent } from '../../../design-system/toolbar/toolbar';
+import { SearchInputComponent } from '../../../design-system/input/search-input';
+import { SelectComponent } from '../../../design-system/select/select';
+import { ButtonComponent } from '../../../design-system/button/button';
+import { DataTableComponent } from '../../../design-system/data-table/data-table';
+import { PaginationComponent } from '../../../design-system/pagination/pagination';
+import { ConfirmDialogComponent } from '../../../design-system/dialog/confirm-dialog';
+import { AppIconComponent } from '../../../design-system/icon/app-icon';
+import { SupplierFormComponent } from './components/supplier-form/supplier-form';
+import { ToastService } from '../../../core/services/toast';
+import { PaginationMeta } from '../../../core/models/pagination/pagination.model';
+import { initialValuesPagination } from '../../../design-system/pagination/utils/initial-values';
+import { SupplierFilterRequest } from '../../../core/models/suppliers/supplier-filter-request.model';
+import { SupplierService } from '../../../core/services/supplier';
+import { StatusService } from '../../../core/services/status-service';
+import { SupplierResponse } from '../../../core/models/suppliers/supplier-response.model';
+import { SelectOption } from '../../../core/models/design-system/select-option.model';
+import { TableAction, TableColumn } from '../../../core/models/list-table/list-table.model';
+import { supplierTableActions, supplierTableColumns } from '../../../utils/supplier-table-collums';
+import { StatusStore } from '../../../core/store/status-store/status-store';
+import { brazilianStates } from '../../../utils/barzilian-states';
+import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -63,6 +65,9 @@ export class SuppliersPageComponent implements OnInit {
   readonly pageSize = signal<number>(10);
   readonly totalItems = signal<number>(0);
 
+  private searchSubscription?: Subscription;
+  private searchSubject = new Subject<string>();
+
   // Form Drawer State
   readonly isFormOpen = signal<boolean>(false);
   readonly formMode = signal<'create' | 'edit' | 'view'>('create');
@@ -77,7 +82,7 @@ export class SuppliersPageComponent implements OnInit {
   readonly statusOptions = computed<SelectOption[]>(() => {
     const result = this.statusStore
       .optionList()
-      .filter((m) => m.module === 'PRODUCT_CODE_TYPE')
+      .filter((m) => m.module === 'SUPPLIER')
       .map((m) => ({
         ...m,
         disabled: false,
@@ -86,7 +91,6 @@ export class SuppliersPageComponent implements OnInit {
 
     return result;
   });
-  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
   params: SupplierFilterRequest = {
     name: null,
@@ -95,74 +99,33 @@ export class SuppliersPageComponent implements OnInit {
     active: null,
     document: null,
     status_id: null,
-    page: this.pageSize(),
-    per_page: this.currentPage(),
+    per_page: this.pageSize(),
+    page: this.currentPage(),
   };
 
-  readonly statusFilterOptions = computed<SelectOption[]>(() => {
-    const base: SelectOption[] = [
-      { label: 'Todos os Status', value: '', sublabel: '', disabled: false, module: '' },
-    ];
-    const apiStatuses = this.statusOptions();
-    if (apiStatuses.length > 0) {
-      return [
-        ...base,
-        ...apiStatuses.map((st) => ({
-          label: st.label,
-          value: st.value,
-          sublabel: '',
-          disabled: false,
-          module: '',
-        })),
-      ];
-    }
-    return [
-      ...base,
-      { label: 'Ativo', value: 'active', sublabel: '', disabled: false, module: '' },
-      { label: 'Inativo', value: 'inactive', sublabel: '', disabled: false, module: '' },
-      { label: 'Em Revisão', value: 'st-04', sublabel: '', disabled: false, module: '' },
-    ];
-  });
-
   readonly stateFilterOptions = computed<SelectOption[]>(() => {
-    const activeStates = new Set(
-      this.allSuppliers()
-        .map((s) => (s.state || '').trim().toUpperCase())
-        .filter(Boolean),
-    );
-    const list = BRAZILIAN_STATES.filter(
-      (uf) => activeStates.size === 0 || activeStates.has(uf.code),
-    ).map((uf) => ({
+    return brazilianStates.map((uf) => ({
       label: `${uf.code} — ${uf.name}`,
       value: uf.code,
       sublabel: '',
       disabled: false,
       module: '',
     }));
-    return [
-      { label: 'Todos os Estados (UF)', value: '', sublabel: '', disabled: false, module: '' },
-      ...list,
-    ];
   });
 
   readonly columns: TableColumn<SupplierResponse>[] = supplierTableColumns;
   readonly actions: TableAction<SupplierResponse>[] = supplierTableActions;
+  readonly pagination = signal<PaginationMeta>(initialValuesPagination);
 
-  // KPI Computed Signals
-  readonly totalCount = computed(() => this.allSuppliers().length);
   readonly activeCount = computed(
     () =>
-      // this.allSuppliers().filter((s) => s.active ?? s.status?.code?.toLowerCase() === 'active')
-      //   .length,
-      0,
+      this.allSuppliers().filter(
+        (s) => s.status?.code ?? s.status?.code?.toLowerCase() === 'active',
+      ).length,
+    // 0,
   );
-  readonly totalContactsCount = computed(
-    () =>
-      // this.allSuppliers().reduce(
-      //   (sum, s) => sum + (s.contacts_count ?? (s.contacts ? s.contacts.length : 0)),
-      //   0,
-      // ),
-      0,
+  readonly totalContactsCount = computed(() =>
+    this.allSuppliers().reduce((sum, s) => sum + (s.contacts?.length || 0), 0),
   );
   readonly distinctStatesCount = computed(() => {
     const ufs = new Set(
@@ -175,6 +138,14 @@ export class SuppliersPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSuppliers(this.params);
+    this.searchSubscription = this.searchSubject
+      .pipe(debounceTime(500), distinctUntilChanged())
+      .subscribe((queryText) => {
+        this.pageSize.set(10);
+        this.currentPage.set(1);
+        this.searchQuery.set(queryText);
+        this.normalizeParams();
+      });
   }
 
   loadSuppliers(params: SupplierFilterRequest): void {
@@ -196,28 +167,45 @@ export class SuppliersPageComponent implements OnInit {
     });
   }
 
+  normalizeParams(): void {
+    this.params = {
+      active: null,
+      city: null,
+      document: null,
+      page: this.currentPage(),
+      per_page: this.pageSize(),
+      name: this.searchQuery(),
+      state: this.selectedState(),
+      status_id: this.selectedStatus(),
+    };
+    this.loadSuppliers(this.params);
+  }
+
   onSearchChange(query: string): void {
-    this.searchQuery.set(query);
-    this.currentPage.set(1);
+    this.searchSubject.next(query);
   }
 
   onStatusChange(status: string): void {
     this.selectedStatus.set(status);
     this.currentPage.set(1);
+    this.normalizeParams();
   }
 
   onStateChange(uf: string): void {
     this.selectedState.set(uf);
     this.currentPage.set(1);
+    this.normalizeParams();
   }
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
+    this.normalizeParams();
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(1);
+    this.normalizeParams();
   }
 
   resetFilters(): void {
@@ -225,7 +213,7 @@ export class SuppliersPageComponent implements OnInit {
     this.selectedStatus.set('');
     this.selectedState.set('');
     this.currentPage.set(1);
-    this.toastService.info('Filtros limpos', 'Todos os parâmetros de busca foram resetados.');
+    this.normalizeParams();
   }
 
   newSupplier(): void {
@@ -242,6 +230,20 @@ export class SuppliersPageComponent implements OnInit {
 
   viewSupplier(supplier: SupplierResponse): void {
     this.router.navigate(['/commercial/suppliers', supplier.id]);
+  }
+
+  onActionClick(event: { actionId: string; row: SupplierResponse }): void {
+    switch (event.actionId) {
+      case 'contacts':
+        this.openSupplierContacts(event.row);
+        break;
+      case 'edit':
+        this.editSupplier(event.row);
+        break;
+      case 'delete':
+        this.confirmDelete(event.row);
+        break;
+    }
   }
 
   openSupplierContacts(supplier: SupplierResponse): void {

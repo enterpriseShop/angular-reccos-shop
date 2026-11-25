@@ -3,14 +3,6 @@ import { SupplierResponse } from '../core/models/suppliers/supplier-response.mod
 
 export const supplierTableColumns: TableColumn<SupplierResponse>[] = [
   {
-    key: 'id',
-    header: 'Tipo',
-    width: '56px',
-    align: 'center',
-    type: 'icon',
-    iconGetter: () => 'building',
-  },
-  {
     key: 'document',
     header: 'CNPJ / CPF',
     width: '175px',
@@ -53,7 +45,7 @@ export const supplierTableColumns: TableColumn<SupplierResponse>[] = [
     header: 'Contatos',
     width: '90px',
     align: 'center',
-    valueGetter: (s: SupplierResponse) => `${s.contacts ?? (s.contacts || []).length}`,
+    valueGetter: (s: SupplierResponse) => s.contacts?.length ?? 0,
   },
   {
     key: 'status',
@@ -63,8 +55,8 @@ export const supplierTableColumns: TableColumn<SupplierResponse>[] = [
     type: 'badge',
     badgeConfig: (s: SupplierResponse) => {
       const stCode = (s.status?.code || '').toLowerCase();
-      // const isAct = s.active ?? stCode === 'active';
-      const isAct = 'active';
+      const isAct = s.status?.code ?? stCode === 'active';
+      // const isAct = 'active';
       let variant: 'success' | 'danger' | 'warning' | 'neutral' = 'neutral';
       if (isAct || stCode === 'active') {
         variant = 'success';
@@ -90,13 +82,6 @@ export const supplierTableColumns: TableColumn<SupplierResponse>[] = [
 ];
 
 export const supplierTableActions: TableAction<SupplierResponse>[] = [
-  {
-    id: 'view',
-    label: 'Detalhes',
-    icon: 'eye',
-    colorClass: 'text-gray-400 hover:text-[#5A8DEE] hover:bg-gray-100 dark:hover:bg-slate-700',
-    title: 'Ver Detalhes do Fornecedor',
-  },
   {
     id: 'contacts',
     label: 'Contatos',

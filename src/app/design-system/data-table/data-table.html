@@ -47,8 +47,8 @@
         </tr>
         } @else { @for (row of data(); track row) {
         <tr
-          (click)="onRowClick(row)"
-          (keydown.enter)="onRowClick(row)"
+          (click)="rowClick.emit(row)"
+          (keydown.enter)="rowClick.emit(row)"
           tabindex="0"
           class="hover:bg-gray-50/80 dark:hover:bg-slate-700/40 transition-colors cursor-pointer group focus:outline-none focus:bg-gray-100 dark:focus:bg-slate-700"
         >
@@ -74,7 +74,7 @@
             } @else { {{ getFormattedValue(row, col) }} }
           </td>
           } @if (hasActions()) {
-          <td class="px-4 py-3.5 text-right" (click)="$event.stopPropagation()">
+          <td class="px-4 py-3.5" (click)="$event.stopPropagation()">
             <div class="inline-flex items-center justify-end gap-1">
               @for (act of getVisibleActions(row); track act.id) {
               <button
@@ -83,7 +83,7 @@
                 [class]="'p-1.5 rounded transition-colors cursor-pointer ' + (act.colorClass || 'text-gray-400 hover:text-[#4F8A6B] hover:bg-gray-100 dark:hover:bg-slate-700')"
                 [title]="act.title || act.label"
               >
-                <app-icon [name]="act.icon" size="w-4 h-4" />
+                <app-icon [name]="act.icon" size="xl" />
               </button>
               }
             </div>

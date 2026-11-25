@@ -23,13 +23,13 @@ import {
   Check,
   Building2,
 } from 'lucide-angular';
-import { DialogComponent } from '../../../../design-system/dialog/dialog';
-import { ButtonComponent } from '../../../../design-system/button/button';
-import { ToastService } from '../../../../core/services/toast';
-import { SupplierContactResponse } from '../../../../core/models/supplier-contact/supplier-contact-response.model';
-import { SUPPLIER_CONTACT_DEPARTMENTS } from '../../../../utils/supplier-contact-depto';
-import { SupplierContactService } from '../../../../core/services/supplier-contact';
-import { SupplierContactRequest } from '../../../../core/models/supplier-contact/supplier-contact-request.model';
+import { DialogComponent } from '../../../../../design-system/dialog/dialog';
+import { ButtonComponent } from '../../../../../design-system/button/button';
+import { ToastService } from '../../../../../core/services/toast';
+import { SupplierContactResponse } from '../../../../../core/models/supplier-contact/supplier-contact-response.model';
+import { SUPPLIER_CONTACT_DEPARTMENTS } from '../../../../../utils/supplier-contact-depto';
+import { SupplierContactService } from '../../../../../core/services/supplier-contact';
+import { SupplierContactRequest } from '../../../../../core/models/supplier-contact/supplier-contact-request.model';
 
 @Component({
   selector: 'app-supplier-contact-modal',

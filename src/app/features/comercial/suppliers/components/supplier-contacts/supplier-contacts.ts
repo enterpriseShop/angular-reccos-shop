@@ -9,39 +9,24 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  LucideAngularModule,
-  Plus,
-  Star,
-  Mail,
-  Phone,
-  Smartphone,
-  MessageCircle,
-  Edit3,
-  Power,
-  Trash2,
-  UserCheck,
-  UserX,
-  Users,
-  Briefcase,
-  FileText,
-  ExternalLink,
-} from 'lucide-angular';
-import { SearchInputComponent } from '../../../../design-system/input/search-input';
-import { SelectComponent } from '../../../../design-system/select/select';
-import { ButtonComponent } from '../../../../design-system/button/button';
-import { ConfirmDialogComponent } from '../../../../design-system/dialog/confirm-dialog';
-import { EmptyStateComponent } from '../../../../design-system/empty-state/empty-state';
-import { ErrorStateComponent } from '../../../../design-system/error-state/error-state';
+import { LucideAngularModule, Users } from 'lucide-angular';
+import { SearchInputComponent } from '../../../../../design-system/input/search-input';
+import { SelectComponent } from '../../../../../design-system/select/select';
+import { ButtonComponent } from '../../../../../design-system/button/button';
+import { ConfirmDialogComponent } from '../../../../../design-system/dialog/confirm-dialog';
+import { EmptyStateComponent } from '../../../../../design-system/empty-state/empty-state';
+import { ErrorStateComponent } from '../../../../../design-system/error-state/error-state';
 import { SupplierContactModalComponent } from '../supplier-contact-modal/supplier-contact-modal';
-import { SupplierService } from '../../../../core/services/supplier';
-import { ToastService } from '../../../../core/services/toast';
-import { SupplierContactResponse } from '../../../../core/models/supplier-contact/supplier-contact-response.model';
-import { SelectOption } from '../../../../core/models/design-system/select-option.model';
-import { SupplierContactService } from '../../../../core/services/supplier-contact';
-import { SupplierContactFiltersRequest } from '../../../../core/models/supplier-contact/supplier-contact-filter-request.model';
-
-export type ContactStatusFilter = 'all' | 'active' | 'inactive';
+import { SupplierService } from '../../../../../core/services/supplier';
+import { ToastService } from '../../../../../core/services/toast';
+import { SupplierContactResponse } from '../../../../../core/models/supplier-contact/supplier-contact-response.model';
+import { SupplierContactService } from '../../../../../core/services/supplier-contact';
+import { SupplierContactFiltersRequest } from '../../../../../core/models/supplier-contact/supplier-contact-filter-request.model';
+import { ActivatedRoute } from '@angular/router';
+import { SupplierContactsCard } from '../suplier-contacts-card/supplier-contacts-card';
+import { SUPPLIER_CONTACT_DEPARTMENTS } from '../../../../../utils/supplier-contact-depto';
+import { StatusStore } from '../../../../../core/store/status-store/status-store';
+import { SupplierContactDepartment } from '../../../../../core/models/supplier-contact/supplier-contact-depto.model';
 
 @Component({
   selector: 'app-supplier-contacts',
@@ -56,81 +41,72 @@ export type ContactStatusFilter = 'all' | 'active' | 'inactive';
     EmptyStateComponent,
     ErrorStateComponent,
     SupplierContactModalComponent,
+    SupplierContactsCard,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './supplier-contacts.html',
 })
 export class SupplierContactsComponent {
+  private statusStore = inject(StatusStore);
+  private readonly actvRoute = inject(ActivatedRoute);
   private readonly toastService = inject(ToastService);
   private readonly supplierService = inject(SupplierService);
   private readonly supplierContactService = inject(SupplierContactService);
 
-  readonly supplierId = input.required<string>();
   readonly supplierName = input<string>('');
   readonly supplierActive = input<boolean>(true);
 
   readonly contactsChanged = output<void>();
 
-  // State Signals
-  readonly contactsSignal = signal<SupplierContactResponse[]>([]);
+  readonly supplierId = signal<string>('');
   readonly loadingSignal = signal<boolean>(false);
   readonly errorSignal = signal<string | null>(null);
   readonly actionLoadingIdSignal = signal<string | null>(null);
-
-  // Filter Signals
+  readonly contacts = signal<SupplierContactResponse[]>([]);
   readonly searchQuerySignal = signal<string>('');
-  readonly statusFilterSignal = signal<ContactStatusFilter>('all');
-  readonly departmentFilterSignal = signal<string>('');
-
-  // Modal State Signals
+  readonly statusFilterSignal = signal<string>('');
+  readonly departmentFilterSignal = signal<SupplierContactDepartment>('all');
   readonly isModalOpenSignal = signal<boolean>(false);
   readonly selectedContactForEditSignal = signal<SupplierContactResponse | null>(null);
-
-  // Delete Confirmation Dialog Signals
   readonly deleteDialogOpenSignal = signal<boolean>(false);
   readonly selectedContactForDeleteSignal = signal<SupplierContactResponse | null>(null);
+  private readonly currentPage = signal<number>(1);
+  private readonly perPage = signal<number>(10);
 
-  // Lucide Icons
   readonly icons = {
-    Plus,
-    Star,
-    Mail,
-    Phone,
-    Smartphone,
-    MessageCircle,
-    Edit3,
-    Power,
-    Trash2,
-    UserCheck,
-    UserX,
     Users,
-    Briefcase,
-    FileText,
-    ExternalLink,
   };
 
-  readonly departmentSelectOptions: SelectOption[] = [
-    // { label: 'Todos os Departamentos', value: '' },
-    // ...SUPPLIER_CONTACT_DEPARTMENTS.map((d) => ({
-    //   label: d.label,
-    //   value: d.value,
-    // })),
-  ];
+  readonly statusOptions = computed(() => {
+    const options = this.statusStore.statusOptions().filter((m) => m.module === 'SUPPLIER_CONTACT');
+    return options;
+  });
+
+  readonly departmentSelectOptions = computed(() => [
+    { label: 'Todos os Departamentos', value: '', sublabel: '', module: '', disabled: false },
+    ...SUPPLIER_CONTACT_DEPARTMENTS.map((d) => ({
+      label: d.label,
+      value: d.value,
+      sublabel: '',
+      module: '',
+      disabled: false,
+    })),
+  ]);
 
   // Computed Counters
-  readonly totalContactsCount = computed(() => this.contactsSignal().length);
+  readonly totalContactsCount = computed(() => this.contacts().length);
   readonly activeContactsCount = computed(
-    () => this.contactsSignal().filter((c) => c.active !== false).length,
+    () => this.contacts().filter((c) => c.active !== false).length,
   );
   readonly inactiveContactsCount = computed(
-    () => this.contactsSignal().filter((c) => c.active === false).length,
+    () => this.contacts().filter((c) => c.active === false).length,
   );
 
   readonly hasActiveFilters = computed(
     () =>
       this.searchQuerySignal().trim().length > 0 ||
-      this.statusFilterSignal() !== 'all' ||
-      this.departmentFilterSignal() !== '',
+      this.statusFilterSignal() !== '' ||
+      this.departmentFilterSignal() !== 'all',
   );
 
   readonly deleteDialogMessage = computed(() => {
@@ -144,10 +120,13 @@ export class SupplierContactsComponent {
     active: null,
     is_primary: null,
     department: 'all',
+    page: this.currentPage(),
+    per_page: this.perPage(),
   };
 
   constructor() {
     effect(() => {
+      this.supplierId.set(this.actvRoute.snapshot.params['contactId']);
       const id = this.supplierId();
       if (id) {
         this.loadContacts(id, this.params);
@@ -161,7 +140,7 @@ export class SupplierContactsComponent {
 
     this.supplierContactService.getAll(supId, params).subscribe({
       next: (res) => {
-        this.contactsSignal.set(res.data || []);
+        this.contacts.set(res.data || []);
         this.loadingSignal.set(false);
       },
       error: (err) => {
@@ -175,22 +154,44 @@ export class SupplierContactsComponent {
     });
   }
 
-  onSearchChange(query: string): void {
-    this.searchQuerySignal.set(query);
+  normalizeParams(): void {
+    this.params = {
+      active: null,
+      is_primary: null,
+      page: this.currentPage(),
+      per_page: this.perPage(),
+      search: this.searchQuerySignal(),
+      department: this.departmentFilterSignal(),
+    };
+    this.loadContacts(this.supplierId(), this.params);
   }
 
-  onStatusFilterChange(status: ContactStatusFilter): void {
+  onSearchChange(query: string): void {
+    this.perPage.set(10);
+    this.currentPage.set(1);
+    this.searchQuerySignal.set(query);
+    this.normalizeParams();
+  }
+
+  onStatusFilterChange(status: string): void {
+    this.perPage.set(10);
+    this.currentPage.set(1);
     this.statusFilterSignal.set(status);
+    this.normalizeParams();
   }
 
   onDepartmentFilterChange(department: string): void {
-    this.departmentFilterSignal.set(department);
+    console.log('department', department);
+    this.perPage.set(10);
+    this.currentPage.set(1);
+    this.departmentFilterSignal.set(department as SupplierContactDepartment);
+    this.normalizeParams();
   }
 
   resetFilters(): void {
     this.searchQuerySignal.set('');
     this.statusFilterSignal.set('all');
-    this.departmentFilterSignal.set('');
+    this.departmentFilterSignal.set('all');
   }
 
   openAddModal(): void {
@@ -222,7 +223,7 @@ export class SupplierContactsComponent {
       next: (res) => {
         this.actionLoadingIdSignal.set(null);
         const updated = res.data;
-        this.contactsSignal.update((list) =>
+        this.contacts.update((list) =>
           list.map((item) => (item.id === contact.id ? { ...item, ...updated } : item)),
         );
 
@@ -258,7 +259,7 @@ export class SupplierContactsComponent {
     this.supplierContactService.setPrimaryContact(this.supplierId(), contact.id).subscribe({
       next: () => {
         this.actionLoadingIdSignal.set(null);
-        this.contactsSignal.update((list) =>
+        this.contacts.update((list) =>
           list.map((item) => ({
             ...item,
             is_primary: item.id === contact.id,
@@ -295,7 +296,7 @@ export class SupplierContactsComponent {
         this.actionLoadingIdSignal.set(null);
         this.deleteDialogOpenSignal.set(false);
         this.selectedContactForDeleteSignal.set(null);
-        this.contactsSignal.update((list) => list.filter((c) => c.id !== contact.id));
+        this.contacts.update((list) => list.filter((c) => c.id !== contact.id));
         this.toastService.success(
           'Contato excluído',
           `${contact.name} foi removido permanentemente do fornecedor.`,
@@ -311,31 +312,5 @@ export class SupplierContactsComponent {
         );
       },
     });
-  }
-
-  // Template Helpers (Pure & AOT-safe)
-  getInitials(name: string): string {
-    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return 'CT';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  }
-
-  getDeptLabel(department: string | null | undefined): string {
-    // return getDepartmentLabel(department);
-    console.log(department);
-    return department || '';
-  }
-
-  getWhatsAppUrl(mobile: string | null | undefined): string {
-    const digits = (mobile || '').replace(/\D+/g, '');
-    if (!digits) return '';
-    const fullNumber = digits.startsWith('55') && digits.length >= 12 ? digits : `55${digits}`;
-    return `https://wa.me/${fullNumber}`;
-  }
-
-  getTelUrl(phone: string | null | undefined): string {
-    const digits = (phone || '').replace(/\D+/g, '');
-    return digits ? `tel:+55${digits}` : '';
   }
 }

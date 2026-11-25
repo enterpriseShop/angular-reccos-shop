@@ -65,8 +65,9 @@
               <app-badge variant="primary">{{ item.badge }}</app-badge>
               } @if (item.children && item.children.length > 0) {
               <app-icon
-                [name]="isExpanded(item.id) ? 'chevron-drop-down' : 'chevron-drop-right'"
-                size="w-4 h-4 text-gray-400"
+                [name]="isExpanded(item.id) ? 'arrow-drop-down' : 'arrow-drop-right'"
+                size="ri-xl"
+                [variant]="'line'"
               />
               }
             </div>
